@@ -1,0 +1,58 @@
+{
+  "scripts": {
+    "preinstall": "npx npm-force-resolutions",
+    "start": "webpack-dev-server --progress --hot --open",
+    "start-local": "webpack-dev-server --env local --progress --hot --open"
+  },
+  "dependencies": {
+    "@date-io/date-fns": "^2.14.0",
+    "@emotion/react": "11.9.0",
+    "@emotion/styled": "11.8.1",
+    "@fortawesome/fontawesome-svg-core": "^6.1.1",
+    "@fortawesome/free-regular-svg-icons": "^6.1.1",
+    "@fortawesome/free-solid-svg-icons": "^6.1.1",
+    "@fortawesome/react-fontawesome": "^0.1.18",
+    "@mapbox/mapbox-gl-draw": "^1.3.0",
+    "@mapbox/mapbox-gl-geocoder": "^4.7.4",
+    "@mui/icons-material": "^5.8.0",
+    "@mui/material": "5.7.0",
+    "@mui/x-data-grid": "^5.11.0",
+    "@mui/x-date-pickers": "5.0.0-alpha.3",
+    "@turf/area": "^6.5.0",
+    "@types/mapbox__mapbox-gl-draw": "^1.2.3",
+    "@types/mapbox__mapbox-gl-geocoder": "^4.7.2",
+    "base-64": "^1.0.0",
+    "date-fns": "^2.28.0",
+    "ky": "^0.30.0",
+    "mapbox-gl": "^2.0.0",
+    "mapbox-gl-draw-rectangle-mode": "^1.0.0",
+    "mapbox-gl-draw-rectangle-restrict-area": "3.1.5",
+    "mapbox-gl-style-switcher": "1.0.11",
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0",
+    "react-map-gl": "^7.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "@babel/preset-react": "^7.0.0",
+    "babel-loader": "^8.0.0",
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-react": "^7.29.4",
+    "speed-measure-webpack-plugin": "^1.5.0",
+    "ts-loader": "^9.0.0",
+    "typescript": "^4.0.0",
+    "webpack": "^5.65.0",
+    "webpack-cli": "^4.9.0",
+    "webpack-dev-server": "^4.7.0",
+
+    "dotenv": "^16.0.1",
+    "dotenv-webpack": "^7.1.0",
+    "react-error-overlay": "6.0.9",
+    "npm-force-resolutions": "0.0.10"
+  },
+  "resolutions": {
+    "react-error-overlay": "6.0.9"
+  }
+}
