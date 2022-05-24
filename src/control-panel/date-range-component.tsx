@@ -36,9 +36,7 @@ const MyDatePicker = styled(DatePicker)({
                 maxDate={new Date()}
                 label="From"
                 value={props.startDate}
-                onChange={(newValue: Date | null) => {
-                  props.setStartDate(newValue);
-                }}
+                onChange={props.setStartDate}
                 sx={{width: '150px', maxWidth: '150px'}}
                 renderInput={(params) => 
                   <TextField 
@@ -57,9 +55,7 @@ const MyDatePicker = styled(DatePicker)({
                 maxDate={new Date()}
                 label="To"
                 value={props.endDate}
-                onChange={(newValue: Date | null) => {
-                  props.setEndDate(newValue);
-                }}
+                onChange={props.setEndDate}
                 sx={{width: '150px', maxWidth: '150px'}}
                 renderInput={(params) => 
                   <TextField 

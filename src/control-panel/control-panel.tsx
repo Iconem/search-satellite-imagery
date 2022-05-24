@@ -32,17 +32,15 @@ https://mui.com/material-ui/react-autocomplete/#checkboxes
 based on https://github.com/visgl/react-map-gl/tree/7.0-release/examples/draw-polygon
 */
 
-
 import * as React from 'react';
 
 // MUI Components: Inputs | Data Display | Feedback+Nav | Layout | Mui-X-datepicker | Components API | Colors
-import {Button, Checkbox, Radio, RadioGroup, Slider, Switch, TextField , } from '@mui/material';
-import {Chip, Divider, List, Table, Tooltip, Typography} from '@mui/material';
+import {Button, Checkbox, Radio, RadioGroup, Slider, Switch, TextField, } from '@mui/material';
+import {Snackbar, Alert} from '@mui/material';
+import {Chip, Divider, List, ListItem, Table, Tooltip, Typography} from '@mui/material';
 import {Backdrop, Dialog, Link} from '@mui/material';
 import {Box, Container, Grid, Stack, Paper, } from '@mui/material';
-import { GlobalStyles } from '@mui/material';
 import { CircularProgress, Collapse, Fab, Fade, FormControlLabel, Modal} from '@mui/material';
-import { DataGrid, GridToolbar, GridColumnMenu, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton } from '@mui/x-data-grid';
 
 // MUI Theming
 import { ThemeProvider, lighten, darken } from '@mui/material/styles';
@@ -64,17 +62,8 @@ import {search_up42, search_eos_highres, search_skywatch} from './search-apis'
 import DateRangeComponent from './date-range-component'
 import SettingsComponent from './settings-component'
 import SearchResultsComponent from './search-results-component'
+import ApiKeysModalComponent from './api-keys-modal-component'
 
-
-const apiKeys = {
-  'UP42': {
-    projectId: process.env.UP42_PROJECT_ID,
-    projectApiKey: process.env.UP42_PROJECT_APIKEY,
-  }, 
-  'EOS': process.env.EOS_APIKEY,
-  'SKYWATCH': process.env.SKYWATCH_APIKEY
-}
-// console.log(apiKeys)
 
 enum Sensor {
   Pleiades,
@@ -175,65 +164,77 @@ function SearchButton(props) {
 }
 
 
-
-function ModalComponent(props) {
-  const [infoModalOpen, setInfoModalOpen] = React.useState(false);
+const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
+  setters.setLoadingResults(true);
   
-  const infoModalStyle = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 800,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 10,
-  };
-  return (
-    <>
-      <Button onClick={() => setInfoModalOpen(true)}>Open modal</Button>
-      <Modal
-        aria-labelledby="transition-modal-title"
-        aria-describedby="transition-modal-description"
-        open={infoModalOpen}
-        onClose={() => setInfoModalOpen(false)}
-        closeAfterTransition
-        BackdropComponent={Backdrop}
-        BackdropProps={{
-          timeout: 500,
-        }}
-      >
-        <Fade in={infoModalOpen}>
-          <Box sx={infoModalStyle}>
-            <Typography id="transition-modal-title" variant="h6" component="h2">
-              Text in a modal
-            </Typography>
-            <Typography id="transition-modal-description" sx={{ mt: 2 }}>
-              Modal Test
-            </Typography>
-          </Box>
-        </Fade>
-      </Modal>
-    </>
-  );
+  // ONLY TAKE FIRST POLYGON, flat does not work with up42 search, it considers next polygons as holes rather than union
+  let coordinates = null
+  if (polygons && polygons.length && (polygons.length > 0)) {
+    coordinates = polygons.map(
+      p => p['geometry'].coordinates 
+    )[0] // .flat()
+  } else {
+    console.log('\n\nCAUTION, USING DEFAULT COORDINATES FOR TESTING ONLY\n\n')
+    coordinates = [
+      [
+        [ 0.7946123174853881, 49.52699450385825],
+        [ 11.421567762222196, 49.52699450385825],
+        [ 11.367348601789843, 44.311228342849404],
+        [ 1.1199272800796223, 44.23386551715416],
+        [ 0.7946123174853881, 49.52699450385825]
+      ]
+    ]
+    setters.setSnackbarOptions({
+      open: true, 
+      message: 'Default Coordinates used since no polygon has been drawn'
+    })
+  }
+  console.log(polygons, '\n Coordinates', coordinates)
+  
+  const search_settings = {
+    coordinates, 
+    // startDate, endDate, 
+    ...searchSettings,
+    // gsdIndex, 
+    gsd: {
+      min: GSD_steps[searchSettings.gsdIndex[0]],
+      max: GSD_steps[searchSettings.gsdIndex[1]],
+    }
+  }
+  console.log(`SEARCH PARAMETERS: \n`, 
+    'search_settings:\n', search_settings, '\n\n', 
+    `startDate: ${search_settings.startDate}\n`, 
+    `endDate: ${search_settings.endDate}\n`, 
+    `cloudCoverage: ${search_settings.cloudCoverage}\n`, 
+    `GSD: ${search_settings.gsdIndex.map(GSDFromIndex)}\n`, 
+    `aoiCoverage: ${search_settings.aoiCoverage}%\n`, 
+    `sunElevation: ${search_settings.sunElevation}°\n`, 
+    `offNadirAngle: ${search_settings.offNadirAngle}°\n`, 
+  )
+
+  const { search_results_json, up42_bearer_json } = (await search_up42(search_settings, apiKeys['UP42']))
+  // EOS API seems to be broken
+  // const { search_results_json } = await search_eos_highres(search_settings, apiKeys['EOS']) 
+  // const { search_results_json } = await search_skywatch(search_settings, apiKeys['SKYWATCH'])
+  
+  setters.setSearchResults(search_results_json)
+  setters.setLoadingResults(false);
+  setters.setSettingsCollapsed(true)
 }
 
-/* COMPONENT DEFINITION */
+
+
+
+/* COMPONENTS DEFINITION */
 /* CONTROL PANEL */
+/* -------------------- */
 // const handleSlider = (state_property) => (event: Event, newValue: number | number[]) =>
 // setSearchSettings({
 //   ...searchSettings, 
 //   [state_property]: newValue
 // })
-/* -------------------- */
 function ControlPanel(props) {
   const polygons = props.polygons
-  
-  const [endDate, setEndDate] = React.useState<Date | null>(new Date());
-  const [startDate, setStartDate] = React.useState(subDays(endDate, 30));
-  const [gsdIndex, setGsdIndex] = React.useState([0, 3]);
-
   // Fit all search settings in a single react state object
   const today = new Date()
   const [searchSettings, setSearchSettings] = React.useState({
@@ -248,85 +249,55 @@ function ControlPanel(props) {
     sensorsSelection: null, 
   })
 
-  const [searchResults, setSearchResults] = React.useState(null);
+  const [apiKeys, setApiKeys] = React.useState({
+    'UP42': {
+      projectId: process.env.UP42_PROJECT_ID,
+      projectApiKey: process.env.UP42_PROJECT_APIKEY,
+    }, 
+    'EOS': process.env.EOS_APIKEY,
+    'SKYWATCH': process.env.SKYWATCH_APIKEY
+  })
+  // console.log(apiKeys)
   
-  const [settingsCollapsed, setSettingsCollapsed] = React.useState(false);
+  const setStartDate = (newValue: Date | null) => setSearchSettings({
+    ...searchSettings, 
+    'startDate': newValue
+  })
+  const setEndDate = (newValue: Date | null) => setSearchSettings({
+    ...searchSettings, 
+    'endDate': newValue
+  })
+  
+  const [searchResults, setSearchResults] = React.useState(null);
   const [loadingResults, setLoadingResults] = React.useState(false);
 
-  
-  /*
-  use ky (based on fetch) or axios (based on xmlhttprequest older) or pure fetch which are browser based
-  https://developer.vonage.com/blog/2020/09/23/5-ways-to-make-http-requests-in-node-js-2020-edition
-  https://nodesource.com/blog/express-going-into-maintenance-mode
+  const [settingsCollapsed, setSettingsCollapsed] = React.useState(false);
+  const [snackbarOptions, setSnackbarOptions] = React.useState({
+    open: false, 
+    message: ''
+  });
 
-  https://docs.up42.com/developers/api#operation/getCollections
-  */
-
-  
     
-  const search_imagery = async () => {
-    setLoadingResults(true);
-    
-    let coordinates = null
-    // ONLY TAKE FIRST POLYGON, flat does not work with up42 search, it considers next polygons as holes rather than union
-    if (true && polygons && polygons.length && (polygons.length > 0)) {
-      coordinates = polygons.map(
-        p => p['geometry'].coordinates 
-      )[0] // .flat()
-    } else {
-      console.log('\n\nCAUTION, USING DEFAULT COORDINATES FOR TESTING ONLY\n\n')
-      coordinates = [
-        [
-          [ 0.7946123174853881, 49.52699450385825],
-          [ 11.421567762222196, 49.52699450385825],
-          [ 11.367348601789843, 44.311228342849404],
-          [ 1.1199272800796223, 44.23386551715416],
-          [ 0.7946123174853881, 49.52699450385825]
-        ]
-      ]
-    }
-    console.log(polygons, '\n Coordinates', coordinates)
-    
-    const search_settings = {
-      coordinates, 
-      startDate, endDate, 
-      // cloudCoverage, sunElevation, aoiCoverage, 
-      ...searchSettings,
-      // gsdIndex, 
-      gsd: {
-        min: GSD_steps[searchSettings.gsdIndex[0]],
-        max: GSD_steps[searchSettings.gsdIndex[1]],
-      }
-    }
-    console.log(`SEARCH PARAMETERS: \n`, 
-      'search_settings:', search_settings, '\n\n', 
-      `cloudCoverage: ${search_settings.cloudCoverage}\n`, 
-      `GSD: ${search_settings.gsdIndex.map(GSDFromIndex)}\n`, 
-      `aoiCoverage: ${search_settings.aoiCoverage}%\n`, 
-      `sunElevation: ${search_settings.sunElevation}°\n`, 
-      `offNadirAngle: ${search_settings.offNadirAngle}°\n`, 
-    )
-
-    const { search_results_json, up42_bearer_json } = (await search_up42(search_settings, apiKeys['UP42']))
-    // const { search_results_json } = (await search_eos_highres(search_settings, apiKeys['EOS'])) 
-    // await search_skywatch(search_settings)
-    
-    setSearchResults(search_results_json)
-
-    setLoadingResults(false);
-    setSettingsCollapsed(true)
-  }
-
-  
-  
-  const handleGsdSlider = (event: Event, newValue: number | number[]) => {
-    setGsdIndex(newValue as number[]);
-  };
+  // const handleGsdSlider = (event: Event, newValue: number | number[]) => {
+  //   setGsdIndex(newValue as number[]);
+  // };
 /* 
     WIP
 */
 
   const timer = React.useRef();
+
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbarOptions({
+      open: false, 
+      message: ''
+    });
+  };
+
+
 
 
   React.useEffect(() => {
@@ -371,7 +342,9 @@ function ControlPanel(props) {
 
         {/* AOI and DateRange Components */}
         <AOIComponent polygons={polygons} />
-        <DateRangeComponent startDate={startDate} setStartDate={setStartDate} endDate={endDate} setEndDate={setEndDate} />
+        {/* <DateRangeComponent startDate={searchSettings.startDate} setStartDate={setStartDate} endDate={searchSettings.endDate} setEndDate={setEndDate} /> */}
+        <DateRangeComponent startDate={searchSettings.startDate} setStartDate={setStartDate} endDate={searchSettings.endDate} setEndDate={setEndDate} />
+
 
         {/* SETTINGS Component */}
         <Typography 
@@ -394,12 +367,27 @@ function ControlPanel(props) {
               GSD_steps={GSD_steps} 
             />
 
-            <ModalComponent />
+            <ApiKeysModalComponent apiKeys={apiKeys} setApiKeys={setApiKeys} />
           </Stack>
         </Collapse>
 
         {/*  SEARCH BUTTON  */}
-        <SearchButton loadingResults={loadingResults} search_imagery={search_imagery} />
+        <SearchButton 
+          loadingResults={loadingResults} 
+          search_imagery={() => 
+            search_imagery(polygons, searchSettings, apiKeys, {setLoadingResults, setSearchResults, setSettingsCollapsed, setSnackbarOptions})
+          } 
+        />
+        <Snackbar
+          open={snackbarOptions.open}
+          autoHideDuration={2000}
+          onClose={handleSnackbarClose}
+          // message={snackbarOptions.message}
+        >
+          <Alert onClose={handleSnackbarClose} severity="warning" sx={{ width: '100%' }}>
+            {snackbarOptions.message}
+          </Alert>
+        </Snackbar>
 
         {
         searchResults && searchResults['features'] && searchResults['features'].length > 0 && !loadingResults && 
