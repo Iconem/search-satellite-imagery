@@ -2,7 +2,7 @@
 // + in a collapsable section, AOI coverage, Sun Elevation and Off Nadir angles setup
 
 import * as React from 'react';
-import {Slider, Typography, Collapse} from '@mui/material';
+import {Slider, Typography, Collapse, Box} from '@mui/material';
 import { styled } from '@mui/system';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
@@ -75,6 +75,7 @@ function GSDComponent(props) {
         valueLabelFormat={GSDFromIndex}
         onChange={handleSliderFun('gsdIndex', props)}
       />
+      <Box sx={{ m: 1, p:2 }} />
     </>
   );
 }

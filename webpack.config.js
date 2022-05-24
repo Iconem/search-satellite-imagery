@@ -19,7 +19,6 @@ const smp = new SpeedMeasurePlugin();
 // }, {});
 
 const config = smp.wrap({
-// const config = {
   mode: 'development',
 
   devServer: {
@@ -39,7 +38,6 @@ const config = smp.wrap({
   output: {
     library: 'App'
   },
-
 
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.json']
@@ -83,7 +81,6 @@ const config = smp.wrap({
     // }), 
     // new webpack.DefinePlugin(envKeys), 
   ]
-// };
 });
 
 // Enables bundling against src in this repo rather than the installed version

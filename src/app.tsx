@@ -12,9 +12,6 @@ import MapControls from './map/map-controls';
 import FeaturesSourceAndLayer from './map/features-source-and-layer';
 import {theme} from './theme';
 
-// https://stackoverflow.com/questions/70368760/react-uncaught-referenceerror-process-is-not-defined/70452191#70452191
-// const MAPBOX_TOKEN = 'pk.xyz'; 
-
 export default function App() {
   const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN; 
 
