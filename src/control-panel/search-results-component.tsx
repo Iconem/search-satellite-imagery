@@ -5,7 +5,7 @@ import {Tooltip, Typography, GlobalStyles} from '@mui/material';
 import { DataGrid, GridColumnMenu, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton } from '@mui/x-data-grid';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
-  faCloudSun, faSquarePollHorizontal, faSatellite, faBolt
+  faCloudSun, faSquarePollHorizontal, faSatellite, faBolt, faVectorSquare, faDrawPolygon
 } from '@fortawesome/free-solid-svg-icons'
 
 
@@ -39,7 +39,11 @@ function CustomColumnMenuComponent(props) {
     />
   );
 }
-    
+
+function check_unknown(x, suffix) {
+  return (x || x === 0) ? `${Math.round(x)}${suffix}` : '-'
+}
+
 const datagridColumns = [
   { 
     field: 'acquisitionDate', 
@@ -48,14 +52,14 @@ const datagridColumns = [
       const dateStr = params.value
       return (<Tooltip title={dateStr}><p>{dateStr.substring(0, 10)}</p></Tooltip>) 
     },
-    width: 100, // 120 to see datetime, 100 to see only date
+    width: 90, // 120 to see datetime, 100 to see only date
     type: 'dateTime',
     description: 'Acquisition Date',
     renderHeader: () => (<strong>Date</strong>),
   },
   { 
     field: 'resolution', 
-    valueGetter: (params) => `${params.row?.resolution}m`,
+    valueGetter: (params) => `${params.row?.resolution || '?'}m`,
     description: 'Resolution (m/px)',
     width: 60,
     renderHeader: () => (
@@ -66,9 +70,9 @@ const datagridColumns = [
   },
   { 
     field: 'cloudCoverage', 
-    valueGetter: (params) => `${Math.round(params.row?.cloudCoverage)}%`,
+    valueGetter: (params) => check_unknown(params.row?.cloudCoverage, '%'),
     description: 'Cloud Coverage',
-    width: 60,
+    width: 55,
     renderHeader: () => (
       <Tooltip title={'Cloud Coverage'}> 
         <strong>{' '}
@@ -79,47 +83,72 @@ const datagridColumns = [
   },
   { 
     field: 'constellation', 
-    width: 100,
+    width: 95,
     renderHeader: () => (<strong>Constellation</strong>),
+    renderCell: (params) => {
+      return (<Tooltip title={params.value}><p>{params.value}</p></Tooltip>) 
+    },
   },
   { 
-    field: 'producer',
-    width: 70,
-    hide: true
+    field: 'price', 
+    width: 60,
+    valueGetter: (params) => check_unknown(params.row?.price, ' $'), // USD EURO
+    renderHeader: () => (<strong>Price</strong>),
+  },
+  { 
+    field: 'provider',
+    width: 150,
+    valueGetter: (params) => params.row?.provider,
+    renderHeader: () => (<strong>Provider</strong>),
+    renderCell: (params) => {
+      return (<Tooltip title={params.value}><p>{params.value}</p></Tooltip>) 
+    },
+  },
+  { 
+    field: 'shapeIntersection',
+    width: 55,
+    valueGetter: (params) => check_unknown(params.row?.shapeIntersection, '%'), 
+    renderHeader: () => (
+      <Tooltip title={'Shape Intersection'}> 
+        <strong>{' '}
+        <FontAwesomeIcon icon={faVectorSquare} />
+        {' '}</strong>
+      </Tooltip> 
+    ),
   },
   // Provider properties are probably dependent on the provider, airbus in the ase of the below props
   { 
     field: 'Azimuth', 
-    valueGetter: (params) => `${Math.round(params.row?.providerProperties?.azimuthAngle)}°`,
+    valueGetter: (params) => check_unknown(params.row?.providerProperties?.azimuthAngle, '°'),
     renderHeader: () => (
       <Tooltip title={'Azimuth'}>
       <strong> <FontAwesomeIcon icon={faSatellite} /> </strong>
       </Tooltip> 
     ),
-    width: 60,
+    width: 55,
     description: 'Azimuth',
     hide: false,
   },
   { 
     field: 'Sun Azimuth', 
-    valueGetter: (params) => `${Math.round(params.row?.providerProperties?.illuminationAzimuthAngle)}°`,
+    valueGetter: (params) => check_unknown(params.row?.providerProperties?.illuminationAzimuthAngle, '°'),
     renderHeader: () => (
       <Tooltip title={'Sun Azimuth'}>
       <strong> <FontAwesomeIcon icon={faBolt} /> </strong>
       </Tooltip> 
     ),
-    width: 60,
+    width: 55,
     description: 'Sun Azimuth',
     hide: false,
   },
   { 
     field: 'Sun Elevation', 
-    valueGetter: (params) => `${Math.round(params.row?.providerProperties?.illuminationElevationAngle)}°`,
+    valueGetter: (params) => check_unknown(params.row?.providerProperties?.illuminationElevationAngle, '°'),
     hide: true
   },
   { 
     field: 'Incidence', 
-    valueGetter: (params) => `${Math.round(params.row?.providerProperties?.incidenceAngle)}°`,
+    valueGetter: (params) => check_unknown(params.row?.providerProperties?.incidenceAngle, '°'),
     hide: true
   },
 ]
@@ -170,7 +199,10 @@ function SearchResultsComponent(props) {
               componentsProps={{
                 row: {
                   onMouseEnter: e => handleRowHover(e, searchResults, props.setFootprintFeatures),
-                  onMouseLeave: e => props.setFootprintFeatures({}) // TODO: [] if want to keep 
+                  onMouseLeave: e => props.setFootprintFeatures({
+                    coordinates: [], 
+                    type: 'Polygon'
+                  }) 
                 }, 
                 columnMenu: { 
                   // background: 'red', 

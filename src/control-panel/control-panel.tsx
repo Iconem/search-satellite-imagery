@@ -164,8 +164,14 @@ function SearchButton(props) {
 }
 
 
+const emptyFeatureCollection = {
+  features: [],
+  type: "FeatureCollection"
+}
 const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
   setters.setLoadingResults(true);
+  const searchResults = JSON.parse(JSON.stringify(emptyFeatureCollection)) // Deep Copy
+  setters.setSearchResults(searchResults)
   
   // ONLY TAKE FIRST POLYGON, flat does not work with up42 search, it considers next polygons as holes rather than union
   let coordinates = null
@@ -177,20 +183,34 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
     console.log('\n\nCAUTION, USING DEFAULT COORDINATES FOR TESTING ONLY\n\n')
     coordinates = [
       [
-        [ 0.7946123174853881, 49.52699450385825],
-        [ 11.421567762222196, 49.52699450385825],
-        [ 11.367348601789843, 44.311228342849404],
-        [ 1.1199272800796223, 44.23386551715416],
-        [ 0.7946123174853881, 49.52699450385825]
+        [ 2.3155246324913605, 48.882101638838435],
+        [ 2.3730642712838232, 48.882101638838435],
+        [ 2.3730642712838232, 48.831624620496],
+        [ 2.3155246324913605, 48.831624620496],
+        [ 2.3155246324913605, 48.882101638838435]
       ]
-    ]
+    ],
     setters.setSnackbarOptions({
       open: true, 
       message: 'Default Coordinates used since no polygon has been drawn'
     })
   }
-  console.log(polygons, '\n Coordinates', coordinates)
   
+  const searchPolygon = {
+    geometry: {coordinates, type:'Polygon'},
+    type: "Feature",
+    properties: {}
+  }
+  console.log(polygons, '\n Coordinates', coordinates, searchPolygon)
+  // const search_polygon = polygons && polygons.length && (polygons.length > 0) && polygons[0]
+  
+  if (area(searchPolygon as any) / 1_000_000 > 100_000 ) {
+    setters.setSnackbarOptions({
+      open: true, 
+      message: 'Polygon-0 AOI Area > 100.000 km2'
+    })
+  }
+
   const search_settings = {
     coordinates, 
     // startDate, endDate, 
@@ -211,15 +231,59 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
     `sunElevation: ${search_settings.sunElevation}°\n`, 
     `offNadirAngle: ${search_settings.offNadirAngle}°\n`, 
   )
-
-  const { search_results_json, up42_bearer_json } = (await search_up42(search_settings, apiKeys['UP42']))
-  // EOS API seems to be broken
-  // const { search_results_json } = await search_eos_highres(search_settings, apiKeys['EOS']) 
-  // const { search_results_json } = await search_skywatch(search_settings, apiKeys['SKYWATCH'])
   
-  setters.setSearchResults(search_results_json)
+  function update_search_results(new_results) {
+    searchResults.features.push(...new_results.features)
+    setters.setSearchResults(searchResults)
+  }
+
+  // PROMISES FOR EACH SEARCH API
+  // const [r1, r2] = await Promise.all([
+  // const a = await Promise.all([
+  Promise.all([
+    new Promise(async resolve => {
+      const { search_results_json:search_results_json_up42, up42_bearer_json } = (await search_up42(search_settings, apiKeys['UP42'], searchPolygon))
+      update_search_results(search_results_json_up42)
+      resolve(search_results_json_up42)
+      // return search_results_json_up42
+    }),
+    new Promise(async resolve => {
+      const { search_results_json:search_results_json_eos } = await search_eos_highres(search_settings, apiKeys['EOS']) 
+      update_search_results(search_results_json_eos)
+      resolve(search_results_json_eos)
+      // return search_results_json_eos
+    }),
+    new Promise(async resolve => {
+      const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'])
+      update_search_results(search_results_json_skywatch)
+      resolve(search_results_json_skywatch)
+      // return search_results_json_skywatch
+    })
+  ])
+  .then((results) => {
+    console.log('ALL PROMISE END', results);
+    setters.setSearchResults(emptyFeatureCollection)
+    results.forEach(r => update_search_results(r))
+    setters.setLoadingResults(false);
+    setters.setSettingsCollapsed(true)
+  });
+  console.log('outside PROMISE END');
+  // console.log('AWAIT PROMISE END', r1, r2);
+  
+
+  /*
+  // const { search_results_json:search_results_json_up42, up42_bearer_json } = (await search_up42(search_settings, apiKeys['UP42'], searchPolygon))
+  // update_search_results(search_results_json_up42)
+  // const { search_results_json:search_results_json_eos } = await search_eos_highres(search_settings, apiKeys['EOS']) 
+  // update_search_results(search_results_json_eos)
+  // const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'])
+  // update_search_results(search_results_json_skywatch)
+  
+  // setters.setSearchResults(search_results_json);
+  // REMOVE WITH PROMISES 
   setters.setLoadingResults(false);
   setters.setSettingsCollapsed(true)
+  */
 }
 
 
@@ -268,7 +332,6 @@ function ControlPanel(props) {
     'endDate': newValue
   })
   
-  const [searchResults, setSearchResults] = React.useState(null);
   const [loadingResults, setLoadingResults] = React.useState(false);
 
   const [settingsCollapsed, setSettingsCollapsed] = React.useState(false);
@@ -276,17 +339,6 @@ function ControlPanel(props) {
     open: false, 
     message: ''
   });
-
-    
-  // const handleGsdSlider = (event: Event, newValue: number | number[]) => {
-  //   setGsdIndex(newValue as number[]);
-  // };
-/* 
-    WIP
-*/
-
-  const timer = React.useRef();
-
   const handleSnackbarClose = (event, reason) => {
     if (reason === 'clickaway') {
       return;
@@ -296,16 +348,22 @@ function ControlPanel(props) {
       message: ''
     });
   };
-
-
-
-
+    
+  // const handleGsdSlider = (event: Event, newValue: number | number[]) => {
+  //   setGsdIndex(newValue as number[]);
+  // };
+/* 
+    WIP
+*/
+  // (event: SyntheticEvent<Element, Event>) => void
+/*
+  const timer = React.useRef();
   React.useEffect(() => {
     return () => {
       clearTimeout(timer.current);
     };
   }, []);
-
+*/
   return (
     <ThemeProvider theme={theme}>
       {/* 
@@ -375,7 +433,7 @@ function ControlPanel(props) {
         <SearchButton 
           loadingResults={loadingResults} 
           search_imagery={() => 
-            search_imagery(polygons, searchSettings, apiKeys, {setLoadingResults, setSearchResults, setSettingsCollapsed, setSnackbarOptions})
+            search_imagery(polygons, searchSettings, apiKeys, {setLoadingResults, setSearchResults: props.setSearchResults, setSettingsCollapsed, setSnackbarOptions})
           } 
         />
         <Snackbar
@@ -390,8 +448,8 @@ function ControlPanel(props) {
         </Snackbar>
 
         {
-        searchResults && searchResults['features'] && searchResults['features'].length > 0 && !loadingResults && 
-          <SearchResultsComponent searchResults={searchResults} setFootprintFeatures={props.setFootprintFeatures}/>
+        props.searchResults && props.searchResults['features'] && props.searchResults['features'].length > 0 && 
+          <SearchResultsComponent searchResults={props.searchResults} setFootprintFeatures={props.setFootprintFeatures}/>
         }
 
       </div>
