@@ -6,6 +6,9 @@
     "resolveJsonModule": true,
     "moduleResolution": "node",
     "module": "ES2020",
-    "sourceMap": true
+    "sourceMap": true,
+    "lib": [
+      "ES2021.String"
+    ]
   }
 }

@@ -58,7 +58,7 @@ import {
   faEarthEurope, faSatellite, faBolt
 } from '@fortawesome/free-solid-svg-icons'
 
-import {search_up42, search_eos_highres, search_skywatch} from './search-apis'
+import {search_up42, search_eos_highres, search_skywatch, search_head} from './search-apis'
 import DateRangeComponent from './date-range-component'
 import SettingsComponent from './settings-component'
 import SearchResultsComponent from './search-results-component'
@@ -237,6 +237,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
     setters.setSearchResults(searchResults)
   }
 
+  /**/ 
   // PROMISES FOR EACH SEARCH API
   // const [r1, r2] = await Promise.all([
   // const a = await Promise.all([
@@ -258,6 +259,12 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
       update_search_results(search_results_json_skywatch)
       resolve(search_results_json_skywatch)
       // return search_results_json_skywatch
+    }),
+    new Promise(async resolve => {
+      const { search_results_json:search_results_json_head } = await search_head(search_settings, searchPolygon)
+      update_search_results(search_results_json_head)
+      resolve(search_results_json_head)
+      // return search_results_json_skywatch
     })
   ])
   .then((results) => {
@@ -269,7 +276,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
   });
   console.log('outside PROMISE END');
   // console.log('AWAIT PROMISE END', r1, r2);
-  
+  /**/
 
   /*
   // const { search_results_json:search_results_json_up42, up42_bearer_json } = (await search_up42(search_settings, apiKeys['UP42'], searchPolygon))
@@ -278,6 +285,8 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
   // update_search_results(search_results_json_eos)
   // const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'])
   // update_search_results(search_results_json_skywatch)
+  const { search_results_json:search_results_json_head } = await search_head(search_settings, searchPolygon)
+  update_search_results(search_results_json_head)
   
   // setters.setSearchResults(search_results_json);
   // REMOVE WITH PROMISES 
