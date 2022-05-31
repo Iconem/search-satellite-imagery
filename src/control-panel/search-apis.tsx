@@ -16,14 +16,41 @@ const up42_limit = 100
 const eos_limit = 100
 // const skywatch_limit = 10
 
-// Shape intersection
+// Shape intersection expressed as number in [0,100] of overlap of feature_1 over feature_2
 const shapeIntersection = (feature_1, feature_2) => {
   return Math.round(area(intersect(feature_1, feature_2)) / area(feature_2) * 100) 
+}
+// Get imagery price given price_info {min_area, price_per_sq_km}
+function get_imagery_price(feature, constellation_name, constellation_dict) {
+  if (constellation_name in constellation_dict) {
+    const price_info = constellation_dict[constellation_name]
+    const price = Math.max(area(feature.geometry) / 1_000_000, price_info.min_area) * price_info.price_per_sq_km
+    return Math.round(price)
+  } else {
+    return null
+  }
 }
 
 /* -------------- */
 /*      UP42      */
 /* -------------- */
+const up42_constellation_dict = {
+  'PHR': {
+    constellation: 'Pleiades',
+    price_per_sq_km: 10, // (10EUR/km2) no min
+    min_area: 0
+  },
+  // 'HEAD SuperView': {
+  //   constellation: 'SuperView',
+  //   price_per_sq_km: 9, // (9EUR/km2) 25km² min
+  //   min_area: 25
+  // }, 
+  // 'HEAD EarthScanner': {
+  //   constellation: 'EarthScanner',
+  //   price_per_sq_km: 7, // (7EUR/km2) 25km² min
+  //   min_area: 25
+  // }, 
+}
 const up42_search_url = 'https://api.up42.com/catalog/stac/search'
 const get_up42_bearer = async (up42_apikey) => {
     const up42_projectApi = base64_encode(`${up42_apikey.projectId}:${up42_apikey.projectApiKey}`)
@@ -42,10 +69,14 @@ const get_up42_bearer = async (up42_apikey) => {
     console.log('up42_bearer_json', {up42_bearer: up42_bearer_json})
     return up42_bearer_json
 }
+function get_up42_price(feature) {
+  return get_imagery_price(feature, feature.properties.constellation, up42_constellation_dict)
+}
+
 // UP 42 API: Producer (operates the satellite) | Hosts (image provider offering access) | Collections
+// UP42 is actually a STAC endpoint search api
 // https://docs.up42.com/developers/api#operation/getDataProducts
 // CORS needed to reach UP42 api server
-
 const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, up42_bearer_json=null, up42_next_links=null) => {
   if (!up42_bearer_json) {
     up42_bearer_json = await get_up42_bearer(up42_apikey)
@@ -107,36 +138,6 @@ const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, up4
   }
 }
 
-function get_imagery_price(feature, constellation_name, constellation_dict) {
-  if (constellation_name in constellation_dict) {
-    const price_info = constellation_dict[constellation_name]
-    const price = Math.max(area(feature.geometry) / 1_000_000, price_info.min_area) * price_info.price_per_sq_km
-    return Math.round(price)
-  } else {
-    return null
-  }
-}
-function get_up42_price(feature) {
-  return get_imagery_price(feature, feature.properties.constellation, up42_constellation_dict)
-}
-
-const up42_constellation_dict = {
-  'PHR': {
-    constellation: 'Pleiades',
-    price_per_sq_km: 10, // (10EUR/km2) no min
-    min_area: 0
-  },
-  // 'HEAD SuperView': {
-  //   constellation: 'SuperView',
-  //   price_per_sq_km: 9, // (9EUR/km2) 25km² min
-  //   min_area: 25
-  // }, 
-  // 'HEAD EarthScanner': {
-  //   constellation: 'EarthScanner',
-  //   price_per_sq_km: 7, // (7EUR/km2) 25km² min
-  //   min_area: 25
-  // }, 
-}
 const format_up42_results = (up42_results_raw, searchPolygon) => {
   // meta':{'limit':1,'page':1,'found':15},
   return {
@@ -164,8 +165,13 @@ const format_up42_results = (up42_results_raw, searchPolygon) => {
 // EOS query wont let you search Pleiades, Head, Kompsat, but only landsat, sentinel, naip etc
 // EOS API HighRes https://doc.eos.com/hires.search.api/#high-resolution-datasets
 // EOS API : https://doc.eos.com/search.api/#multi-dataset-search
-let eos_search_highres_url = 'https://api.eos.com/api/v5/allsensors' 
-eos_search_highres_url = 'https://lms-reselling.eos.com/api/v5/allsensors'
+const eos_constellation_dict = {
+  'TripleSat Constellation-3': {
+    constellation: 'TripleSat 3',
+  },
+}
+// let eos_search_highres_url = 'https://api.eos.com/api/v5/allsensors' 
+const eos_search_highres_url = 'https://lms-reselling.eos.com/api/v5/allsensors'
 // EOS Search API is only valid for 2 weeks on new accounts, then requires a min 3k usd/year for 30k requests/month 
 const search_eos_highres = async (search_settings, eos_apikey, eos_page_idx=1) => {
   const eos_payload_highres = {
@@ -224,11 +230,6 @@ const search_eos_highres = async (search_settings, eos_apikey, eos_page_idx=1) =
   const search_results_json = format_eos_results(search_results_raw)
   console.log('EOS PAYLOAD: \n', eos_payload_highres, '\nRAW EOS search results raw: \n', search_results_raw, '\nRAW EOS search results raw: \n', search_results_json)
   return { search_results_json, }
-}
-const eos_constellation_dict = {
-  'TripleSat Constellation-3': {
-    constellation: 'TripleSat 3',
-  },
 }
 const format_eos_results = (eos_results_raw) => {
   // meta':{'limit':1,'page':1,'found':15},
@@ -401,58 +402,10 @@ const format_skywatch_results = (skywatch_results_raw) => {
   }
 }
 
-/* -------------- */
-/*    HEAD Aero   */
-/* -------------- */
+/* ------------------- */
+/*    HEAD Aerospace   */
+/* ------------------- */
 // https://headfinder.head-aerospace.eu/sales
-const head_limit = 300
-const head_satellites_sel = '$SuperView$EarthScanner-KF1$Jilin-GXA$Jilin-GF02A/B$GaoFen-2$NightVision/Video$DailyVision1m-JLGF3$'
-
-// in https://headfinder.head-aerospace.eu/cat-01/_ML-lib-01.js?2021-12-27
-// https://headfinder.head-aerospace.eu/cat-01/V-073.js?2022-05-11
-function crc32(r) {
-  for(var a,o=[],c=0;c<256;c++){a=c;for(var f=0;f<8;f++)a=1&a?3988292384^a>>>1:a>>>1;o[c]=a}for(var n=-1,t=0;t<r.length;t++)n=n>>>8^o[255&(n^r.charCodeAt(t))];
-  return(-1^n)>>>0
-}
-
-const search_head = async (search_settings, searchPolygon=null) => {
-  // WORKS
-  // https://headfinder.head-aerospace.eu/satcat-db02/?req=d01-nl-xdebug-xstep-&category=search-browser-01&browserfp=2230104508&session=875857144&searchcnt=6&mousemovecnt=2934&tilescnt=2545&sessionsecs=2951&catalogue=PU&catconfigid=HEAD-wc37&aoi=polygon(((48.91174139707047,2.2841096967027363),(48.91399773469328,2.3531175702378926),(48.87427130555854,2.343847855882424),(48.87743251814097,2.261450394944924)))&maxscenes=300&datestart=2021-11-30&dateend=2022-05-30&cloudmax=100&offnadirmax=12&overlapmin=81&scenename=&satellites=$SuperView$EarthScanner-KF1$Jilin-GXA$Jilin-GF02A/B$GaoFen-2$NightVision/Video$DailyVision1m-JLGF3$&&user=_3876473361&
-
-  const polygon_str = JSON.stringify(search_settings.coordinates.map(c => c.map(xy => [xy[1], xy[0]])))
-  const polygon_coords = (polygon_str.replaceAll('[', '(') as string).replaceAll(']', ')') as string
-  // const polygon_coords = polygon_str.replaceAll('[', '(').replaceAll(']', ')')
-  // const polygon_coords = JSON.stringify(search_settings.coordinates)
-  //   .replace(/\[/g, '(').replace(/\]/g, ')')
-
-  // Setup request string for HEAD with hash in get url
-  const request_string = `&category=search-browser-01&browserfp=2230104508&session=875857144&searchcnt=3&mousemovecnt=2617&tilescnt=2545&sessionsecs=1379&catalogue=PU&catconfigid=HEAD-wc37&aoi=polygon${polygon_coords}&maxscenes=${head_limit}&datestart=${search_settings.startDate.toISOString().substring(0,10)}&dateend=${search_settings.endDate.toISOString().substring(0,10)}&cloudmax=${search_settings.cloudCoverage}&offnadirmax=${Math.max(...search_settings.offNadirAngle.map(Math.abs))}&overlapmin=${search_settings.aoiCoverage}&scenename=&satellites=${head_satellites_sel}&`
-  const k17string = request_string.substring(request_string.indexOf('category=') + 9).toLowerCase()
-
-  const head_base_url = 'https://headfinder.head-aerospace.eu/satcat-db02/'
-  // const head_search_url = head_base_url + "?req=d01-nl-xdebug-xstep-" + request_string + "&user=_" + crc32(k17string) + "&"
-  const head_search_url = `${head_base_url}?req=d01-nl-xdebug-xstep-${request_string}&user=_${crc32(k17string)}&`
-
-  const res_text = await ky.get( head_search_url).text()  
-  const payload_str = res_text.substring(
-    res_text.indexOf('jsonscenelist=') + 14,
-    res_text.lastIndexOf(']') + 1
-  )
-  const search_results_raw = JSON.parse(payload_str).slice(1)
-  console.log(search_results_raw)
-
-  
-  if (search_results_raw) {
-    const search_results_json = format_head_results(search_results_raw, searchPolygon)
-    console.log('HEAD Search URL: \n', head_search_url, '\nRAW HEAD search results: \n', search_results_raw, '\nJSON HEAD search results: \n', search_results_json)
-    return { search_results_json, }
-  }
-  return {
-    'features': [],
-    'type': 'FeatureCollection'
-  }
-}
-
 // https://catalyst.earth/catalyst-system-files/help/references/gdb_r/gdb2N127.html
 const head_constellation_dict = {
   'SV-1': {
@@ -496,8 +449,48 @@ const head_constellation_dict = {
     price_per_sq_km: 6,
   },
 }
+const head_limit = 300
+const head_base_url = 'https://headfinder.head-aerospace.eu/satcat-db02/'
+const head_satellites_sel = '$SuperView$EarthScanner-KF1$Jilin-GXA$Jilin-GF02A/B$GaoFen-2$NightVision/Video$DailyVision1m-JLGF3$'
+
+// in https://headfinder.head-aerospace.eu/cat-01/_ML-lib-01.js?2021-12-27
+// in https://headfinder.head-aerospace.eu/cat-01/V-073.js?2022-05-11
+function crc32(r) {
+  for(var a,o=[],c=0;c<256;c++){a=c;for(var f=0;f<8;f++)a=1&a?3988292384^a>>>1:a>>>1;o[c]=a}for(var n=-1,t=0;t<r.length;t++)n=n>>>8^o[255&(n^r.charCodeAt(t))];
+  return(-1^n)>>>0
+}
 function get_head_price(feature) {
   return get_imagery_price(feature, feature.properties.sensor, head_constellation_dict)
+}
+
+// Works: https://headfinder.head-aerospace.eu/satcat-db02/?req=d01-nl-xdebug-xstep-&category=search-browser-01&browserfp=2230104508&session=875857144&searchcnt=6&mousemovecnt=2934&tilescnt=2545&sessionsecs=2951&catalogue=PU&catconfigid=HEAD-wc37&aoi=polygon(((48.91174139707047,2.2841096967027363),(48.91399773469328,2.3531175702378926),(48.87427130555854,2.343847855882424),(48.87743251814097,2.261450394944924)))&maxscenes=300&datestart=2021-11-30&dateend=2022-05-30&cloudmax=100&offnadirmax=12&overlapmin=81&scenename=&satellites=$SuperView$EarthScanner-KF1$Jilin-GXA$Jilin-GF02A/B$GaoFen-2$NightVision/Video$DailyVision1m-JLGF3$&&user=_3876473361&
+const search_head = async (search_settings, searchPolygon=null) => {
+  const polygon_str = JSON.stringify(search_settings.coordinates.map(c => c.map(xy => [xy[1], xy[0]])))
+  const polygon_coords = (polygon_str.replaceAll('[', '(') as string).replaceAll(']', ')') as string
+
+  // Setup request string for HEAD with hash in get url
+  const request_string = `&category=search-browser-01&browserfp=2230104508&session=875857144&searchcnt=3&mousemovecnt=2617&tilescnt=2545&sessionsecs=1379&catalogue=PU&catconfigid=HEAD-wc37&aoi=polygon${polygon_coords}&maxscenes=${head_limit}&datestart=${search_settings.startDate.toISOString().substring(0,10)}&dateend=${search_settings.endDate.toISOString().substring(0,10)}&cloudmax=${search_settings.cloudCoverage}&offnadirmax=${Math.max(...search_settings.offNadirAngle.map(Math.abs))}&overlapmin=${search_settings.aoiCoverage}&scenename=&satellites=${head_satellites_sel}&`
+  const k17string = request_string.substring(request_string.indexOf('category=') + 9).toLowerCase()
+
+  // const head_search_url = head_base_url + "?req=d01-nl-xdebug-xstep-" + request_string + "&user=_" + crc32(k17string) + "&"
+  const head_search_url = `${head_base_url}?req=d01-nl-xdebug-xstep-${request_string}&user=_${crc32(k17string)}&`
+
+  const res_text = await ky.get( head_search_url).text()  
+  const payload_str = res_text.substring(
+    res_text.indexOf('jsonscenelist=') + 14,
+    res_text.lastIndexOf(']') + 1
+  )
+  const search_results_raw = JSON.parse(payload_str).slice(1)
+  
+  if (search_results_raw) {
+    const search_results_json = format_head_results(search_results_raw, searchPolygon)
+    console.log('HEAD Search URL: \n', head_search_url, '\nRAW HEAD search results: \n', search_results_raw, '\nJSON HEAD search results: \n', search_results_json)
+    return { search_results_json, }
+  }
+  return {
+    'features': [],
+    'type': 'FeatureCollection'
+  }
 }
 
 const format_head_results = (head_results_raw, searchPolygon=null) => {
@@ -543,4 +536,6 @@ const format_head_results = (head_results_raw, searchPolygon=null) => {
   }
 }
 
+
+// Export all search methods
 export {search_up42, search_eos_highres, search_skywatch, search_head}
