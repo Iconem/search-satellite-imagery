@@ -254,12 +254,12 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
       resolve(search_results_json_eos)
       // return search_results_json_eos
     }),
-    new Promise(async resolve => {
-      const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'])
-      update_search_results(search_results_json_skywatch)
-      resolve(search_results_json_skywatch)
-      // return search_results_json_skywatch
-    }),
+    // new Promise(async resolve => {
+    //   const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'])
+    //   update_search_results(search_results_json_skywatch)
+    //   resolve(search_results_json_skywatch)
+    //   // return search_results_json_skywatch
+    // }),
     new Promise(async resolve => {
       const { search_results_json:search_results_json_head } = await search_head(search_settings, searchPolygon)
       update_search_results(search_results_json_head)

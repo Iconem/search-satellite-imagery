@@ -18,8 +18,7 @@ const eos_limit = 100
 
 // Shape intersection
 const shapeIntersection = (feature_1, feature_2) => {
-  console.log('shapeIntersection', feature_1, feature_2)
-  Math.round(area(intersect(feature_1, feature_2)) / area(feature_2) * 100) 
+  return Math.round(area(intersect(feature_1, feature_2)) / area(feature_2) * 100) 
 }
 
 /* -------------- */
@@ -108,13 +107,17 @@ const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, up4
   }
 }
 
-function get_up42_price(feature) {
-  let price = null
-  if (feature.properties.constellation in up42_constellation_dict) {
-    const price_info = up42_constellation_dict[feature.properties.constellation]
-    price = Math.max(area(feature.geometry) / 1_000_000, price_info.min_area) * price_info.price_per_sq_km
+function get_imagery_price(feature, constellation_name, constellation_dict) {
+  if (constellation_name in constellation_dict) {
+    const price_info = constellation_dict[constellation_name]
+    const price = Math.max(area(feature.geometry) / 1_000_000, price_info.min_area) * price_info.price_per_sq_km
+    return Math.round(price)
+  } else {
+    return null
   }
-  return Math.round(price)
+}
+function get_up42_price(feature) {
+  return get_imagery_price(feature, feature.properties.constellation, up42_constellation_dict)
 }
 
 const up42_constellation_dict = {
@@ -142,7 +145,7 @@ const format_up42_results = (up42_results_raw, searchPolygon) => {
         'geometry': feature.geometry,
         'properties': {
           ...feature.properties,
-          constellation: up42_constellation_dict[feature.properties.constellation].constellation || feature.properties.constellation,
+          constellation: up42_constellation_dict[feature.properties.constellation]?.constellation || feature.properties.constellation,
           'price': get_up42_price(feature),
           'shapeIntersection': shapeIntersection(feature, searchPolygon),
           'provider': `UP42/${feature.properties.producer}`, // /${feature.properties.providerName}
@@ -235,12 +238,12 @@ const format_eos_results = (eos_results_raw) => {
         'geometry': r.dataGeometry,
         'properties': {
           'provider': `EOS/${r.provider}`,
-          'id': r.sceneID, // r.sceneID r.id
+          'id': r.sceneID, 
           'acquisitionDate': new Date(r.date).toISOString(), //'2019-03-23T10:24:03.000Z',
           'resolution': r.resolution, // '1.5 m/pxl'
           'cloudCoverage': r.cloudCoverage,
-          // 'constellation': `${r.productType}/${r.satellite}`,
-          'constellation': r.satellite in eos_constellation_dict ? eos_constellation_dict[r.satellite] : r.satellite,
+          'constellation': r.satellite in eos_constellation_dict ? eos_constellation_dict[r.satellite].constellation : r.satellite,
+          // 'constellation': eos_constellation_dict[r.satellite]?.constellation || r.satellite,
           
           // Other interesting properties on EOS results
           // eos.thumbnail, eos.browseURL, eos.provider, eos.product
@@ -252,9 +255,6 @@ const format_eos_results = (eos_results_raw) => {
 
           'providerProperties': {
             'illuminationElevationAngle': r.sunElevation,
-            'incidenceAngle': null,
-            'azimuthAngle': null,
-            'illuminationAzimuthAngle': null,
             // 'producer': 'airbus', collection: 'PHR'
             // 'dataUri': 'gs://tcifg-idp-prod-datastore-data-pilot-nearline/PDWPHR_20190325084500_4_SO19009267-4-01_DS_PHR1B_201903231024035_FR1_PX_E013N52_0915_02862.zip',
           },
@@ -456,29 +456,48 @@ const search_head = async (search_settings, searchPolygon=null) => {
 // https://catalyst.earth/catalyst-system-files/help/references/gdb_r/gdb2N127.html
 const head_constellation_dict = {
   'SV-1': {
-    constellation: 'SuperView',
-    resolution: 0.5
+    constellation: 'SuperView 1',
+    resolution: 0.5,
+    min_area: 25,
+    price_per_sq_km: 9, 
+  },
+  'SV-2': {
+    constellation: 'SuperView 2',
+    resolution: 0.42,
+    min_area: 25,
+    price_per_sq_km: 12, 
   },
   'JL1KF01-PMS': {
     constellation: 'EarthScanner',
-    resolution: 0.5
+    resolution: 0.5,
+    min_area: 25,
+    price_per_sq_km: 7,
   },
   'JL1GF02-PMS': {
-    constellation: 'JL1GF02',
-    resolution: 0.75
+    constellation: 'Jilin 1',
+    resolution: 0.75,
+    min_area: 25,
+    price_per_sq_km: 5,
   },
   'JL1GF03-PMS': {
     constellation: 'JL1GF03',
-    resolution: 1
+    resolution: 1,
   },
   'GF-2': {
     constellation: 'GaoFen-2',
-    resolution: 0.8
+    resolution: 0.8,
+    min_area: 25,
+    price_per_sq_km: 5,
   },
   'GF-7': {
     constellation: 'GaoFen-7',
-    resolution: 0.65
+    resolution: 0.65,
+    min_area: 25,
+    price_per_sq_km: 6,
   },
+}
+function get_head_price(feature) {
+  return get_imagery_price(feature, feature.properties.sensor, head_constellation_dict)
 }
 
 const format_head_results = (head_results_raw, searchPolygon=null) => {
@@ -494,17 +513,18 @@ const format_head_results = (head_results_raw, searchPolygon=null) => {
           ]
         },
         'properties': { 
-          'provider': `HEAD/${head_constellation_dict[r.sensor].constellation || r.sensor}`,
+          'provider': `HEAD/${head_constellation_dict[r.sensor]?.constellation || r.sensor}`,
           'id': r.identifier, 
           'acquisitionDate': r.acquisitiontime.replace(' ', 'T') + '.0003Z', // or new Date(r.datedir).toISOString()
-          'resolution': head_constellation_dict[r.sensor].resolution || null, 
+          'resolution': head_constellation_dict[r.sensor]?.resolution || null, 
           'cloudCoverage': r.cloudcover,
-          'constellation': `${head_constellation_dict[r.sensor].constellation || r.sensor}`,
+          'constellation': `${head_constellation_dict[r.sensor]?.constellation || r.sensor}`,
+          'sensor': r.sensor,
   
           // Other interesting properties on EOS results
           'shapeIntersection': null,
           // 'shapeIntersection': shapeIntersection(feature, searchPolygon),
-          // 'price': r.cost,
+          'price': null,
           
           'providerProperties': {
             'illuminationElevationAngle': r.sunel == -999 ? null : r.sunel,
@@ -516,6 +536,7 @@ const format_head_results = (head_results_raw, searchPolygon=null) => {
         'type': 'Feature'
       }
       feature.properties.shapeIntersection = shapeIntersection(feature.geometry, searchPolygon)
+      feature.properties.price = get_head_price(feature)
       return feature
     }
     ),
