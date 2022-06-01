@@ -14,6 +14,7 @@ Skywatch: https://dashboard.skywatch.co/account/profile
 
 const up42_limit = 100
 const eos_limit = 100
+const maxar_limit = 100
 // const skywatch_limit = 10
 
 // Shape intersection expressed as number in [0,100] of overlap of feature_1 over feature_2
@@ -86,8 +87,8 @@ const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, up4
     // 'datetime': '2019-01-01T00:00:00Z/2022-02-01T23:59:59Z',
     'datetime': `${search_settings.startDate.toISOString()}/${search_settings.endDate.toISOString()}`, 
     'intersects': {
-    'type': 'Polygon',
-    'coordinates': search_settings.coordinates
+      'type': 'Polygon',
+      'coordinates': search_settings.coordinates
     },
     'limit': up42_limit,
     // 'collections': [
@@ -462,6 +463,7 @@ function crc32(r) {
 function get_head_price(feature) {
   return get_imagery_price(feature, feature.properties.sensor, head_constellation_dict)
 }
+const max_abs = (x) => Math.max(...x.map(Math.abs))
 
 // Works: https://headfinder.head-aerospace.eu/satcat-db02/?req=d01-nl-xdebug-xstep-&category=search-browser-01&browserfp=2230104508&session=875857144&searchcnt=6&mousemovecnt=2934&tilescnt=2545&sessionsecs=2951&catalogue=PU&catconfigid=HEAD-wc37&aoi=polygon(((48.91174139707047,2.2841096967027363),(48.91399773469328,2.3531175702378926),(48.87427130555854,2.343847855882424),(48.87743251814097,2.261450394944924)))&maxscenes=300&datestart=2021-11-30&dateend=2022-05-30&cloudmax=100&offnadirmax=12&overlapmin=81&scenename=&satellites=$SuperView$EarthScanner-KF1$Jilin-GXA$Jilin-GF02A/B$GaoFen-2$NightVision/Video$DailyVision1m-JLGF3$&&user=_3876473361&
 const search_head = async (search_settings, searchPolygon=null) => {
@@ -469,7 +471,7 @@ const search_head = async (search_settings, searchPolygon=null) => {
   const polygon_coords = (polygon_str.replaceAll('[', '(') as string).replaceAll(']', ')') as string
 
   // Setup request string for HEAD with hash in get url
-  const request_string = `&category=search-browser-01&browserfp=2230104508&session=875857144&searchcnt=3&mousemovecnt=2617&tilescnt=2545&sessionsecs=1379&catalogue=PU&catconfigid=HEAD-wc37&aoi=polygon${polygon_coords}&maxscenes=${head_limit}&datestart=${search_settings.startDate.toISOString().substring(0,10)}&dateend=${search_settings.endDate.toISOString().substring(0,10)}&cloudmax=${search_settings.cloudCoverage}&offnadirmax=${Math.max(...search_settings.offNadirAngle.map(Math.abs))}&overlapmin=${search_settings.aoiCoverage}&scenename=&satellites=${head_satellites_sel}&`
+  const request_string = `&category=search-browser-01&browserfp=2230104508&session=875857144&searchcnt=3&mousemovecnt=2617&tilescnt=2545&sessionsecs=1379&catalogue=PU&catconfigid=HEAD-wc37&aoi=polygon${polygon_coords}&maxscenes=${head_limit}&datestart=${search_settings.startDate.toISOString().substring(0,10)}&dateend=${search_settings.endDate.toISOString().substring(0,10)}&cloudmax=${search_settings.cloudCoverage}&offnadirmax=${max_abs(search_settings.offNadirAngle)}&overlapmin=${search_settings.aoiCoverage}&scenename=&satellites=${head_satellites_sel}&`
   const k17string = request_string.substring(request_string.indexOf('category=') + 9).toLowerCase()
 
   // const head_search_url = head_base_url + "?req=d01-nl-xdebug-xstep-" + request_string + "&user=_" + crc32(k17string) + "&"
@@ -537,5 +539,149 @@ const format_head_results = (head_results_raw, searchPolygon=null) => {
 }
 
 
+/* ---------------------------- */
+/*      Maxar DigitalGlobe      */
+/* ---------------------------- */
+// ky overwrites content-length to 0 although set in the post request header #440
+// https://github.com/sindresorhus/ky/issues/440
+// Plus STAC catalog, cannot find the way to get the bearer token
+// Maxar ARD requires the username and password, while digital globe search dashboard uses the old non-STAC API
+// The only difference between working postman request and non-working ky reqquest is content-length header not correctly set on ky side, overwritten to 0 instead of chosen value
+// maxar is actually a STAC endpoint search api, 
+// https://docs.maxar.com/developers/api#operation/getDataProducts
+// but auth requires account https://docs.auth.content.maxar.com/#getting-started
+const maxar_constellation_dict = {
+  // 'PHR': {
+  //   constellation: 'Pleiades',
+  //   price_per_sq_km: 10, // (10EUR/km2) no min
+  //   min_area: 0
+  // },
+}
+const maxar_search_url = 'https://api.discover.digitalglobe.com/v1/services/ImageServer/query'
+// Not working, get bearer using api key
+const get_maxar_bearer = async (maxar_apikey) => {
+    const maxar_projectApi = base64_encode(`${maxar_apikey}`)
+    const maxar_oauth_json = await ky.post(
+        `https://api.content.maxar.com/auth/authenticate`, 
+        {
+        headers: { 
+            'Authorization': `Basic ${maxar_projectApi}`,
+            'Content-Type': 'application/x-www-form-urlencoded' 
+        },
+        body: 'grant_type=client_credentials'
+        }
+    ).json();
+
+    const maxar_bearer_json = `Bearer ${maxar_oauth_json['access_token']}`
+    console.log('\n\n\n\nmaxar_bearer_json', {maxar_bearer: maxar_bearer_json})
+    return maxar_bearer_json
+}
+function get_maxar_price(feature) {
+  return get_imagery_price(feature, feature.properties.constellation, maxar_constellation_dict)
+}
+
+// CORS needed to reach maxar api server
+const search_maxar = async (search_settings, maxar_apikey, searchPolygon=null, maxar_bearer_json=null, maxar_next_links=null) => {
+  // await get_maxar_bearer(maxar_apikey)
+  const date_format = {month: '2-digit', day: '2-digit', year: 'numeric'}
+  const maxar_payload = `
+outFields=*
+&inSR=4326
+&outSR=4326
+&spatialRel=esriSpatialRelIntersects
+&where=${
+    encodeURIComponent(`
+sun_elevation_avg >= ${search_settings.sunElevation[0]} 
+AND image_band_name in('PAN','4-BANDS') 
+AND collect_time_start >= '${search_settings.startDate.toLocaleDateString('us',date_format)} 00:00:00' 
+AND collect_time_start <= '${search_settings.endDate.toLocaleDateString('us',date_format)} 23:59:59' 
+AND off_nadir_max <= ${max_abs(search_settings.offNadirAngle)} 
+AND pan_resolution_max <= ${search_settings.gsd.max}`
+.replaceAll('\n', '')
+// .replace(/\s+/g, '')
+    )
+  }
+&returnCountOnly=false
+&f=json
+&geometryBasedFilters=${encodeURIComponent(`area_cloud_cover_percentage <= ${search_settings.cloudCoverage}`)}
+&geometryType=esriGeometryPolygon
+&geometry=%7B%22rings%22%20%3A%20%5B%5B%5B2.312107%2C%2048.866804%5D%2C%5B2.312493%2C%2048.866634%5D%2C%5B2.317514%2C%2048.858447%5D%2C%5B2.334723%2C%2048.860988%5D%2C%5B2.322063%2C%2048.870982%5D%2C%5B2.312107%2C%2048.866804%5D%2C%5B2.312107%2C%2048.866804%5D%5D%5D%2C%20%22spatialReference%22%20%3A%20%7B%22wkid%22%20%3A%204326%7D%7D
+&resultRecordCount=500`
+  .replaceAll('\n', '')//.replaceAll(' ', '')
+  // &geometry=${encodeURIComponent(`{"rings" : ${search_settings.coordinates}, "spatialReference" : {"wkid" : 4326}}`)}
+  // &resultRecordCount=${maxar_limit}`
+
+
+  // [[[2.312107, 48.866804],[2.312493, 48.866634],[2.317514, 48.858447],[2.334723, 48.860988],[2.322063, 48.870982],[2.312107, 48.866804],[2.312107, 48.866804]]]
+  
+  const headers = {
+    'x-api-key': maxar_apikey, 
+    'Content-Type': 'application/x-www-form-urlencoded', 
+    'content-length': maxar_payload.length,
+    'Transfer-Encoding': 'compress',
+    // 'Cache-Control': 'no-cache',
+  }
+  console.log('headers', headers)
+  const maxar_results_raw = await ky.post(maxar_search_url, {
+    headers,
+    body: maxar_payload
+  }).json();
+  console.log('maxar PAYLOAD: \n', maxar_payload, '\nRAW maxar search results: \n', maxar_results_raw)
+  const search_results_json = format_maxar_results(maxar_results_raw, searchPolygon)
+  console.log('maxar PAYLOAD: \n', maxar_payload, '\nRAW maxar search results: \n', maxar_results_raw, '\nJSON maxar search results: \n', search_results_json)
+
+  return {
+    search_results_json,
+    maxar_bearer_json,
+  }
+}
+// const { randomUUID } = require('crypto');
+// import { randomUUID } from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
+
+
+const format_maxar_results = (maxar_results_raw, searchPolygon) => {
+  // meta':{'limit':1,'page':1,'found':15},
+  return {
+    'features': maxar_results_raw.features.map(f => {
+      console.log('maxar feature: ', f)
+      const feature = {
+        // 'geometry': f.geometry,
+        'geometry': {
+          type: 'Polygon',
+          coordinates: f.geometry.rings
+        },
+        'properties': {
+          // ...f.attributes,
+
+          'constellation': maxar_constellation_dict[f.attributes.vehicle_name]?.constellation || f.attributes.vehicle_name,
+          'acquisitionDate': (new Date(f.attributes.collect_time_start || f.attributes.start_time || 0)).toISOString(), // or end_time '2019-03-23T10:24:03.000Z',
+          'price': null,
+          'shapeIntersection': null, // shapeIntersection(f, searchPolygon),
+
+          'id': f.attributes.image_identifier || uuidv4(), 
+          'provider': `Maxar_DigitalGlobe/${f.attributes.vehicle_name}`,
+          // 'id': f.attributes.image_identifier || randomUUID(), uuid
+          'resolution': f.attributes.pan_resolution_avg, // multi_resolution_avg
+          'cloudCoverage': f.attributes.area_cloud_cover_percentage,
+          'preview_uri': f.attributes.browse_url,
+          'providerProperties': {
+            'illuminationElevationAngle': f.attributes.sun_elevation_avg,
+            'incidenceAngle': null,
+            'azimuthAngle': f.attributes.off_nadir_avg, // area_avg_off_nadir_angle,
+            'illuminationAzimuthAngle': f.attributes.sun_azimuth_avg,
+          },
+        },
+        'type': 'Feature'
+      }
+      feature.properties.price = get_maxar_price(feature)
+      feature.properties.shapeIntersection = shapeIntersection(feature, searchPolygon)
+      return feature
+    }),
+    'type': 'FeatureCollection'
+  }
+}
+
+
 // Export all search methods
-export {search_up42, search_eos_highres, search_skywatch, search_head}
+export {search_up42, search_eos_highres, search_skywatch, search_head, search_maxar}

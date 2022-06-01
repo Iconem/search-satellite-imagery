@@ -58,7 +58,7 @@ import {
   faEarthEurope, faSatellite, faBolt
 } from '@fortawesome/free-solid-svg-icons'
 
-import {search_up42, search_eos_highres, search_skywatch, search_head} from './search-apis'
+import {search_up42, search_eos_highres, search_skywatch, search_head, search_maxar} from './search-apis'
 import DateRangeComponent from './date-range-component'
 import SettingsComponent from './settings-component'
 import SearchResultsComponent from './search-results-component'
@@ -242,29 +242,36 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
   // const [r1, r2] = await Promise.all([
   // const a = await Promise.all([
   Promise.all([
-    new Promise(async resolve => {
-      const { search_results_json:search_results_json_up42, up42_bearer_json } = (await search_up42(search_settings, apiKeys['UP42'], searchPolygon))
-      update_search_results(search_results_json_up42)
-      resolve(search_results_json_up42)
-      // return search_results_json_up42
-    }),
-    new Promise(async resolve => {
-      const { search_results_json:search_results_json_eos } = await search_eos_highres(search_settings, apiKeys['EOS']) 
-      update_search_results(search_results_json_eos)
-      resolve(search_results_json_eos)
-      // return search_results_json_eos
-    }),
     // new Promise(async resolve => {
-    //   const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'])
-    //   update_search_results(search_results_json_skywatch)
-    //   resolve(search_results_json_skywatch)
+    //   const { search_results_json:search_results_json_up42, up42_bearer_json } = (await search_up42(search_settings, apiKeys['UP42'], searchPolygon))
+    //   update_search_results(search_results_json_up42)
+    //   resolve(search_results_json_up42)
+    //   // return search_results_json_up42
+    // }),
+    // new Promise(async resolve => {
+    //   const { search_results_json:search_results_json_eos } = await search_eos_highres(search_settings, apiKeys['EOS']) 
+    //   update_search_results(search_results_json_eos)
+    //   resolve(search_results_json_eos)
+    //   // return search_results_json_eos
+    // }),
+    // // new Promise(async resolve => {
+    // //   const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'])
+    // //   update_search_results(search_results_json_skywatch)
+    // //   resolve(search_results_json_skywatch)
+    // //   // return search_results_json_skywatch
+    // // }),
+    // new Promise(async resolve => {
+    //   const { search_results_json:search_results_json_head } = await search_head(search_settings, searchPolygon)
+    //   update_search_results(search_results_json_head)
+    //   resolve(search_results_json_head)
     //   // return search_results_json_skywatch
     // }),
+    // Maxar bug in ky: resets content-length to zero although set to other value and working in postman
     new Promise(async resolve => {
-      const { search_results_json:search_results_json_head } = await search_head(search_settings, searchPolygon)
-      update_search_results(search_results_json_head)
-      resolve(search_results_json_head)
-      // return search_results_json_skywatch
+      const { search_results_json:search_results_json_maxar } = await search_maxar(search_settings, apiKeys['MAXAR_DIGITALGLOBE'], searchPolygon)
+      update_search_results(search_results_json_maxar)
+      resolve(search_results_json_maxar)
+      // return search_results_json_maxar
     })
   ])
   .then((results) => {
@@ -312,12 +319,12 @@ function ControlPanel(props) {
   const today = new Date()
   const [searchSettings, setSearchSettings] = React.useState({
     // polygon: null,
-    startDate: subDays(today, 30), 
+    startDate: subDays(today, 3000), // 30
     endDate: today, 
-    gsdIndex: [0, 3], 
-    cloudCoverage: 10, 
-    aoiCoverage: 90, 
-    sunElevation: [60, 90], 
+    gsdIndex: [0, 4], 
+    cloudCoverage: 20, 
+    aoiCoverage: 80, 
+    sunElevation: [50, 90], 
     offNadirAngle: [-60, 60], 
     sensorsSelection: null, 
   })
@@ -328,7 +335,8 @@ function ControlPanel(props) {
       projectApiKey: process.env.UP42_PROJECT_APIKEY,
     }, 
     'EOS': process.env.EOS_APIKEY,
-    'SKYWATCH': process.env.SKYWATCH_APIKEY
+    'SKYWATCH': process.env.SKYWATCH_APIKEY,
+    'MAXAR_DIGITALGLOBE': process.env.MAXAR_DIGITALGLOBE_APIKEY,
   })
   // console.log(apiKeys)
   

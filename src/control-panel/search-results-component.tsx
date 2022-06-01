@@ -97,7 +97,7 @@ const datagridColumns = [
   },
   { 
     field: 'provider',
-    width: 150,
+    width: 160,
     valueGetter: (params) => params.row?.provider,
     renderHeader: () => (<strong>Provider</strong>),
     renderCell: (params) => {
