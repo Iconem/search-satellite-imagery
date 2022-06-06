@@ -13,13 +13,16 @@ import MapControls from './map/map-controls';
 import FeaturesSourceAndLayer from './map/features-source-and-layer';
 import {theme} from './theme';
 
+import sample_results from './sample_results_up42_head_maxar.json'
+
 export default function App() {
   const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN; 
 
   const [drawFeatures, setDrawFeatures] = useState({});
-  const [searchResults, setSearchResults] = React.useState(null);
+  // const [searchResults, setSearchResults] = React.useState(null);
+  const [searchResults, setSearchResults] = React.useState(sample_results);
   const [footprintFeatures, setFootprintFeatures] = useState<null | GeoJSON.FeatureCollection>(null);
-  const [selectedFeature, setSelectedFeature] = useState<null | GeoJSON.Feature>(null);
+  // const [selectedFeature, setSelectedFeature] = useState<null | GeoJSON.Feature>(null);
   const [basemapStyle, setBasemapStyle] = useState("satellite-streets-v11");
   
   return (
@@ -52,14 +55,14 @@ export default function App() {
       <ControlPanel 
         polygons={Object.values(drawFeatures)} 
         setFootprintFeatures={setFootprintFeatures} 
-        setSelectedFeature={setSelectedFeature} 
+        // setSelectedFeature={setSelectedFeature} 
         searchResults={searchResults} 
         setSearchResults={setSearchResults} 
       />
-      {/* <TimelineComponent 
+      <TimelineComponent 
         searchResults={searchResults}  
-        selectedFeature={selectedFeature} 
-      /> */}
+        footprintFeatures={footprintFeatures} 
+      />
     </>
   );
 }

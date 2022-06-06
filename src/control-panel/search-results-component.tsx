@@ -158,7 +158,8 @@ const handleRowHover = (e, searchResults, setFootprintFeatures) => {
   const row = searchResults['features'].find(
     (el) => el.properties.id === rowId
   );
-  setFootprintFeatures(row?.geometry)
+  // setFootprintFeatures(row?.geometry)
+  setFootprintFeatures(row)
 };
 
 

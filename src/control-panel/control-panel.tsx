@@ -242,31 +242,30 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
   // const [r1, r2] = await Promise.all([
   // const a = await Promise.all([
   Promise.all([
-    // new Promise(async resolve => {
-    //   const { search_results_json:search_results_json_up42, up42_bearer_json } = (await search_up42(search_settings, apiKeys['UP42'], searchPolygon))
-    //   update_search_results(search_results_json_up42)
-    //   resolve(search_results_json_up42)
-    //   // return search_results_json_up42
-    // }),
+    new Promise(async resolve => {
+      const { search_results_json:search_results_json_up42, up42_bearer_json } = (await search_up42(search_settings, apiKeys['UP42'], searchPolygon))
+      update_search_results(search_results_json_up42)
+      resolve(search_results_json_up42)
+      // return search_results_json_up42
+    }),
     // new Promise(async resolve => {
     //   const { search_results_json:search_results_json_eos } = await search_eos_highres(search_settings, apiKeys['EOS']) 
     //   update_search_results(search_results_json_eos)
     //   resolve(search_results_json_eos)
     //   // return search_results_json_eos
     // }),
-    // // new Promise(async resolve => {
-    // //   const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'])
-    // //   update_search_results(search_results_json_skywatch)
-    // //   resolve(search_results_json_skywatch)
-    // //   // return search_results_json_skywatch
-    // // }),
     // new Promise(async resolve => {
-    //   const { search_results_json:search_results_json_head } = await search_head(search_settings, searchPolygon)
-    //   update_search_results(search_results_json_head)
-    //   resolve(search_results_json_head)
+    //   const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'])
+    //   update_search_results(search_results_json_skywatch)
+    //   resolve(search_results_json_skywatch)
     //   // return search_results_json_skywatch
     // }),
-    // Maxar bug in ky: resets content-length to zero although set to other value and working in postman
+    new Promise(async resolve => {
+      const { search_results_json:search_results_json_head } = await search_head(search_settings, searchPolygon)
+      update_search_results(search_results_json_head)
+      resolve(search_results_json_head)
+      // return search_results_json_skywatch
+    }),
     new Promise(async resolve => {
       const { search_results_json:search_results_json_maxar } = await search_maxar(search_settings, apiKeys['MAXAR_DIGITALGLOBE'], searchPolygon)
       update_search_results(search_results_json_maxar)

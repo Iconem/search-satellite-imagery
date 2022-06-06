@@ -542,12 +542,9 @@ const format_head_results = (head_results_raw, searchPolygon=null) => {
 /* ---------------------------- */
 /*      Maxar DigitalGlobe      */
 /* ---------------------------- */
-// ky overwrites content-length to 0 although set in the post request header #440
-// https://github.com/sindresorhus/ky/issues/440
-// Plus STAC catalog, cannot find the way to get the bearer token
+// Maxar newest API is actually a STAC catalog endpoint search api, 
 // Maxar ARD requires the username and password, while digital globe search dashboard uses the old non-STAC API
-// The only difference between working postman request and non-working ky reqquest is content-length header not correctly set on ky side, overwritten to 0 instead of chosen value
-// maxar is actually a STAC endpoint search api, 
+// Cannot get the bearer token without an account for STAC
 // https://docs.maxar.com/developers/api#operation/getDataProducts
 // but auth requires account https://docs.auth.content.maxar.com/#getting-started
 const maxar_constellation_dict = {
