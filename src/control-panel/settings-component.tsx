@@ -12,6 +12,7 @@ import {
 
 /* Factorization Component of settings header and default slider properties */
 import SettingsHeader from './settings-header' 
+import SatelliteImagerySourcesTreeview from "./satellite-imagery-sources-treeview";
 
 // Default to small mui slider with 0-100 range and step 1
 const defaultSliderPorps = {
@@ -195,8 +196,12 @@ function SettingsComponent(props) {
       <AdvancedSettingsComponent 
         searchSettings={props.searchSettings}  setSearchSettings={props.setSearchSettings}
       />
+
+      <SatelliteImagerySourcesTreeview 
+        searchSettings={props.searchSettings}  setSearchSettings={props.setSearchSettings}
+      />
     </>
   );
 }
-  
+
 export default React.memo(SettingsComponent);

@@ -65,41 +65,6 @@ import SearchResultsComponent from './search-results-component'
 import ApiKeysModalComponent from './api-keys-modal-component'
 
 
-enum Sensor {
-  Pleiades,
-  PleiadesNeo,
-  HeadSuperview,
-  HeadEarthscanner,
-  Kompsat3,
-  Kompsat2,
-  PlanetSkysat,
-  Worldview,
-  HxGN,
-  NearMap,
-  TripleSat
-}
-
-const sensors = {
-  [Sensor.Pleiades]: {gsd: 0.5},
-  [Sensor.PleiadesNeo]: {gsd: 0.3},
-  [Sensor.HeadSuperview]: {gsd: 0.5},
-  [Sensor.HeadEarthscanner]: {gsd: 0.5},
-  [Sensor.Kompsat3]: {gsd: 0.4},
-  [Sensor.Kompsat2]: {gsd: 1},
-  [Sensor.PlanetSkysat]: {gsd: 0.5},
-  [Sensor.Worldview]: {gsd: 0.5},
-  [Sensor.HxGN]: {gsd: 0.3},
-  [Sensor.NearMap]: {gsd: 0.3},
-  [Sensor.TripleSat]: {gsd: 0.8},
-}
-
-const providers = {
-  'UP42': [Sensor.Pleiades, Sensor.PleiadesNeo, Sensor.HeadSuperview, Sensor.HeadEarthscanner, Sensor.HxGN, Sensor.NearMap],
-  'SKYWATCH': [Sensor.Pleiades, Sensor.Kompsat3, Sensor.Kompsat2, Sensor.PlanetSkysat, Sensor.TripleSat],
-  'EOS': [Sensor.Pleiades, Sensor.HeadSuperview, Sensor.Kompsat3, Sensor.Kompsat2],
-  'SENTINELHUB': [Sensor.Pleiades, Sensor.Worldview],
-}
-
 /* Display COMPONENTS */
 /* AOI area COMPONENT */
 function AOIComponent(props) {

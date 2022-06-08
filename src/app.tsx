@@ -19,8 +19,8 @@ export default function App() {
   const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN; 
 
   const [drawFeatures, setDrawFeatures] = useState({});
-  // const [searchResults, setSearchResults] = React.useState(null);
-  const [searchResults, setSearchResults] = React.useState(sample_results);
+  const [searchResults, setSearchResults] = React.useState(null);
+  // const [searchResults, setSearchResults] = React.useState(sample_results);
   const [footprintFeatures, setFootprintFeatures] = useState<null | GeoJSON.FeatureCollection>(null);
   // const [selectedFeature, setSelectedFeature] = useState<null | GeoJSON.Feature>(null);
   const [basemapStyle, setBasemapStyle] = useState("satellite-streets-v11");
