@@ -83,7 +83,7 @@ const datagridColumns = [
   },
   { 
     field: 'constellation', 
-    width: 95,
+    width: 95,// 95,
     renderHeader: () => (<strong>Constellation</strong>),
     renderCell: (params) => {
       return (<Tooltip title={params.value}><p>{params.value}</p></Tooltip>) 
@@ -91,7 +91,7 @@ const datagridColumns = [
   },
   { 
     field: 'price', 
-    width: 60,
+    width: 80,
     valueGetter: (params) => check_unknown(params.row?.price, ' $'), // USD EURO
     renderHeader: () => (<strong>Price</strong>),
   },

@@ -23,10 +23,10 @@ const appendSuffix = suffix => val => `${val}${suffix}`
 const marks_10_100 = [...Array(11).keys()].map(i => `${i*10}%`);
 
 const handleSliderFun = (state_property, props) => (event: Event, newValue: number | number[]) =>
-props.setSearchSettings({
-  ...props.searchSettings, 
-  [state_property]: newValue
-})
+  props.setSearchSettings({
+    ...props.searchSettings, 
+    [state_property]: newValue
+  })
 
 // Correctly center marks at each end of slider
 const CustomMarksSlider = styled(Slider)({
@@ -161,7 +161,7 @@ function OffNadirComponent(props) {
 }
 
 function AdvancedSettingsComponent(props) {
-  const [advancedSettingsCollapsed, setAdvancedSettingsCollapsed] = React.useState(false) // true
+  const [advancedSettingsCollapsed, setAdvancedSettingsCollapsed] = React.useState(true) // true false
 
   return (
     <>
