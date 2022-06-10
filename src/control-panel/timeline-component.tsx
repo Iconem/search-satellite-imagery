@@ -2,32 +2,24 @@
 // based on visx
 
 import * as React from 'react';
-import {Typography, Box} from '@mui/material';
 import { ThemeProvider, lighten, darken } from '@mui/material/styles';
 import {theme} from '../theme';
-
-
-import {
-  XYChart, GlyphSeries, BarSeries,
-  Axis, Grid, Tooltip,
-  Annotation, AnnotationConnector, AnnotationCircleSubject, AnnotationLineSubject, AnnotationLabel
-} from '@visx/xychart';
+// import {Typography, Box} from '@mui/material';
 
 import {GlyphCircle} from '@visx/glyph'
+import {
+  XYChart, GlyphSeries, Axis, Grid,
+  Annotation, AnnotationCircleSubject, AnnotationLabel,
+  BarSeries, AnnotationConnector, AnnotationLineSubject, Tooltip
+} from '@visx/xychart';
+
 
 const accessors = {
   xAccessor: d => (d?.properties?.acquisitionDate && new Date(d?.properties?.acquisitionDate)) || null,
   yAccessor: d => 0, // d.y,
 };
 
-
 function TimelineComponent(props) {
-
-  const outerWidth = 500
-  const outerHeight = 300
-  const margin = { top: 40, left: 80, right: 80, bottom: 80 }
-  const annotationType = 'circle'
-
   return (
     <ThemeProvider theme={theme}>
       {props.searchResults && props.searchResults['features'] && props.searchResults['features'].length > 0 &&
@@ -46,15 +38,6 @@ function TimelineComponent(props) {
           overflow: 'auto',
         }}
       >
-        {/*         
-        <Typography gutterBottom>
-          Timeline
-        </Typography>
-        <Box sx={{ m: 1 }}/> 
-        */}
-
-
-
           <XYChart 
             height={110} 
             xScale={{ type: 'time' }} 
@@ -74,6 +57,7 @@ function TimelineComponent(props) {
                   strokeWidth={2}
                 />
               )}
+              onFocus={(e) => console.log(e)}
             />
             {props.footprintFeatures && 
               <GlyphSeries 
@@ -100,19 +84,12 @@ function TimelineComponent(props) {
               datum={props.footprintFeatures}
               dx={0}
               dy={20} 
-              
-              // canEditSubject={false}
-              // onDragEnd={({ dx, dy }) => setAnnotationLabelPosition({ dx, dy })}
             >
               {/* <AnnotationConnector /> */}
-              {annotationType === 'circle' ? (
-                <AnnotationCircleSubject 
-                  stroke={'#000'}
-                />
-              ) : (
-                <AnnotationLineSubject />
-              )}
-              {/* .toLocaleDateString([], {year: 'numeric', month: 'numeric', day: 'numeric'})}`} */}
+              {/* <AnnotationLineSubject /> */}
+              <AnnotationCircleSubject 
+                stroke={'#000'}
+              />
               <AnnotationLabel
                 title={`${accessors.xAccessor(props.footprintFeatures)?.toISOString().split('T')[0]}`}
                 subtitle={''}
@@ -127,28 +104,9 @@ function TimelineComponent(props) {
                 }}
               />
             </Annotation>}
-
-            <Tooltip
-              snapTooltipToDatumX
-              snapTooltipToDatumY
-              showVerticalCrosshair
-              showSeriesGlyphs
-              renderTooltip={({ tooltipData, colorScale }) => (
-                <div>
-                  <div style={{ color: colorScale(tooltipData.nearestDatum.key) }}>
-                    {tooltipData.nearestDatum.key}
-                  </div>
-                  {accessors.xAccessor(tooltipData.nearestDatum.datum)}
-                  {', '}
-                  {accessors.yAccessor(tooltipData.nearestDatum.datum)}
-                </div>
-              )}
-            />
           </XYChart>
-
       </div>
       }
-
     </ThemeProvider>
   );
 }

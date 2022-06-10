@@ -1,65 +1,47 @@
 // DateRange component based on simple mui datepickers since the daterange requires an muix-pro subscription
+// Forked from https://github.com/mui/material-ui/issues/17407 hamsishe code on https://codesandbox.io/s/edeyu 
+// soon to be deployed in MUI-X probably
 
 import * as React from 'react';
+import {TreeView, TreeItem} from "@mui/lab";
 import { TextField, Typography, } from '@mui/material';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {Collapse, Checkbox, FormControlLabel, Typography} from '@mui/material';
+import {Collapse, Checkbox, FormControlLabel} from '@mui/material';
+import { v4 as uuidv4 } from 'uuid';
 import { 
   faChevronDown, faChevronUp, faChevronRight, faSatellite,
 } from '@fortawesome/free-solid-svg-icons'
 
-import {TreeView, TreeItem} from "@mui/lab";
-
-
-
-
-enum Sensor {
-  Pleiades,
-  PleiadesNeo,
-  HeadSuperview,
-  HeadEarthscanner,
-  Kompsat3,
-  Kompsat2,
-  PlanetSkysat,
-  Worldview,
-  HxGN,
-  NearMap,
-  TripleSat
-}
-
-const sensors = {
-  [Sensor.Pleiades]: {gsd: 0.5},
-  [Sensor.PleiadesNeo]: {gsd: 0.3},
-  [Sensor.HeadSuperview]: {gsd: 0.5},
-  [Sensor.HeadEarthscanner]: {gsd: 0.5},
-  [Sensor.Kompsat3]: {gsd: 0.4},
-  [Sensor.Kompsat2]: {gsd: 1},
-  [Sensor.PlanetSkysat]: {gsd: 0.5},
-  [Sensor.Worldview]: {gsd: 0.5},
-  [Sensor.HxGN]: {gsd: 0.3},
-  [Sensor.NearMap]: {gsd: 0.3},
-  [Sensor.TripleSat]: {gsd: 0.8},
-}
-
-const providers = {
-  'UP42': [Sensor.Pleiades, Sensor.PleiadesNeo, Sensor.HeadSuperview, Sensor.HeadEarthscanner, Sensor.HxGN, Sensor.NearMap],
-  'SKYWATCH': [Sensor.Pleiades, Sensor.Kompsat3, Sensor.Kompsat2, Sensor.PlanetSkysat, Sensor.TripleSat],
-  'EOS': [Sensor.Pleiades, Sensor.HeadSuperview, Sensor.Kompsat3, Sensor.Kompsat2],
-  // 'SENTINELHUB': [Sensor.Pleiades, Sensor.Worldview],
-  'HEAD-AEROSPACE': [Sensor.HeadSuperview, Sensor.HeadEarthscanner],
-  'MAXAR-DIGITAL-GLOBE': [Sensor.Worldview],
-}
-
-
+import {
+  providers_dict,
+  constellation_dict,
+} from '../archive-apis/search-utilities'
 
 
 interface RenderTree {
-    id: string;
-    name: string;
-    children?: RenderTree[];
-  }
-  
-const data: RenderTree = {
+  id: string;
+  name: string;
+  children?: RenderTree[];
+}
+
+const treeview_root_id = uuidv4()
+const treeview_data: RenderTree = {
+  id: treeview_root_id,
+  name: "Satellite Sources",
+  children: Object.keys(providers_dict).map(provider_key => 
+    ({
+      id: uuidv4(),
+      name: provider_key,
+      children: providers_dict[provider_key].map(constellation_key => ({
+        id: uuidv4(),
+        name: `${constellation_key} - ${100 * constellation_dict[constellation_key]?.gsd}cm`,
+      }))
+    })
+  )
+}
+
+/*
+const data_manual: RenderTree = {
     id: "0",
     name: "Satellite Sources",
     children: [
@@ -142,16 +124,16 @@ const data: RenderTree = {
             name: "Earthscanner-KF1",
           },
           {
+            id: "55",
+            name: "GaoFen-2",
+          },
+          {
             id: "53",
             name: "Jilin-GXA",
           },
           {
             id: "54",
             name: "Jilin-GF02A/B",
-          },
-          {
-            id: "55",
-            name: "GaoFen-2",
           },
           {
             id: "56",
@@ -188,189 +170,185 @@ const data: RenderTree = {
         ]
       },
     ]
-  };
-  const initialSelection = data.children.map(provider => {
-    const sel_i = provider.children.map(source => source.id)
-    sel_i.push(provider.id)
-    return sel_i
-  }).flat()
-  function RecursiveTreeView() {
-    const [selected, setSelected] = React.useState<string[]>(initialSelection);
-    console.log(selected);
-  
-    const selectedSet = React.useMemo(() => new Set(selected), [selected]);
-  
-    const parentMap = React.useMemo(() => {
-      return goThroughAllNodes(data);
-    }, []);
-  
-    // console.log("parentMAp", parentMap);
-  
-    function goThroughAllNodes(nodes: RenderTree, map: Record<string, any> = {}) {
-      if (!nodes.children) {
-        return null;
-      }
-  
-      map[nodes.id] = getAllChild(nodes).splice(1);
-  
-      for (let childNode of nodes.children) {
-        goThroughAllNodes(childNode, map);
-      }
-  
-      return map;
+};
+*/
+
+const initialSelection = treeview_data.children.map(provider => {
+  const sel_i = provider.children.map(source => source.id)
+  sel_i.push(provider.id)
+  return sel_i
+}).flat()
+
+function RecursiveTreeView() {
+  const [selected, setSelected] = React.useState<string[]>(initialSelection);
+  console.log('selected', selected);
+
+  const selectedSet = React.useMemo(() => new Set(selected), [selected]);
+
+  const parentMap = React.useMemo(() => {
+    return goThroughAllNodes(treeview_data);
+  }, []);
+  console.log("parentMAp", parentMap);
+
+  function goThroughAllNodes(nodes: RenderTree, map: Record<string, any> = {}) {
+    if (!nodes.children) {
+      return null;
     }
-  
-    // Get all children from the current node.
-    function getAllChild(
-      childNode: RenderTree | null,
-      collectedNodes: any[] = []
-    ) {
-      if (childNode === null) return collectedNodes;
-  
-      collectedNodes.push(childNode.id);
-  
-      if (Array.isArray(childNode.children)) {
-        for (const node of childNode.children) {
-          getAllChild(node, collectedNodes);
-        }
-      }
-  
-      return collectedNodes;
+
+    map[nodes.id] = getAllChild(nodes).splice(1);
+
+    for (let childNode of nodes.children) {
+      goThroughAllNodes(childNode, map);
     }
-  
-    const getChildById = (nodes: RenderTree, id: string) => {
-      let array: string[] = [];
-      let path: string[] = [];
-  
-      // recursive DFS
-      function getNodeById(node: RenderTree, id: string, parentsPath: string[]) {
-        let result = null;
-  
-        if (node.id === id) {
-          return node;
-        } else if (Array.isArray(node.children)) {
-          for (let childNode of node.children) {
-            result = getNodeById(childNode, id, parentsPath);
-  
-            if (!!result) {
-              parentsPath.push(node.id);
-              return result;
-            }
+
+    return map;
+  }
+
+  // Get all children from the current node.
+  function getAllChild(
+    childNode: RenderTree | null,
+    collectedNodes: any[] = []
+  ) {
+    if (childNode === null) return collectedNodes;
+
+    collectedNodes.push(childNode.id);
+
+    if (Array.isArray(childNode.children)) {
+      for (const node of childNode.children) {
+        getAllChild(node, collectedNodes);
+      }
+    }
+
+    return collectedNodes;
+  }
+
+  const getChildById = (nodes: RenderTree, id: string) => {
+    let array: string[] = [];
+    let path: string[] = [];
+
+    // recursive DFS
+    function getNodeById(node: RenderTree, id: string, parentsPath: string[]) {
+      let result = null;
+
+      if (node.id === id) {
+        return node;
+      } else if (Array.isArray(node.children)) {
+        for (let childNode of node.children) {
+          result = getNodeById(childNode, id, parentsPath);
+
+          if (!!result) {
+            parentsPath.push(node.id);
+            return result;
           }
-  
-          return result;
         }
-  
         return result;
       }
-  
-      const nodeToToggle = getNodeById(nodes, id, path);
-      // console.log(path);
-  
-      return { childNodesToToggle: getAllChild(nodeToToggle, array), path };
-    };
-  
-    function getOnChange(checked: boolean, nodes: RenderTree) {
-      const { childNodesToToggle, path } = getChildById(data, nodes.id);
-      console.log("childNodesToChange", { childNodesToToggle, checked });
-  
-      let array = checked
-        ? [...selected, ...childNodesToToggle]
-        : selected
-            .filter((value) => !childNodesToToggle.includes(value))
-            .filter((value) => !path.includes(value));
-  
-      array = array.filter((v, i) => array.indexOf(v) === i);
-  
-      setSelected(array);
+      return result;
     }
-  
-    const renderTree = (nodes: RenderTree) => {
-      const allSelectedChildren = parentMap[
-        nodes.id
-      ]?.every((childNodeId: string) => selectedSet.has(childNodeId));
-      const checked = selectedSet.has(nodes.id) || allSelectedChildren || false;
-  
-      const indeterminate =
-        parentMap[nodes.id]?.some((childNodeId: string) =>
-          selectedSet.has(childNodeId)
-        ) || false;
-  
-      if (allSelectedChildren && !selectedSet.has(nodes.id)) {
-        console.log("if allSelectedChildren");
-  
-        setSelected([...selected, nodes.id]);
-      }
-  
-      return (
-        <TreeItem
-          key={nodes.id}
-          nodeId={nodes.id}
-          label={
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={checked}
-                  indeterminate={!checked && indeterminate}
-                  onChange={(event) =>
-                    getOnChange(event.currentTarget.checked, nodes)
-                  }
-                  onClick={(e) => e.stopPropagation()}
-                />
-              }
-              label={<Typography variant="subtitle2">{nodes.name}</Typography>}
-              key={nodes.id}
-            />
-          }
-        >
-          {Array.isArray(nodes.children)
-            ? nodes.children.map((node) => renderTree(node))
-            : null}
-        </TreeItem>
-      );
-    };
-  
-    return (
-      <TreeView
-        defaultExpanded={["0"]}
-        // defaultChecked={true}
-        defaultCollapseIcon={<FontAwesomeIcon icon={faChevronDown} />}
-        defaultExpandIcon={<FontAwesomeIcon icon={faChevronRight} />}
-      >
-        {renderTree(data)}
-      </TreeView>
-    );
+
+    const nodeToToggle = getNodeById(nodes, id, path);
+    // console.log(path);
+
+    return { childNodesToToggle: getAllChild(nodeToToggle, array), path };
+  };
+
+  function getOnChange(checked: boolean, nodes: RenderTree) {
+    const { childNodesToToggle, path } = getChildById(treeview_data, nodes.id);
+    console.log("childNodesToChange", { childNodesToToggle, checked });
+
+    let array = checked
+      ? [...selected, ...childNodesToToggle]
+      : selected
+          .filter((value) => !childNodesToToggle.includes(value))
+          .filter((value) => !path.includes(value));
+
+    array = array.filter((v, i) => array.indexOf(v) === i);
+
+    setSelected(array);
   }
-  
 
+  const renderTree = (nodes: RenderTree) => {
+    const allSelectedChildren = parentMap[
+      nodes.id
+    ]?.every((childNodeId: string) => selectedSet.has(childNodeId));
+    const checked = selectedSet.has(nodes.id) || allSelectedChildren || false;
 
+    const indeterminate =
+      parentMap[nodes.id]?.some((childNodeId: string) =>
+        selectedSet.has(childNodeId)
+      ) || false;
 
+    if (allSelectedChildren && !selectedSet.has(nodes.id)) {
+      console.log("if allSelectedChildren");
+
+      setSelected([...selected, nodes.id]);
+    }
+
+    return (
+      <TreeItem
+        key={nodes.id}
+        nodeId={nodes.id}
+        label={
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={checked}
+                indeterminate={!checked && indeterminate}
+                onChange={(event) =>
+                  getOnChange(event.currentTarget.checked, nodes)
+                }
+                onClick={(e) => e.stopPropagation()}
+              />
+            }
+            label={<Typography variant="subtitle2">{nodes.name}</Typography>}
+            key={nodes.id}
+          />
+        }
+      >
+        {Array.isArray(nodes.children)
+          ? nodes.children.map((node) => renderTree(node))
+          : null}
+      </TreeItem>
+    );
+  };
+
+  return (
+    <TreeView
+      defaultExpanded={[treeview_root_id]}
+      // defaultChecked={true}
+      defaultCollapseIcon={<FontAwesomeIcon icon={faChevronDown} />}
+      defaultExpandIcon={<FontAwesomeIcon icon={faChevronRight} />}
+    >
+      {renderTree(treeview_data)}
+    </TreeView>
+  );
+}
 
 
 function SatelliteImagerySourcesTreeview(props) {
-    const [advancedSettingsCollapsed, setAdvancedSettingsCollapsed] = React.useState(false) // true
-    
-    return (
-        <>
-        <Typography 
-            variant="subtitle2" 
-            onClick={() => setAdvancedSettingsCollapsed(!advancedSettingsCollapsed)} 
-            sx={{cursor: 'pointer', zIndex: 10}}
-        >
-            <FontAwesomeIcon icon={faSatellite} /> 
-            &nbsp; Satellite Sources Selection &nbsp; 
-            {
-            advancedSettingsCollapsed ? 
-            <FontAwesomeIcon icon={faChevronDown} /> : 
-            <FontAwesomeIcon icon={faChevronUp} />
-            }
-        </Typography>
-        <Collapse in={!advancedSettingsCollapsed} timeout="auto" unmountOnExit>
-            <RecursiveTreeView />
+  const [advancedSettingsCollapsed, setAdvancedSettingsCollapsed] = React.useState(false) // true
+  
+  return (
+      <>
+      <Typography 
+          variant="subtitle2" 
+          onClick={() => setAdvancedSettingsCollapsed(!advancedSettingsCollapsed)} 
+          sx={{cursor: 'pointer', zIndex: 10}}
+      >
+          <FontAwesomeIcon icon={faSatellite} /> 
+          &nbsp; Satellite Sources Selection &nbsp; 
+          {
+          advancedSettingsCollapsed ? 
+          <FontAwesomeIcon icon={faChevronDown} /> : 
+          <FontAwesomeIcon icon={faChevronUp} />
+          }
+      </Typography>
+      <Collapse in={!advancedSettingsCollapsed} timeout="auto" unmountOnExit>
+          <RecursiveTreeView />
 
-        </Collapse>
-        </>
-    );
-    }
+      </Collapse>
+      </>
+  );
+}
   
 export default React.memo(SatelliteImagerySourcesTreeview);

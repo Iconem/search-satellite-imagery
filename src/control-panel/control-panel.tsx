@@ -5,31 +5,12 @@
 
 // WIP/TODO: 
 /*
-use correct draw polygon for search
-search all providers
-cast providers other than up42 to up42 classes features
-display on map on hover on datagrid element
+circular progress for each provider
 sat chips checkboxes https://mui.com/material-ui/react-autocomplete/#customized-hook
 https://mui.com/material-ui/react-switch/#label
-DRAW RECTANGLE
-
-Timeline view
 Tree view https://mui.com/material-ui/react-tree-view/#gmail-clone
-
 pagination or infinite scroll for multiple search results
-pricing of results correctly 
 tooltip for provider support
-modal for api key setup
-chips for filters selected
-circularprogress for each provider
-Factor slider components
-Factor text header + slider (textLeft, textRight) with child
-
-STYLE SWITCHER using map.setStyle or react way of handling things
-https://mui.com/material-ui/react-autocomplete/#checkboxes
-@mui/icons-material SolarPower WbTwilight
-
-based on https://github.com/visgl/react-map-gl/tree/7.0-release/examples/draw-polygon
 */
 
 import * as React from 'react';
@@ -58,7 +39,13 @@ import {
   faEarthEurope, faSatellite, faBolt
 } from '@fortawesome/free-solid-svg-icons'
 
-import {search_up42, search_eos_highres, search_skywatch, search_head, search_maxar} from './search-apis'
+// import {search_up42, search_eos_highres, search_skywatch, search_head, search_maxar} from './search-apis'
+import search_up42 from '../archive-apis/search-up42'
+import search_eos_highres from '../archive-apis/search-eos'
+import search_head from '../archive-apis/search-head'
+import search_skywatch from '../archive-apis/search-skywatch'
+import search_maxar from '../archive-apis/search-maxar'
+
 import DateRangeComponent from './date-range-component'
 import SettingsComponent from './settings-component'
 import SearchResultsComponent from './search-results-component'
@@ -157,7 +144,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
     ],
     setters.setSnackbarOptions({
       open: true, 
-      message: 'Default Coordinates used since no polygon has been drawn'
+      message: 'Default Polygon (Paris area) used since no rectangle polygon has been drawn!'
     })
   }
   
@@ -214,29 +201,29 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
       // return search_results_json_up42
     }),
     // new Promise(async resolve => {
-    //   const { search_results_json:search_results_json_eos } = await search_eos_highres(search_settings, apiKeys['EOS']) 
+    //   const { search_results_json:search_results_json_head } = await search_head(search_settings, searchPolygon)
+    //   update_search_results(search_results_json_head)
+    //   resolve(search_results_json_head)
+    //   // return search_results_json_skywatch
+    // }),
+    // new Promise(async resolve => {
+    //   const { search_results_json:search_results_json_maxar } = await search_maxar(search_settings, apiKeys['MAXAR_DIGITALGLOBE'], searchPolygon)
+    //   update_search_results(search_results_json_maxar)
+    //   resolve(search_results_json_maxar)
+    //   // return search_results_json_maxar
+    // }),
+    // new Promise(async resolve => {
+    //   const { search_results_json:search_results_json_eos } = await search_eos_highres(search_settings, apiKeys['EOS'], setters.setSnackbarOptions) 
     //   update_search_results(search_results_json_eos)
     //   resolve(search_results_json_eos)
     //   // return search_results_json_eos
     // }),
     // new Promise(async resolve => {
-    //   const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'])
+    //   const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'], setters.setSnackbarOptions)
     //   update_search_results(search_results_json_skywatch)
     //   resolve(search_results_json_skywatch)
     //   // return search_results_json_skywatch
     // }),
-    new Promise(async resolve => {
-      const { search_results_json:search_results_json_head } = await search_head(search_settings, searchPolygon)
-      update_search_results(search_results_json_head)
-      resolve(search_results_json_head)
-      // return search_results_json_skywatch
-    }),
-    new Promise(async resolve => {
-      const { search_results_json:search_results_json_maxar } = await search_maxar(search_settings, apiKeys['MAXAR_DIGITALGLOBE'], searchPolygon)
-      update_search_results(search_results_json_maxar)
-      resolve(search_results_json_maxar)
-      // return search_results_json_maxar
-    })
   ])
   .then((results) => {
     console.log('ALL PROMISE END', results);
@@ -247,7 +234,6 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
   });
   console.log('outside PROMISE END');
   // console.log('AWAIT PROMISE END', r1, r2);
-  /**/
 
   /*
   // const { search_results_json:search_results_json_up42, up42_bearer_json } = (await search_up42(search_settings, apiKeys['UP42'], searchPolygon))
@@ -302,7 +288,6 @@ function ControlPanel(props) {
     'SKYWATCH': process.env.SKYWATCH_APIKEY,
     'MAXAR_DIGITALGLOBE': process.env.MAXAR_DIGITALGLOBE_APIKEY,
   })
-  // console.log(apiKeys)
   
   const setStartDate = (newValue: Date | null) => setSearchSettings({
     ...searchSettings, 
@@ -419,7 +404,7 @@ function ControlPanel(props) {
         />
         <Snackbar
           open={snackbarOptions.open}
-          autoHideDuration={2000}
+          autoHideDuration={5000}
           onClose={handleSnackbarClose}
           // message={snackbarOptions.message}
         >
