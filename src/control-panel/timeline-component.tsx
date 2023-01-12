@@ -22,22 +22,32 @@ const accessors = {
 function TimelineComponent(props) {
   return (
     <ThemeProvider theme={theme}>
-      {props.searchResults && props.searchResults['features'] && props.searchResults['features'].length > 0 &&
         <div 
         className="control-panel" 
         style={{
           background: theme.palette.background.default,
           color: theme.palette.text.primary, 
-          width: '1450px',
+          backgroundColor: 'transparent',
+          width: '100%',
+          // width: '1450px',
 
-          position: 'absolute',
-          bottom: '3%',
-          left: '1%',
           boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
           outline: 'none',
           overflow: 'auto',
+          // position:'relative',
+          pointerEvents: 'none',
+          alignSelf: 'flex-end'
         }}
       >
+        <div
+          style={{
+            // position: 'absolute',
+            width: '100%',
+            // bottom: 0,
+            backgroundColor: 'white',
+          }}
+        >
+        {props.searchResults && props.searchResults['features'] && props.searchResults['features'].length > 0 &&
           <XYChart 
             height={110} 
             xScale={{ type: 'time' }} 
@@ -104,9 +114,11 @@ function TimelineComponent(props) {
                 }}
               />
             </Annotation>}
+            
           </XYChart>
-      </div>
       }
+        </div>
+      </div>
     </ThemeProvider>
   );
 }

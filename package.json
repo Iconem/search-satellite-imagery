@@ -37,6 +37,8 @@
     "react": "^17.0.0",
     "react-dom": "^17.0.0",
     "react-map-gl": "^7.0.0",
+    "react-resizable-panels": "^0.0.33",
+    "react-split": "^2.0.14",
     "react-spring": "^9.4.5",
     "stream-browserify": "^3.0.0",
     "uuid": "^8.3.2"

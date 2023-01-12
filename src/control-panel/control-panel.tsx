@@ -200,30 +200,31 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
       resolve(search_results_json_up42)
       // return search_results_json_up42
     }),
-    // new Promise(async resolve => {
-    //   const { search_results_json:search_results_json_head } = await search_head(search_settings, searchPolygon)
-    //   update_search_results(search_results_json_head)
-    //   resolve(search_results_json_head)
-    //   // return search_results_json_skywatch
-    // }),
-    // new Promise(async resolve => {
-    //   const { search_results_json:search_results_json_maxar } = await search_maxar(search_settings, apiKeys['MAXAR_DIGITALGLOBE'], searchPolygon)
-    //   update_search_results(search_results_json_maxar)
-    //   resolve(search_results_json_maxar)
-    //   // return search_results_json_maxar
-    // }),
-    // new Promise(async resolve => {
-    //   const { search_results_json:search_results_json_eos } = await search_eos_highres(search_settings, apiKeys['EOS'], setters.setSnackbarOptions) 
-    //   update_search_results(search_results_json_eos)
-    //   resolve(search_results_json_eos)
-    //   // return search_results_json_eos
-    // }),
-    // new Promise(async resolve => {
-    //   const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'], setters.setSnackbarOptions)
-    //   update_search_results(search_results_json_skywatch)
-    //   resolve(search_results_json_skywatch)
-    //   // return search_results_json_skywatch
-    // }),
+    new Promise(async resolve => {
+      const { search_results_json:search_results_json_head } = await search_head(search_settings, searchPolygon)
+      update_search_results(search_results_json_head)
+      resolve(search_results_json_head)
+      // return search_results_json_skywatch
+    }),
+    new Promise(async resolve => {
+      const { search_results_json:search_results_json_maxar } = await search_maxar(search_settings, apiKeys['MAXAR_DIGITALGLOBE'], searchPolygon)
+      update_search_results(search_results_json_maxar)
+      resolve(search_results_json_maxar)
+      // return search_results_json_maxar
+    }),
+    // EOS and Skywatch are slower to return query results
+    new Promise(async resolve => {
+      const { search_results_json:search_results_json_eos } = await search_eos_highres(search_settings, apiKeys['EOS'], setters.setSnackbarOptions) 
+      update_search_results(search_results_json_eos)
+      resolve(search_results_json_eos)
+      // return search_results_json_eos
+    }),
+    new Promise(async resolve => {
+      const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'], setters.setSnackbarOptions)
+      update_search_results(search_results_json_skywatch)
+      resolve(search_results_json_skywatch)
+      // return search_results_json_skywatch
+    }),
   ])
   .then((results) => {
     console.log('ALL PROMISE END', results);
@@ -269,7 +270,7 @@ function ControlPanel(props) {
   const today = new Date()
   const [searchSettings, setSearchSettings] = React.useState({
     // polygon: null,
-    startDate: subDays(today, 3000), // 30
+    startDate: subDays(today, 1200), // 30
     endDate: today, 
     gsdIndex: [0, 4], 
     cloudCoverage: 20, 
@@ -343,18 +344,17 @@ function ControlPanel(props) {
         style={{
           background: theme.palette.background.default,
           color: theme.palette.text.primary, 
-          width: '400px',
-          minWidth: '400px', 
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'auto',
+          // minWidth: '400px', 
 
-          position: 'absolute',
-          top: '3%',
+          // position: 'absolute',
           right: 0,
-          maxWidth: '480px',
+          // maxWidth: '480px',
           boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
           padding: '12px 24px',
-          marginRight: '20px',
           outline: 'none',
-          maxHeight: '94%',
           overflow: 'auto',
         }}
       >

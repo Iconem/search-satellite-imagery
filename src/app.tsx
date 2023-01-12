@@ -5,6 +5,7 @@ import Map, {useMap} from 'react-map-gl';
 import type GeoJSON from 'geojson';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider } from '@mui/material/styles';
+import Split from 'react-split'
 
 // Custom Components and theme
 import ControlPanel from './control-panel/control-panel';
@@ -14,6 +15,7 @@ import FeaturesSourceAndLayer from './map/features-source-and-layer';
 import {theme} from './theme';
 
 import sample_results from './sample_results_up42_head_maxar.json'
+
 
 export default function App() {
   const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN; 
@@ -25,8 +27,31 @@ export default function App() {
   // const [selectedFeature, setSelectedFeature] = useState<null | GeoJSON.Feature>(null);
   const [basemapStyle, setBasemapStyle] = useState("satellite-streets-v11");
   
+  // Support for split pane: react-split-pane only supports react v16 so switching to react-resizable-panels instead. https://github.com/tomkp/react-split-pane/issues/713
+
+  
   return (
     <>
+        <style>
+            {`
+  .split {
+    display: flex;
+    flex-direction: row;
+}
+
+.gutter {
+    /*background-color: #eee;*/
+    background-repeat: no-repeat;
+    background-position: 50%;
+    pointer-events: auto;
+}
+
+.gutter.gutter-horizontal {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+    cursor: col-resize;
+}
+  `}
+        </style>
       <Map
         initialViewState={{
           // longitude: 0,
@@ -53,17 +78,44 @@ export default function App() {
         <FeaturesSourceAndLayer features={footprintFeatures} lineLayer={true} fillLayer={true} />
 
       </Map>
-      <ControlPanel 
-        polygons={Object.values(drawFeatures)} 
-        setFootprintFeatures={setFootprintFeatures} 
-        // setSelectedFeature={setSelectedFeature} 
-        searchResults={searchResults} 
-        setSearchResults={setSearchResults} 
-      />
-      <TimelineComponent 
-        searchResults={searchResults}  
-        footprintFeatures={footprintFeatures} 
-      />
+
+      <div style={{
+        position: 'absolute', 
+        zIndex: 100,
+        top: '3%',
+        bottom: '3%',
+        left: '1%',
+        right: '1%', 
+        pointerEvents: 'none',
+      }} > 
+      <Split
+        sizes={[75, 25]}
+        minSize={100}
+        expandToMin={false}
+        gutterSize={10}
+        gutterAlign="center"
+        snapOffset={30}
+        dragInterval={1}
+        direction="horizontal"
+        cursor="col-resize"
+        className="split"
+        style={{height: '100%'}}
+      >
+        <TimelineComponent 
+          searchResults={searchResults}  
+          footprintFeatures={footprintFeatures} 
+        />
+        <ControlPanel 
+          polygons={Object.values(drawFeatures)} 
+          setFootprintFeatures={setFootprintFeatures} 
+          // setSelectedFeature={setSelectedFeature} 
+          searchResults={searchResults} 
+          setSearchResults={setSearchResults} 
+        />
+      </Split>
+      </div>
+
+      
     </>
   );
 }
