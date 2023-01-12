@@ -69,6 +69,29 @@ const datagridColumns = [
     ),
   },
   { 
+    field: 'price', 
+    width: 80,
+    valueGetter: (params) => check_unknown(params.row?.price, ' $'), // USD EURO
+    renderHeader: () => (<strong>Price</strong>),
+  },
+  // { 
+  //   field: 'constellation', 
+  //   width: 95,// 95,
+  //   renderHeader: () => (<strong>Constellation</strong>),
+  //   renderCell: (params) => {
+  //     return (<Tooltip title={params.value}><p>{params.value}</p></Tooltip>) 
+  //   },
+  // },
+  { 
+    field: 'provider',
+    width: 160,
+    valueGetter: (params) => params.row?.provider,
+    renderHeader: () => (<strong>Provider</strong>),
+    renderCell: (params) => {
+      return (<Tooltip title={params.value}><p>{params.value}</p></Tooltip>) 
+    },
+  },
+  { 
     field: 'cloudCoverage', 
     valueGetter: (params) => check_unknown(params.row?.cloudCoverage, '%'),
     description: 'Cloud Coverage',
@@ -80,29 +103,6 @@ const datagridColumns = [
         {' '}</strong>
       </Tooltip> 
     ),
-  },
-  { 
-    field: 'constellation', 
-    width: 95,// 95,
-    renderHeader: () => (<strong>Constellation</strong>),
-    renderCell: (params) => {
-      return (<Tooltip title={params.value}><p>{params.value}</p></Tooltip>) 
-    },
-  },
-  { 
-    field: 'price', 
-    width: 80,
-    valueGetter: (params) => check_unknown(params.row?.price, ' $'), // USD EURO
-    renderHeader: () => (<strong>Price</strong>),
-  },
-  { 
-    field: 'provider',
-    width: 160,
-    valueGetter: (params) => params.row?.provider,
-    renderHeader: () => (<strong>Provider</strong>),
-    renderCell: (params) => {
-      return (<Tooltip title={params.value}><p>{params.value}</p></Tooltip>) 
-    },
   },
   { 
     field: 'shapeIntersection',
