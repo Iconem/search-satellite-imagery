@@ -358,6 +358,11 @@ function ControlPanel(props) {
           overflow: 'auto',
         }}
       >
+      <div 
+        style={{
+          pointerEvents: 'auto',
+        }}
+      >
         {/* TITLE */}
         <Typography gutterBottom>
           Retrieve Satellite Imagery
@@ -418,6 +423,7 @@ function ControlPanel(props) {
           <SearchResultsComponent searchResults={props.searchResults} setFootprintFeatures={props.setFootprintFeatures}/>
         }
 
+      </div>
       </div>
     </ThemeProvider>
   );
