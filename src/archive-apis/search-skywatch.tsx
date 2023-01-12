@@ -43,7 +43,7 @@ const search_skywatch = async (search_settings, skywatch_apikey, setSnackbarOpti
 
   let search_results_raw
   let n_queries = 0
-  let retry_delay = 400
+  let retry_delay = 1000
   while (n_queries++ < max_query_count) {
     const search_query_response = await perform_skywatch_search(skywatch_apikey, searchId)
     console.log('n_queries', n_queries, 'retry_delay', retry_delay/1000, 'sec. response status', search_query_response.status, search_query_response)

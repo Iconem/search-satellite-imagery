@@ -97,7 +97,7 @@ const format_eos_results = (eos_results_raw) => {
       {
         'geometry': r.dataGeometry,
         'properties': {
-          'provider': `EOS/${r.provider}`,
+          'provider': `EOS/${r.satellite}`,
           'id': r.sceneID, 
           'acquisitionDate': new Date(r.date).toISOString(), //'2019-03-23T10:24:03.000Z',
           'resolution': r.resolution, // '1.5 m/pxl'

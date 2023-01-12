@@ -104,6 +104,21 @@ function ApiKeysModalComponent(props) {
                 sx={{ width: '50%' }}
               />
               </ListItem>
+              <ListItem sx={{ display: 'list-item' }}>
+                <Typography variant="h6"> MAXAR </Typography>
+              </ListItem>
+              <ListItem sx={{ display: 'list-item' }}>
+                <TextField 
+                value={props.apiKeys['MAXAR_DIGITALGLOBE']} 
+                onChange={(event) => props.setApiKeys({
+                  ...props.apiKeys, 
+                  'MAXAR_DIGITALGLOBE': event.target.value
+                })} 
+                label="MAXAR API key" 
+                type="search" 
+                sx={{ width: '50%' }}
+              />
+              </ListItem>
             </List>
 
             <Divider variant="middle" />
