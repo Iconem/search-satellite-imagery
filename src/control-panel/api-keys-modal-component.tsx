@@ -122,7 +122,6 @@ function ApiKeysModalComponent(props) {
             </List>
 
             <Divider variant="middle" />
-            <Typography>
               {/* <List sx={{listStyleType: 'disc' }}> */}
               <List >
                 <ListItem sx={{ display: 'list-item'}}>
@@ -136,7 +135,6 @@ function ApiKeysModalComponent(props) {
                 Skywatch API key can be found on your user <Link href="https://dashboard.skywatch.co/account/profile">account profile</Link> 
                 </ListItem>
               </List>
-            </Typography>
           </Box>
         </Fade>
       </Modal>

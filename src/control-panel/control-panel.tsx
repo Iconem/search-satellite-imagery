@@ -116,6 +116,11 @@ function SearchButton(props) {
 function ExportButton(props) {
   function handleExportButtonClick() {
     const geojson_obj = JSON.parse(JSON.stringify(props.searchResults.output)) // deep copy
+    geojson_obj.features.forEach(f => {
+      f.properties['fill-opacity'] = 0;
+      f.properties['stroke-width'] = 1;
+    })
+
     geojson_obj.features.unshift(props.searchResults.input)
 
     const fileData = JSON.stringify(geojson_obj);
@@ -126,6 +131,8 @@ function ExportButton(props) {
     link.download = "search-results.geojson";
     link.href = url;
     link.click();
+
+    // Could define these styles for each geojson feature properties, and use QGIS/Fill-Color/Data-Defined-Overrides/Field-type:string 
   }
 
   return (
@@ -201,6 +208,11 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
       price: 0,
       resolution: 0,
       shapeIntersection: 100,
+
+      // Styles for geojson.io or qgis fill data-driven-override
+      'fill': '#f00',
+      'fill-opacity': 0.3,
+      'stroke-width': 1,
     }
   }
   const searchResults = {

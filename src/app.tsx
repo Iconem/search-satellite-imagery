@@ -104,6 +104,7 @@ export default function App() {
         <TimelineComponent 
           searchResults={searchResults}  
           footprintFeatures={footprintFeatures} 
+          setFootprintFeatures={setFootprintFeatures} 
         />
         <ControlPanel 
           polygons={Object.values(drawFeatures)} 

@@ -13,11 +13,34 @@ import {
   BarSeries, AnnotationConnector, AnnotationLineSubject, Tooltip
 } from '@visx/xychart';
 
+import { RenderTooltipParams } from "@visx/xychart/lib/components/Tooltip";
+
 
 const accessors = {
   xAccessor: d => (d?.properties?.acquisitionDate && new Date(d?.properties?.acquisitionDate)) || null,
   yAccessor: d => 0, // d.y,
 };
+
+
+const handleRowHover = (e, searchResults, setFootprintFeatures) => {
+  console.log('YO MOUSE ENTER', e)
+  const rowId = e.target.parentElement.dataset.id;
+  console.log(rowId)
+  const row = searchResults.output['features'].find(
+    (el) => el.properties.id === rowId
+  );
+  console.log(row)
+  // setFootprintFeatures(row?.geometry)
+  setFootprintFeatures(row)
+};
+
+
+
+const getToolTipsDatum = (event: RenderTooltipParams<any>) => ({
+  datum: event?.tooltipData?.nearestDatum?.datum,
+  distance: event?.tooltipData?.nearestDatum?.distance
+});
+
 
 function TimelineComponent(props) {
   return (
@@ -35,7 +58,7 @@ function TimelineComponent(props) {
           outline: 'none',
           overflow: 'auto',
           // position:'relative',
-          pointerEvents: 'none',
+          pointerEvents: 'auto',
           alignSelf: 'flex-end'
         }}
       >
@@ -60,16 +83,57 @@ function TimelineComponent(props) {
               dataKey="Acquisition Dates" 
               data={props.searchResults.output['features']} 
               {...accessors} 
-              renderGlyph={({ x, y }: any) => ( //  { left: number; top: number }
+              renderGlyph={({ x, y, p  }: any) => ( //  { left: number; top: number }
                 <GlyphCircle 
                   left={x} top={y}
                   stroke={'#777'} // theme.palette.primary.main}
                   fill={'#fff'}
                   strokeWidth={2}
+                  // properties={p}
+
+                  //  onMouseOver = {e => handleRowHover(e, props.searchResults, props.setFootprintFeatures)}
+                //   onMouseLeave: e => props.setFootprintFeatures({
+                //     coordinates: [], 
+                //     type: 'Polygon'
+                //   }) 
+                // }, 
                 />
               )}
-              onFocus={(e) => console.log(e)}
+              // onFocus={(e) => console.log(e)}
             />
+            
+            <Tooltip
+      snapTooltipToDatumX
+      snapTooltipToDatumY
+      showVerticalCrosshair
+      showSeriesGlyphs
+      renderTooltip={({ tooltipData, colorScale }) => {
+        console.log('YOYO')
+        console.log(tooltipData)
+        console.log(tooltipData.nearestDatum.key)
+        console.log(accessors.xAccessor(tooltipData.nearestDatum.datum))
+        console.log(tooltipData)
+        props.setFootprintFeatures(tooltipData.nearestDatum.datum)
+
+        return (
+          <div style={{
+              'display': 'none',
+              'visibility': 'hidden', 
+              'width': 0, 
+              'height': 0
+          }}>
+            {/* <p>
+              {tooltipData.nearestDatum.key}
+              {accessors.xAccessor(tooltipData.nearestDatum.datum)}
+              {', '}
+              {accessors.yAccessor(tooltipData.nearestDatum.datum)} 
+            </p> */}
+          </div>
+        )
+      }}
+    />
+
+
             {props.footprintFeatures && 
               <GlyphSeries 
                 dataKey="Selected Result" 
