@@ -81,6 +81,7 @@ const format_maxar_results = (maxar_results_raw, searchPolygon) => {
           // ...f.attributes,
           
           // 'constellation': maxar_constellation_dict[f.attributes.vehicle_name]?.constellation || f.attributes.vehicle_name,
+          'providerPlatform': `MAXAR`, 
           'constellation': get_constellation_name(f.attributes.vehicle_name, maxar_constellation_dict), // maxar_constellation_dict[f.attributes.vehicle_name]?.constellation || f.attributes.vehicle_name,
           'acquisitionDate': (new Date(f.attributes.collect_time_start || f.attributes.start_time || 0)).toISOString(), // or end_time '2019-03-23T10:24:03.000Z',
           'price': null,

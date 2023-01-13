@@ -326,7 +326,7 @@ function RecursiveTreeView() {
 
 
 function SatelliteImagerySourcesTreeview(props) {
-  const [advancedSettingsCollapsed, setAdvancedSettingsCollapsed] = React.useState(false) // true
+  const [advancedSettingsCollapsed, setAdvancedSettingsCollapsed] = React.useState(true) // true
   
   return (
       <>

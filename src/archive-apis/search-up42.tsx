@@ -3,6 +3,7 @@
 import ky from 'ky';
 import {encode as base64_encode} from 'base-64';
 import {shapeIntersection, get_imagery_price, up42_constellation_dict, providers_dict, Providers, up42_producers_names} from './search-utilities'
+import { v4 as uuidv4 } from 'uuid';
 
 /* -------------- */
 /*      UP42      */
@@ -111,11 +112,18 @@ const format_up42_results = (up42_results_raw, searchPolygon) => {
       {
         'geometry': feature.geometry,
         'properties': {
-          ...feature.properties,
+          // ...feature.properties,
+          id: uuidv4(),
           constellation: up42_constellation_dict[feature.properties.constellation]?.constellation || feature.properties.constellation,
           'price': get_up42_price(feature),
           'shapeIntersection': shapeIntersection(feature, searchPolygon),
+          'providerPlatform': `UP42`, 
           'provider': `UP42/${feature.properties.producer}`, // /${feature.properties.providerName}
+          // 
+          'providerProperties': feature.properties.providerProperties,
+          'cloudCoverage': feature.properties.cloudCoverage,
+          'acquisitionDate': feature.properties.acquisitionDate,
+          'resolution': feature.properties.resolution,
         },
         'type': 'Feature'
       }

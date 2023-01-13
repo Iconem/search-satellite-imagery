@@ -33,18 +33,16 @@ import area from '@turf/area';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 // FontAwesome icons https://fontawesome.com/icons
 import { 
-  faCloudSun, faChevronDown, faChevronUp, faCropSimple, 
-  faGear, faDrawPolygon, faCalendarDay, faTableCells, faTableCellsLarge, 
-  faGears, faSliders, faToolbox, faWrench, faEllipsis, faSquarePollVertical, faSquarePollHorizontal,
-  faEarthEurope, faSatellite, faBolt
+  faChevronDown, faChevronUp, faDownload, faDrawPolygon, faSliders, 
 } from '@fortawesome/free-solid-svg-icons'
+import { v4 as uuidv4 } from 'uuid';
 
 // import {search_up42, search_eos_highres, search_skywatch, search_head, search_maxar} from './search-apis'
 import search_up42 from '../archive-apis/search-up42'
-import search_eos_highres from '../archive-apis/search-eos'
 import search_head from '../archive-apis/search-head'
-import search_skywatch from '../archive-apis/search-skywatch'
 import search_maxar from '../archive-apis/search-maxar'
+import search_skywatch from '../archive-apis/search-skywatch'
+import search_eos_highres from '../archive-apis/search-eos'
 
 import DateRangeComponent from './date-range-component'
 import SettingsComponent from './settings-component'
@@ -111,9 +109,40 @@ function SearchButton(props) {
           />
         )}
       </Box>
-    </Box>
+    </Box>  
   );
 }
+
+function ExportButton(props) {
+  function handleExportButtonClick() {
+    const geojson_obj = JSON.parse(JSON.stringify(props.searchResults.output)) // deep copy
+    geojson_obj.features.unshift(props.searchResults.input)
+
+    const fileData = JSON.stringify(geojson_obj);
+    const blob = new Blob([fileData], { type: "text/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.click();
+    link.download = "search-results.geojson";
+    link.href = url;
+    link.click();
+  }
+
+  return (
+        <Button
+          variant="contained"
+          sx={{width: '100%'}}
+          disabled={!(props.searchResults?.output?.['features']?.length > 0)}
+          onClick={handleExportButtonClick}
+        >
+          <Tooltip title={'Export results as GeoJSON'}>
+          <strong> <FontAwesomeIcon icon={faDownload} /> </strong>
+          </Tooltip> 
+        </Button>
+  );
+}
+// fa-file-arrow-down fa-cloud-arrow-down 
+
 
 
 const emptyFeatureCollection = {
@@ -122,15 +151,22 @@ const emptyFeatureCollection = {
 }
 const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
   setters.setLoadingResults(true);
-  const searchResults = JSON.parse(JSON.stringify(emptyFeatureCollection)) // Deep Copy
-  setters.setSearchResults(searchResults)
+  const searchResultsOutput = JSON.parse(JSON.stringify(emptyFeatureCollection)) // Deep Copy
   
   // ONLY TAKE FIRST POLYGON, flat does not work with up42 search, it considers next polygons as holes rather than union
   let coordinates = null
-  if (polygons && polygons.length && (polygons.length > 0)) {
-    coordinates = polygons.map(
-      p => p['geometry'].coordinates 
-    )[0] // .flat()
+  if (polygons?.length) {
+    if (polygons.length == 1) {
+      coordinates = polygons.map(
+        p => p['geometry'].coordinates 
+      )[0] // .flat()
+    } else if (polygons.length >= 1) {
+      console.log('\n\nCAUTION, USE A SINGLE POLYGON\n\n')
+      setters.setSnackbarOptions({
+        open: true, 
+        message: 'More than 1 Polygon found, either delete the unwanted AOIs or start over!'
+      })
+    }
   } else {
     console.log('\n\nCAUTION, USING DEFAULT COORDINATES FOR TESTING ONLY\n\n')
     coordinates = [
@@ -151,8 +187,28 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
   const searchPolygon = {
     geometry: {coordinates, type:'Polygon'},
     type: "Feature",
-    properties: {}
+    properties: {
+      ...searchSettings,
+      id: uuidv4(),
+      // gsdIndex, 
+      acquisitionDate: searchSettings.startDate,
+      gsd_min: GSD_steps[searchSettings.gsdIndex[0]],
+      gsd_max: GSD_steps[searchSettings.gsdIndex[1]],
+      constellation: 'SEARCH_INPUT_PARAMS',
+      provider: 'SEARCH_INPUT_PARAMS',
+      providerPlatform: 'SEARCH_INPUT_PARAMS',
+      sensor: 'SEARCH_INPUT_PARAMS',
+      price: 0,
+      resolution: 0,
+      shapeIntersection: 100,
+    }
   }
+  const searchResults = {
+    'input': searchPolygon,
+    'output': searchResultsOutput,
+  }
+  setters.setSearchResults(searchResults)
+
   console.log(polygons, '\n Coordinates', coordinates, searchPolygon)
   // const search_polygon = polygons && polygons.length && (polygons.length > 0) && polygons[0]
   
@@ -185,9 +241,12 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
   )
   
   function update_search_results(new_results) {
-    searchResults.features.push(...new_results.features)
+    searchResults.output.features.push(...new_results.features)
     setters.setSearchResults(searchResults)
   }
+
+  // update_search_results(searchPolygon)
+
 
   /**/ 
   // PROMISES FOR EACH SEARCH API
@@ -212,23 +271,28 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
       resolve(search_results_json_maxar)
       // return search_results_json_maxar
     }),
-    // EOS and Skywatch are slower to return query results
-    new Promise(async resolve => {
-      const { search_results_json:search_results_json_eos } = await search_eos_highres(search_settings, apiKeys['EOS'], setters.setSnackbarOptions) 
-      update_search_results(search_results_json_eos)
-      resolve(search_results_json_eos)
-      // return search_results_json_eos
-    }),
-    new Promise(async resolve => {
-      const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'], setters.setSnackbarOptions)
-      update_search_results(search_results_json_skywatch)
-      resolve(search_results_json_skywatch)
-      // return search_results_json_skywatch
-    }),
+    /* EOS and Skywatch are slower to return query results */
+    // new Promise(async resolve => {
+    //   const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'], setters.setSnackbarOptions)
+    //   update_search_results(search_results_json_skywatch)
+    //   resolve(search_results_json_skywatch)
+    //   // return search_results_json_skywatch
+    // }),
+    // new Promise(async resolve => {
+    //   const { search_results_json:search_results_json_eos } = await search_eos_highres(search_settings, apiKeys['EOS'], setters.setSnackbarOptions) 
+    //   update_search_results(search_results_json_eos)
+    //   resolve(search_results_json_eos)
+    //   // return search_results_json_eos
+    // }),
   ])
   .then((results) => {
     console.log('ALL PROMISE END', results);
-    setters.setSearchResults(emptyFeatureCollection)
+    const searchResults = {
+      'input': searchPolygon,
+      'output': emptyFeatureCollection,
+    }
+    setters.setSearchResults(searchResults)
+    // setters.setSearchResults(emptyFeatureCollection)
     results.forEach(r => update_search_results(r))
     setters.setLoadingResults(false);
     setters.setSettingsCollapsed(true)
@@ -316,21 +380,6 @@ function ControlPanel(props) {
     });
   };
     
-  // const handleGsdSlider = (event: Event, newValue: number | number[]) => {
-  //   setGsdIndex(newValue as number[]);
-  // };
-/* 
-    WIP
-*/
-  // (event: SyntheticEvent<Element, Event>) => void
-/*
-  const timer = React.useRef();
-  React.useEffect(() => {
-    return () => {
-      clearTimeout(timer.current);
-    };
-  }, []);
-*/
   return (
     <ThemeProvider theme={theme}>
       {/* 
@@ -401,12 +450,21 @@ function ControlPanel(props) {
         </Collapse>
 
         {/*  SEARCH BUTTON  */}
-        <SearchButton 
-          loadingResults={loadingResults} 
-          search_imagery={() => 
-            search_imagery(polygons, searchSettings, apiKeys, {setLoadingResults, setSearchResults: props.setSearchResults, setSettingsCollapsed, setSnackbarOptions})
-          } 
-        />
+        <Grid container spacing={2}>
+          <Grid item xs={11}>
+          <SearchButton 
+            loadingResults={loadingResults} 
+            search_imagery={() => 
+              search_imagery(polygons, searchSettings, apiKeys, {setLoadingResults, setSearchResults: props.setSearchResults, setSettingsCollapsed, setSnackbarOptions})
+            } 
+          />
+          </Grid>
+          <Grid item xs={1}>
+            <ExportButton 
+              searchResults={props.searchResults}
+              />
+          </Grid>
+        </Grid>
         <Snackbar
           open={snackbarOptions.open}
           autoHideDuration={5000}
@@ -419,8 +477,8 @@ function ControlPanel(props) {
         </Snackbar>
 
         {
-        props.searchResults && props.searchResults['features'] && props.searchResults['features'].length > 0 && 
-          <SearchResultsComponent searchResults={props.searchResults} setFootprintFeatures={props.setFootprintFeatures}/>
+        props.searchResults?.output?.features?.length > 0 && 
+          <SearchResultsComponent searchResults={props.searchResults.output} setFootprintFeatures={props.setFootprintFeatures}/>
         }
 
       </div>

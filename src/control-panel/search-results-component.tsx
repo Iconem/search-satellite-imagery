@@ -172,7 +172,7 @@ function SearchResultsComponent(props) {
     <>
       <Typography variant="subtitle1" >
         <FontAwesomeIcon icon={faSquarePollHorizontal} /> 
-        Search Results  
+        &nbsp; Search Results  
       </Typography>
       
       <div style={{ height: 600, width: '100%' }}>

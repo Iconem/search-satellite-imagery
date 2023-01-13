@@ -47,17 +47,18 @@ function TimelineComponent(props) {
             backgroundColor: 'white',
           }}
         >
-        {props.searchResults && props.searchResults['features'] && props.searchResults['features'].length > 0 &&
+        {props.searchResults?.output?.features?.length > 0 &&
           <XYChart 
             height={110} 
-            xScale={{ type: 'time' }} 
+            // xScale={{ type: 'time' }}  
+            xScale={{ type: 'time', domain: [props.searchResults.input.properties.startDate, props.searchResults.input.properties.endDate]}} //  
             yScale={{ type: "linear", domain: [0, 1], zero: false }}
           >
             <Axis orientation="bottom" />
             <Grid rows={false} columns={false} numTicks={4} />
             <GlyphSeries 
               dataKey="Acquisition Dates" 
-              data={props.searchResults['features']} 
+              data={props.searchResults.output['features']} 
               {...accessors} 
               renderGlyph={({ x, y }: any) => ( //  { left: number; top: number }
                 <GlyphCircle 
