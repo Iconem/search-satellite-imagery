@@ -59,9 +59,13 @@ const datagridColumns = [
   },
   { 
     field: 'resolution', 
-    valueGetter: (params) => `${params.row?.resolution || '?'}m`,
+    type: 'number',
+    valueGetter: (params) => parseFloat(params.row?.resolution) ,
     description: 'Resolution (m/px)',
     width: 60,
+    renderCell: (params) => {
+      return (<p>{`${params.value || '?'}m`}</p>) 
+    },
     renderHeader: () => (
     <Tooltip title={'Resolution (m/px)'}>
       <strong>GSD</strong>
@@ -70,8 +74,12 @@ const datagridColumns = [
   },
   { 
     field: 'price', 
+    type: 'number',
     width: 80,
-    valueGetter: (params) => check_unknown(params.row?.price, ' $'), // USD EURO
+    valueGetter: (params) => parseFloat(params.row?.price),
+    renderCell: (params) => {
+      return (<p>{`${check_unknown(params.value, ' $')}`}</p>) // USD EURO
+    },
     renderHeader: () => (<strong>Price</strong>),
   },
   // { 
@@ -93,7 +101,11 @@ const datagridColumns = [
   },
   { 
     field: 'cloudCoverage', 
-    valueGetter: (params) => check_unknown(params.row?.cloudCoverage, '%'),
+    type: 'number',
+    renderCell: (params) => {
+      return (<p>{`${check_unknown(params.value, '%')}`}</p>) 
+    },
+    valueGetter: (params) => params.row?.cloudCoverage,
     description: 'Cloud Coverage',
     width: 55,
     renderHeader: () => (
@@ -106,8 +118,12 @@ const datagridColumns = [
   },
   { 
     field: 'shapeIntersection',
+    type: 'number',
+    renderCell: (params) => {
+      return (<p>{`${check_unknown(params.value, '%')}`}</p>) 
+    },
     width: 55,
-    valueGetter: (params) => check_unknown(params.row?.shapeIntersection, '%'), 
+    valueGetter: (params) => params.row?.shapeIntersection, 
     renderHeader: () => (
       <Tooltip title={'Shape Intersection'}> 
         <strong>{' '}
@@ -119,7 +135,11 @@ const datagridColumns = [
   // Provider properties are probably dependent on the provider, airbus in the ase of the below props
   { 
     field: 'Azimuth', 
-    valueGetter: (params) => check_unknown(params.row?.providerProperties?.azimuthAngle, '°'),
+    type: 'number',
+    renderCell: (params) => {
+      return (<p>{`${check_unknown(params.value, '°')}`}</p>) 
+    },
+    valueGetter: (params) => params.row?.providerProperties?.azimuthAngle,
     renderHeader: () => (
       <Tooltip title={'Azimuth'}>
       <strong> <FontAwesomeIcon icon={faSatellite} /> </strong>
@@ -131,7 +151,11 @@ const datagridColumns = [
   },
   { 
     field: 'Sun Azimuth', 
-    valueGetter: (params) => check_unknown(params.row?.providerProperties?.illuminationAzimuthAngle, '°'),
+    type: 'number',
+    renderCell: (params) => {
+      return (<p>{`${check_unknown(params.value, '°')}`}</p>) 
+    },
+    valueGetter: (params) => params.row?.providerProperties?.illuminationAzimuthAngle,
     renderHeader: () => (
       <Tooltip title={'Sun Azimuth'}>
       <strong> <FontAwesomeIcon icon={faBolt} /> </strong>
@@ -143,12 +167,20 @@ const datagridColumns = [
   },
   { 
     field: 'Sun Elevation', 
-    valueGetter: (params) => check_unknown(params.row?.providerProperties?.illuminationElevationAngle, '°'),
+    type: 'number',
+    renderCell: (params) => {
+      return (<p>{`${check_unknown(params.value, '°')}`}</p>) 
+    },
+    valueGetter: (params) => params.row?.providerProperties?.illuminationElevationAngle,
     hide: true
   },
   { 
     field: 'Incidence', 
-    valueGetter: (params) => check_unknown(params.row?.providerProperties?.incidenceAngle, '°'),
+    type: 'number',
+    renderCell: (params) => {
+      return (<p>{`${check_unknown(params.value, '°')}`}</p>) 
+    },
+    valueGetter: (params) => params.row?.providerProperties?.incidenceAngle,
     hide: true
   },
 ]
