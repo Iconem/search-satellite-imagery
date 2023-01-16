@@ -110,6 +110,11 @@ const get_tms_coords_from_bounds = (head_results_raw, searchPolygon=null) => {
 }
 
 }
+
+
+Payload for request for invoice: 
+https://api-01.eoproc.com/api-01/?&-xdebug-step-&category=satcat-make-rq-html
+
 */
 
 

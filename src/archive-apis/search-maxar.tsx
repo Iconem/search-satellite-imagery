@@ -93,7 +93,8 @@ const format_maxar_results = (maxar_results_raw, searchPolygon) => {
           'resolution': f.attributes.pan_resolution_avg, // multi_resolution_avg
           'cloudCoverage': f.attributes.area_cloud_cover_percentage,
           'preview_uri': f.attributes.browse_url,
-          'thumbnail_uri': f.attributes.browse_url, // no dedicated thumbnail uri, and browse is pretty big
+          'thumbnail_uri': f.attributes.browse_url, // no dedicated thumbnail uri, and browse is pretty big. 
+
           'providerProperties': {
             'illuminationElevationAngle': f.attributes.sun_elevation_avg,
             'incidenceAngle': null,
@@ -110,6 +111,11 @@ const format_maxar_results = (maxar_results_raw, searchPolygon) => {
     'type': 'FeatureCollection'
   }
 }
+
+// For deeplink, could store whole scenes selected with post request on https://api.discover.digitalglobe.com/v1/store
+
+// For thumbnail, could have a look at https://api.discover.digitalglobe.com/v1/services/ImageServer/exportImage with form data payload as bbox=2.2686767578125004%2C48.86832824998009%2C2.2741699218750004%2C48.87194147722911&size=256%2C256&bboxSR=4326&imageSR=102100&format=png8&f=image&pixelType=U8&noDataInterpretation=esriNoDataMatchAny&interpolation=RSP_BilinearInterpolation&mosaicRule=%7B%20%22mosaicMethod%22%3A%20%22esriMosaicLockRaster%22%2C%20%22lockRasterIds%22%3A%20%5B13423329%2C13308451%5D%2C%20%22ascending%22%3A%20%22true%22%2C%20%22mosaicOperation%22%3A%20%22MT_FIRST%22%20%7D
+
 
 /*
 const get_maxar_bearer = async (maxar_apikey) => {

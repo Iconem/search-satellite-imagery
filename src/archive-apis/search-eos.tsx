@@ -16,6 +16,9 @@ import {
 // EOS API : https://doc.eos.com/search.api/#multi-dataset-search
 // EOS Search API is only valid for 2 weeks on new accounts, then requires a min 3k usd/year for 30k requests/month 
 
+// Deep Link: could use https://eos.com/landviewer/?lat=48.93459&lng=2.24469&z=16&preset=highResolutionSensors&purchase-scene=895ca42a077b1087f53cf9c6a2ac71da
+// Or could POST to cart with id: https://eos.com/landviewer/reselling/cart/ with payload [{ "scene": { "sceneID": "MSC_220528074952_84497_01201367BN19", "dataGeometry": { ... }, ...}, "price": 137, "licenses": 1 }]
+
 const eos_limit = 100
 const eos_timeout_ms = 20_000
 

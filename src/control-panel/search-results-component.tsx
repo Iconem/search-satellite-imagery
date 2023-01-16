@@ -184,11 +184,7 @@ const datagridColumns = [
     valueGetter: (params) => params.row?.providerProperties?.incidenceAngle,
     hide: true
   },
-]
-
-const show_thumbnails = true
-if (show_thumbnails) {
-  const thumbnail_column = { 
+  { 
     field: 'thumbnail', 
     type: 'image',
     renderCell: (params) => (
@@ -202,10 +198,8 @@ if (show_thumbnails) {
     ),
     valueGetter: (params) => params.row?.thumbnail_uri, // thumbnail_uri or preview_uri
     hide: true
-  }
-  datagridColumns.push(thumbnail_column)
-
-  const preview_column = { 
+  },
+  {
     field: 'preview', 
     type: 'image',
     renderCell: (params) => (
@@ -218,10 +212,38 @@ if (show_thumbnails) {
       />
     ),
     valueGetter: (params) => params.row?.preview_uri, // thumbnail_uri or preview_uri
-    hide: false
-  }
-  datagridColumns.push(preview_column)
-}
+    hide: false, 
+    resizable: true, // only works for datagrids with mui-x pro
+    width:({ id, densityFactor }: GridRowHeightParams) => {
+      switch (densityFactor) {
+        case 0.7: 
+          return null;
+        case 1: 
+          return 100;
+        case 1.3: 
+          return 200;
+      }
+    }
+  },
+  { 
+    field: 'identifier', 
+    width: 100,
+    renderCell: (params) => {
+      return (<Tooltip title={params.value}><p>{params.value}</p></Tooltip>) 
+    },
+    valueGetter: (params) => params.row?.id,
+    hide: false,
+    renderHeader: () => (
+      <Tooltip title={'Identifier of scene/image/product on the corresponding platform provider'}>
+      <strong> Identifier </strong>
+      </Tooltip> 
+    ),
+
+  },
+]
+
+// displays id ok for up42 (properties.id), head (r.identifier), maxar (f.attributes.image_identifier), skywatch (r.product_name) and eos (r.sceneID)
+
 
 const handleRowHover = (e, searchResults, setFootprintFeatures) => {
   const rowId = e.target.parentElement.dataset.id;
