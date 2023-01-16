@@ -2,9 +2,8 @@
 // based on visx
 
 import * as React from 'react';
-import { ThemeProvider, lighten, darken } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import {theme} from '../theme';
-// import {Typography, Box} from '@mui/material';
 
 import {GlyphCircle} from '@visx/glyph'
 import {
@@ -12,35 +11,30 @@ import {
   Annotation, AnnotationCircleSubject, AnnotationLabel,
   BarSeries, AnnotationConnector, AnnotationLineSubject, Tooltip
 } from '@visx/xychart';
-
-import { RenderTooltipParams } from "@visx/xychart/lib/components/Tooltip";
-
+import { Group } from '@visx/group';
+// import { RenderTooltipParams } from "@visx/xychart/lib/components/Tooltip";
 
 const accessors = {
   xAccessor: d => (d?.properties?.acquisitionDate && new Date(d?.properties?.acquisitionDate)) || null,
   yAccessor: d => 0, // d.y,
 };
 
-
 const handleRowHover = (e, searchResults, setFootprintFeatures) => {
-  console.log('YO MOUSE ENTER', e)
-  const rowId = e.target.parentElement.dataset.id;
-  console.log(rowId)
-  const row = searchResults.output['features'].find(
-    (el) => el.properties.id === rowId
-  );
+  console.log( e)
+  const rowIdx = parseInt(e.target.getAttribute('id'))
+  const row = searchResults.output.features[rowIdx]
+  // const rowId = e.target.parentElement.dataset.id;
+  // const row = searchResults.output['features'].find(
+  //   (el) => el.properties.id === rowId
+  // );
   console.log(row)
-  // setFootprintFeatures(row?.geometry)
   setFootprintFeatures(row)
 };
 
-
-
-const getToolTipsDatum = (event: RenderTooltipParams<any>) => ({
-  datum: event?.tooltipData?.nearestDatum?.datum,
-  distance: event?.tooltipData?.nearestDatum?.distance
-});
-
+// const getToolTipsDatum = (event: RenderTooltipParams<any>) => ({
+//   datum: event?.tooltipData?.nearestDatum?.datum,
+//   distance: event?.tooltipData?.nearestDatum?.distance
+// });
 
 function TimelineComponent(props) {
   return (
@@ -52,133 +46,122 @@ function TimelineComponent(props) {
           color: theme.palette.text.primary, 
           backgroundColor: 'transparent',
           width: '100%',
-          // width: '1450px',
 
           boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
           outline: 'none',
           overflow: 'auto',
-          // position:'relative',
           pointerEvents: 'auto',
           alignSelf: 'flex-end'
         }}
       >
         <div
           style={{
-            // position: 'absolute',
             width: '100%',
-            // bottom: 0,
             backgroundColor: 'white',
           }}
         >
         {props.searchResults?.output?.features?.length > 0 &&
           <XYChart 
+            captureEvents={false /* needed to avoid transparent rectangle requiring tooltip instead */ }
             height={110} 
             // xScale={{ type: 'time' }}  
-            xScale={{ type: 'time', domain: [props.searchResults.input.properties.startDate, props.searchResults.input.properties.endDate]}} //  
+            xScale={{ type: 'time', domain: [Date.parse(props.searchResults.input.properties.startDate), Date.parse(props.searchResults.input.properties.endDate)] }} //  
             yScale={{ type: "linear", domain: [0, 1], zero: false }}
           >
+
             <Axis orientation="bottom" />
             <Grid rows={false} columns={false} numTicks={4} />
+            <Group pointerEvents="auto">
             <GlyphSeries 
               dataKey="Acquisition Dates" 
               data={props.searchResults.output['features']} 
               {...accessors} 
-              renderGlyph={({ x, y, p  }: any) => ( //  { left: number; top: number }
+              renderGlyph={({ x, y, key  }: any) => ( //  { left: number; top: number }
                 <GlyphCircle 
                   left={x} top={y}
                   stroke={'#777'} // theme.palette.primary.main}
                   fill={'#fff'}
                   strokeWidth={2}
-                  // properties={p}
 
-                  //  onMouseOver = {e => handleRowHover(e, props.searchResults, props.setFootprintFeatures)}
-                //   onMouseLeave: e => props.setFootprintFeatures({
-                //     coordinates: [], 
-                //     type: 'Polygon'
-                //   }) 
-                // }, 
+                  // For handling Mouse Hover
+                  id={ key }
+                  onMouseEnter = {e => handleRowHover(e, props.searchResults, props.setFootprintFeatures)}
+                  // onMouseLeave= {e => props.setFootprintFeatures({ coordinates: [],  type: 'Polygon' }) } 
                 />
               )}
-              // onFocus={(e) => console.log(e)}
             />
+            </Group>
             
-            <Tooltip
-      snapTooltipToDatumX
-      snapTooltipToDatumY
-      showVerticalCrosshair
-      showSeriesGlyphs
-      renderTooltip={({ tooltipData, colorScale }) => {
-        console.log('YOYO')
-        console.log(tooltipData)
-        console.log(tooltipData.nearestDatum.key)
-        console.log(accessors.xAccessor(tooltipData.nearestDatum.datum))
-        console.log(tooltipData)
-        props.setFootprintFeatures(tooltipData.nearestDatum.datum)
+            {/* Tooltip not working, only on a small subset of points - probable bug with XYChart and GlyphSeries and all points y=0 */}
+            {/*
+             <Tooltip
+              snapTooltipToDatumX
+              // snapTooltipToDatumY
+              // showVerticalCrosshair
+              // showSeriesGlyphs
+              renderTooltip={({ tooltipData, colorScale }) => {
+                console.log('YOYO')
+                console.log(tooltipData)
+                console.log(tooltipData.nearestDatum.key)
+                console.log(accessors.xAccessor(tooltipData.nearestDatum.datum))
+                console.log(tooltipData)
+                props.setFootprintFeatures(tooltipData.nearestDatum.datum)
 
-        return (
-          <div style={{
-              'display': 'none',
-              'visibility': 'hidden', 
-              'width': 0, 
-              'height': 0
-          }}>
-            {/* <p>
-              {tooltipData.nearestDatum.key}
-              {accessors.xAccessor(tooltipData.nearestDatum.datum)}
-              {', '}
-              {accessors.yAccessor(tooltipData.nearestDatum.datum)} 
-            </p> */}
-          </div>
-        )
-      }}
-    />
+                return (
+                  <div style={{
+                      'display': 'none',
+                      'visibility': 'hidden', 
+                      'width': 0, 
+                      'height': 0
+                  }}>
+                  </div>
+                )
+              }}
+            /> */}
 
-
-            {props.footprintFeatures && 
-              <GlyphSeries 
-                dataKey="Selected Result" 
-                data={[props.footprintFeatures]} 
-                {...accessors} 
-                renderGlyph={({ x, y }: any) => ( 
-                  <GlyphCircle 
-                    left={x} top={y}
-                    stroke={theme.palette.primary.main} // '#ff0000'} // 
-                    fill={'#fff'}
-                    strokeWidth={3}
-                    size={100}
-                    fillOpacity={1}
+            {/* Annotation to show date */}
+            <Group pointerEvents="none">
+              {props.footprintFeatures && 
+              <>
+                <GlyphSeries 
+                  dataKey="Selected Result" 
+                  data={[props.footprintFeatures]} 
+                  {...accessors} 
+                  renderGlyph={({ x, y }: any) => ( 
+                    <GlyphCircle 
+                      left={x} top={y}
+                      stroke={theme.palette.primary.main} // '#ff0000'} // 
+                      fill={'#fff'}
+                      strokeWidth={3}
+                      size={100}
+                      fillOpacity={1}
+                    />
+                  )}
+                />
+                <Annotation
+                  dataKey={"Selected Result"}
+                  datum={props.footprintFeatures}
+                  dx={0}
+                  dy={20} 
+                >
+                  <AnnotationCircleSubject 
+                    stroke={'#000'}
                   />
-                )}
-              />
-            }
-
-            {props.footprintFeatures && 
-            
-            <Annotation
-              dataKey={"Selected Result"}
-              datum={props.footprintFeatures}
-              dx={0}
-              dy={20} 
-            >
-              {/* <AnnotationConnector /> */}
-              {/* <AnnotationLineSubject /> */}
-              <AnnotationCircleSubject 
-                stroke={'#000'}
-              />
-              <AnnotationLabel
-                title={`${accessors.xAccessor(props.footprintFeatures)?.toISOString().split('T')[0]}`}
-                subtitle={''}
-                width={135}
-                // anchorLineStroke= {'rgba(0,255,0,0)'}
-                showAnchorLine={false}
-                backgroundProps={{
-                  // fillOpacity: 0.6,
-                  strokeWidth: 0,
-                  // stroke: '#555',
-                  strokeOpacity: 0,
-                }}
-              />
-            </Annotation>}
+                  <AnnotationLabel
+                    title={`${accessors.xAccessor(props.footprintFeatures)?.toISOString().split('T')[0]}`}
+                    subtitle={''}
+                    width={135}
+                    showAnchorLine={false}
+                    backgroundProps={{
+                      strokeWidth: 0,
+                      strokeOpacity: 0,
+                    }}
+                  />
+                </Annotation>
+              </>
+              }
+            </Group>
+            <Group id="test"></Group>
             
           </XYChart>
       }
