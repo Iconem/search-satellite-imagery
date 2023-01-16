@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import {Tooltip, Typography, GlobalStyles} from '@mui/material';
-import { DataGrid, GridColumnMenu, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton } from '@mui/x-data-grid';
+import { DataGrid, GridColumnMenu, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton, GridToolbarDensitySelector, GridRowHeightParams } from '@mui/x-data-grid';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faCloudSun, faSquarePollHorizontal, faSatellite, faBolt, faVectorSquare, faDrawPolygon
@@ -23,6 +23,7 @@ function CustomGridToolbar() {
       }}>
       <GridToolbarFilterButton />
       <GridToolbarColumnsButton />
+      <GridToolbarDensitySelector />
     </GridToolbarContainer>
   );
 }
@@ -185,6 +186,43 @@ const datagridColumns = [
   },
 ]
 
+const show_thumbnails = true
+if (show_thumbnails) {
+  const thumbnail_column = { 
+    field: 'thumbnail', 
+    type: 'image',
+    renderCell: (params) => (
+      <img src={params.value} 
+        style={{
+          objectFit: 'cover',
+          width: '100%',
+          height: '100%',
+        }} 
+      />
+    ),
+    valueGetter: (params) => params.row?.thumbnail_uri, // thumbnail_uri or preview_uri
+    hide: true
+  }
+  datagridColumns.push(thumbnail_column)
+
+  const preview_column = { 
+    field: 'preview', 
+    type: 'image',
+    renderCell: (params) => (
+      <img src={params.value} 
+        style={{
+          objectFit: 'cover',
+          width: '100%',
+          height: '100%',
+        }} 
+      />
+    ),
+    valueGetter: (params) => params.row?.preview_uri, // thumbnail_uri or preview_uri
+    hide: false
+  }
+  datagridColumns.push(preview_column)
+}
+
 const handleRowHover = (e, searchResults, setFootprintFeatures) => {
   const rowId = e.target.parentElement.dataset.id;
   const row = searchResults['features'].find(
@@ -223,6 +261,18 @@ function SearchResultsComponent(props) {
               components={{
                 Toolbar: CustomGridToolbar,
                 // ColumnMenu: CustomColumnMenuComponent,
+              }}
+              getRowHeight={({ id, densityFactor }: GridRowHeightParams) => {
+                switch (densityFactor) {
+                  case 0.7: 
+                    return null;
+                  case 1: 
+                    return 100;
+                  case 1.3: 
+                    return 200;
+                }
+                // return 100 * densityFactor; // 70/100/130
+                // return null;
               }}
               disableColumnMenu={true}
               hideFooterSelectedRowCount={true}

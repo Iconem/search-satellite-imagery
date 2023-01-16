@@ -38,7 +38,9 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 
 // import {search_up42, search_eos_highres, search_skywatch, search_head, search_maxar} from './search-apis'
-import search_up42 from '../archive-apis/search-up42'
+import {search_up42, get_up42_previews_async} from '../archive-apis/search-up42'
+// import search_up42 from '../archive-apis/search-up42'
+// import get_up42_previews_async from '../archive-apis/search-up42'
 import search_head from '../archive-apis/search-head'
 import search_maxar from '../archive-apis/search-maxar'
 import search_skywatch from '../archive-apis/search-skywatch'
@@ -136,9 +138,11 @@ function ExportButton(props) {
   }
 
   return (
+    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      <Box sx={{ m: 1, position: 'relative', width: '100%' }}>
         <Button
           variant="contained"
-          sx={{width: '100%'}}
+          sx={{width: '100%', minWidth: '0'}}
           disabled={!(props.searchResults?.output?.['features']?.length > 0)}
           onClick={handleExportButtonClick}
         >
@@ -146,6 +150,8 @@ function ExportButton(props) {
           <strong> <FontAwesomeIcon icon={faDownload} /> </strong>
           </Tooltip> 
         </Button>
+      </Box>
+    </Box>
   );
 }
 // fa-file-arrow-down fa-cloud-arrow-down 
@@ -269,6 +275,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
       const { search_results_json:search_results_json_up42, up42_bearer_json } = (await search_up42(search_settings, apiKeys['UP42'], searchPolygon))
       update_search_results(search_results_json_up42)
       resolve(search_results_json_up42)
+      get_up42_previews_async (search_results_json_up42, up42_bearer_json)
       // return search_results_json_up42
     }),
     new Promise(async resolve => {
@@ -284,18 +291,18 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
       // return search_results_json_maxar
     }),
     /* EOS and Skywatch are slower to return query results */
-    // new Promise(async resolve => {
-    //   const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'], setters.setSnackbarOptions)
-    //   update_search_results(search_results_json_skywatch)
-    //   resolve(search_results_json_skywatch)
-    //   // return search_results_json_skywatch
-    // }),
-    // new Promise(async resolve => {
-    //   const { search_results_json:search_results_json_eos } = await search_eos_highres(search_settings, apiKeys['EOS'], setters.setSnackbarOptions) 
-    //   update_search_results(search_results_json_eos)
-    //   resolve(search_results_json_eos)
-    //   // return search_results_json_eos
-    // }),
+    new Promise(async resolve => {
+      const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'], setters.setSnackbarOptions)
+      update_search_results(search_results_json_skywatch)
+      resolve(search_results_json_skywatch)
+      // return search_results_json_skywatch
+    }),
+    new Promise(async resolve => {
+      const { search_results_json:search_results_json_eos } = await search_eos_highres(search_settings, apiKeys['EOS'], setters.setSnackbarOptions) 
+      update_search_results(search_results_json_eos)
+      resolve(search_results_json_eos)
+      // return search_results_json_eos
+    }),
   ])
   .then((results) => {
     console.log('ALL PROMISE END', results);
