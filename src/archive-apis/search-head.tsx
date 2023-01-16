@@ -66,6 +66,56 @@ const search_head = async (search_settings, searchPolygon=null) => {
   }
 }
 
+
+/*
+{"sceneidx":4,"frset":"","identifier":"JL1GF03D29_PMS_20220922182623_200103300_103_0018_001_L1","sensor":"JL1GF03-PMS","datedir":"2022-09-22","acquisitiontime":"2022-09-22 18:27:04","cloudcover":"0","offnadir":"10","sunel":"39","footprintlon":["dummy record 0",2.37362000,2.61347000,2.54887000,2.30976000,2.37362000],"footprintlat":["dummy record 0",48.95430000,48.91190000,48.75460000,48.79700000,48.95430000],"serpentines":[]}
+
+https://api-02.eoproc.com/cat-02-tiles/?&sat=JL1GF03-PMS&scdate=2022-09-22&scid=13-4154-2817-JL1GF03D29_PMS_20220922182623_200103300_103_0018_001_L1.jpg&OK&
+
+`https://api-02.eoproc.com/cat-02-tiles/?&sat=${r.sensor}&scdate=${r.datedir}&scid=${tileZoom}-${tileX}-${tileY}-${r.identifier}.jpg&OK&`
+
+// import WebMercatorViewport from 'viewport-mercator-project';
+import {fitBounds} from '@math.gl/web-mercator';
+const viewport = new WebMercatorViewport({width: 600, height: 400});
+const bound = viewport.fitBounds(
+  [[-73.9876, 40.7661], [-72.9876, 41.7661]],
+  {padding: 20, offset: [0, -40]}
+);
+
+import bbox from '@turf/bbox';
+// import MapGL, {WebMercatorViewport} from 'react-map-gl';
+const get_tms_coords_from_bounds = (head_results_raw, searchPolygon=null) => {
+  // const vp = new WebMercatorViewport(viewport);
+  // const {longitude, latitude, zoom} = vp.fitBounds(
+  //   [
+  //     [minLng, minLat],
+  //     [maxLng, maxLat]
+  //   ],
+  //   {
+  //     padding: 40
+  //   }
+  // );
+
+
+  
+  const [minLng, minLat, maxLng, maxLat] = bbox(feature);
+
+  mapRef.current.fitBounds(
+    [
+      [minLng, minLat],
+      [maxLng, maxLat]
+    ],
+    {padding: 40, duration: 1000}
+  );
+}
+
+}
+*/
+
+
+const head_tile_url = (r, tileZoom, tileX, tileY) => `https://api-02.eoproc.com/cat-02-tiles/?&sat=${r.sensor}&scdate=${r.datedir}&scid=${tileZoom}-${tileX}-${tileY}-${r.identifier}.jpg&OK&`
+
+
 const format_head_results = (head_results_raw, searchPolygon=null) => {
   // 'pagination': { 'per_page': 0, 'total': 0, 'count': 0, 'cursor': {},}
   return {
