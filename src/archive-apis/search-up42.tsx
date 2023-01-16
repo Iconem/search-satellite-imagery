@@ -27,6 +27,16 @@ const producer_list = [
 */
 const producer_list = providers_dict[Providers.UP42].map(constellation => up42_producers_names[constellation])
 
+/*
+https://api.up42.com/catalog/oneatlas/image/cccc4352-ed18-433e-b18d-0b132af3face/thumbnail
+https://api.up42.com/catalog/oneatlas/image/fd7500c9-6ea2-48e8-8561-69bed4f30eef/quicklook
+
+previewType = ['thumbnail', 'quicklook']
+// `https://api.up42.com/catalog/oneatlas/image/${f.properties.sceneId}/${previewType}`
+with authorization: Bearer ...
+returns a base64 image  
+*/
+
 const up42_search_url = 'https://api.up42.com/catalog/stac/search'
 const get_up42_bearer = async (up42_apikey) => {
     const up42_projectApi = base64_encode(`${up42_apikey.projectId}:${up42_apikey.projectApiKey}`)
@@ -105,6 +115,33 @@ const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, up4
   }
 }
 
+// `https://api.up42.com/catalog/oneatlas/image/${f.properties.sceneId}/${previewType}`
+const get_up42_preview_urls = (feature, up42_bearer_json) => {
+  const preview_urls = {
+    'up42_bearer_json': up42_bearer_json,
+    'preview_uri': `https://api.up42.com/catalog//${feature.properties.providerName}/image/${feature.properties.sceneId}/quicklook`,
+    'thumbnail_uri': `https://api.up42.com/catalog/${feature.properties.providerName}/image/${feature.properties.sceneId}/thumbnail`
+  }
+  return preview_urls
+}
+
+const get_up42_previews_async = async (up42_results, up42_bearer_json) => {
+  up42_results.features.forEach(async feature => {
+    const preview_urls = get_up42_preview_urls(feature, up42_bearer_json)
+    console.log(preview_urls)
+    const thumbnail_uri_base64 = await ky.get(
+      preview_urls.thumbnail_uri, 
+      { headers: {'Authorization': up42_bearer_json} }
+    ).json();
+    feature.properties.thumbnail_uri = thumbnail_uri_base64;
+    // const preview_uri_base64 = await ky.get(
+    //   preview_urls.preview_uri, 
+    //   { headers: {'Authorization': up42_bearer_json} }
+    // ).json();
+    // feature.properties.preview_uri = preview_uri_base64;
+  })
+}
+
 const format_up42_results = (up42_results_raw, searchPolygon) => {
   // meta':{'limit':1,'page':1,'found':15},
   return {
@@ -121,6 +158,8 @@ const format_up42_results = (up42_results_raw, searchPolygon) => {
           'provider': `UP42/${feature.properties.producer}`, // /${feature.properties.providerName}
           // 
           'providerProperties': feature.properties.providerProperties,
+          'providerName': feature.properties.providerName,
+          'sceneId': feature.properties.sceneId,
           'cloudCoverage': feature.properties.cloudCoverage,
           'acquisitionDate': feature.properties.acquisitionDate,
           'resolution': feature.properties.resolution,
@@ -132,4 +171,12 @@ const format_up42_results = (up42_results_raw, searchPolygon) => {
   }
 }
 
-export default search_up42
+export {
+  search_up42, 
+  get_up42_previews_async
+}
+
+// export default {
+//   search_up42_f, 
+//   get_up42_previews_async
+// }
