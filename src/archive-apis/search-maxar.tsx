@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 /* ---------------------------- */
 /*      Maxar DigitalGlobe      */
 /* ---------------------------- */
-// https://discover.digitalglobe.com/
+// https://discover.maxar.com/
 // Maxar newest API is actually a STAC catalog endpoint search api, 
 // Maxar ARD requires the username and password, while digital globe search dashboard uses the old non-STAC API
 // Cannot get the bearer token without an account for STAC
@@ -93,6 +93,7 @@ const format_maxar_results = (maxar_results_raw, searchPolygon) => {
           'resolution': f.attributes.pan_resolution_avg, // multi_resolution_avg
           'cloudCoverage': f.attributes.area_cloud_cover_percentage,
           'preview_uri': f.attributes.browse_url,
+          'thumbnail_uri': f.attributes.browse_url, // no dedicated thumbnail uri, and browse is pretty big
           'providerProperties': {
             'illuminationElevationAngle': f.attributes.sun_elevation_avg,
             'incidenceAngle': null,

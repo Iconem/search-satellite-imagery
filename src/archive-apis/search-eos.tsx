@@ -114,7 +114,7 @@ const format_eos_results = (eos_results_raw) => {
           'price': r.price,
           
           'preview_uri': r.browseURL,
-          'thumbnail_uri': r.thumbnail,
+          'thumbnail_uri': r.thumbnail, // Seems like thumbnail is same resolution as preview
 
           'providerProperties': {
             'illuminationElevationAngle': r.sunElevation,

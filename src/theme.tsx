@@ -59,6 +59,11 @@ const theme = createTheme({
     //     overflowX: 'auto',
     //   }
     // },
+    // MuiGridItem: {
+    //   defaultProps: {
+    //     // paddingLeft: 0,
+    //   },
+    // },
   },
 });
 
