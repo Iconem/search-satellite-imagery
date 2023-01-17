@@ -41,7 +41,7 @@ function ApiKeysModalComponent(props) {
             </Typography>
             <List>
               <ListItem sx={{ display: 'list-item' }}>
-                <Typography variant="h6"> UP42 </Typography>
+              <Link href="https://console.up42.com/catalog/" target="_blank"> <Typography variant="h6"> UP42 Console </Typography></Link>
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <TextField 
@@ -75,7 +75,7 @@ function ApiKeysModalComponent(props) {
               </ListItem>
               
               <ListItem sx={{ display: 'list-item' }}>
-                <Typography variant="h6"> EOS </Typography>
+                <Typography variant="h6"> <Link href="https://eos.com/landviewer/" target="_blank">EOS Landviewer</Link> </Typography>
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <TextField 
@@ -90,7 +90,7 @@ function ApiKeysModalComponent(props) {
                   />
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
-                <Typography variant="h6"> SKYWATCH </Typography>
+                <Typography variant="h6"> <Link href="https://console.earthcache.com/search-archive/" target="_blank">Skywatch Earthcache</Link> </Typography>
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <TextField 
@@ -105,7 +105,7 @@ function ApiKeysModalComponent(props) {
               />
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
-                <Typography variant="h6"> MAXAR </Typography>
+                <Typography variant="h6"> <Link href="https://discover.maxar.com/" target="_blank">Maxar Discover</Link> </Typography>
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <TextField 
@@ -119,20 +119,26 @@ function ApiKeysModalComponent(props) {
                 sx={{ width: '50%' }}
               />
               </ListItem>
+              <ListItem sx={{ display: 'list-item' }}>
+                <Typography variant="h6"> <Link href="https://headfinder.head-aerospace.eu/sales" target="_blank">Head Aerospace Finder</Link> </Typography>
+              </ListItem>
+              <ListItem sx={{ display: 'list-item' }}>
+              <Typography>No API key needed for HEAD Aerospace API Search</Typography>
+              </ListItem>
             </List>
 
             <Divider variant="middle" />
               {/* <List sx={{listStyleType: 'disc' }}> */}
               <List >
                 <ListItem sx={{ display: 'list-item'}}>
-                UP42: Project ID and Project API Key can be found in the Developers section on the <Link href="https://console.up42.com/">console</Link>, in the form of 
+                UP42: Project ID and Project API Key can be found in the Developers section on the <Link href="https://console.up42.com/" target="_blank">console</Link>, in the form of 
                 <Box bgcolor="text.disabled" sx={{p:2, borderRadius: '3px', width: 'fit-content', backgroundColor: '#DDD'}} >https://console.up42.com/projects/UUID-xxxx/developers</Box>
                 </ListItem>
                 <ListItem sx={{ display: 'list-item' }}>
-                EOS api key can be found on your <Link href="https://api-connect.eos.com/user-dashboard/">user dashboard</Link>. See the <Link href="https://doc.eos.com/api/#authorization-api">API section of the docs</Link>
+                EOS api key can be found on your <Link href="https://api-connect.eos.com/user-dashboard/" target="_blank">user dashboard</Link>. See the <Link href="https://doc.eos.com/api/#authorization-api" target="_blank">API section of the docs</Link>
                 </ListItem>
                 <ListItem sx={{ display: 'list-item' }}>
-                Skywatch API key can be found on your user <Link href="https://dashboard.skywatch.co/account/profile">account profile</Link> 
+                Skywatch API key can be found on your user <Link href="https://dashboard.skywatch.co/account/profile" target="_blank">account profile</Link> 
                 </ListItem>
               </List>
           </Box>
