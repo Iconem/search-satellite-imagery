@@ -214,20 +214,24 @@ const datagridColumns = [
     valueGetter: (params) => params.row?.preview_uri, // thumbnail_uri or preview_uri
     hide: false, 
     resizable: true, // only works for datagrids with mui-x pro
-    width:({ id, densityFactor }: GridRowHeightParams) => {
-      switch (densityFactor) {
-        case 0.7: 
-          return null;
-        case 1: 
-          return 100;
-        case 1.3: 
-          return 200;
-      }
-    }
+    // width is not dynamic yet https://github.com/mui/mui-x/issues/1241
+    minWidth: 200,
+    flex: 1
+    // width:({ id, densityFactor }: GridRowHeightParams) => {
+    //   switch (densityFactor) {
+    //     case 0.7: 
+    //       return null;
+    //     case 1: 
+    //       return 100;
+    //     case 1.3: 
+    //       return 200;
+    //   }
+    // }
   },
   { 
     field: 'identifier', 
-    width: 100,
+    minWidth: 100,
+    flex: 0.9,
     renderCell: (params) => {
       return (<Tooltip title={params.value}><p>{params.value}</p></Tooltip>) 
     },
