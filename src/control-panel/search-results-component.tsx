@@ -65,7 +65,7 @@ const datagridColumns = [
     description: 'Resolution (m/px)',
     width: 60,
     renderCell: (params) => {
-      return (<p>{`${params.value || '?'}m`}</p>) 
+      return (<p>{`${Math.floor(params.value * 100) / 100 || '?'}m`}</p>) 
     },
     renderHeader: () => (
     <Tooltip title={'Resolution (m/px)'}>
@@ -270,8 +270,9 @@ function SearchResultsComponent(props) {
         <FontAwesomeIcon icon={faSquarePollHorizontal} /> 
         &nbsp; Search Results  
       </Typography>
-      
-      <div style={{ height: 600, width: '100%' }}>
+
+      {/* height: 600, */}
+      <div style={{  width: '100%', flex: '1 1 auto' }}> 
         <div style={{ display: 'flex', height: '100%' }}>
           <div style={{ flexGrow: 1 }}>
             <GlobalStyles
@@ -283,7 +284,7 @@ function SearchResultsComponent(props) {
             />
             <DataGrid
               density="compact"
-              autoPageSize
+              autoPageSize={true}
               components={{
                 Toolbar: CustomGridToolbar,
                 // ColumnMenu: CustomColumnMenuComponent,

@@ -429,6 +429,9 @@ function ControlPanel(props) {
       <div 
         style={{
           pointerEvents: 'auto',
+          display: 'flex',
+          flexFlow: 'column',
+          height: '100%',
         }}
       >
         {/* TITLE */}
