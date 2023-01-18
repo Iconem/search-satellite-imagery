@@ -214,7 +214,7 @@ const datagridColumns: GridColDef[] = [
     ),
     valueGetter: (params) => params.row?.preview_uri, // thumbnail_uri or preview_uri
     hide: false, 
-    resizable: true, // only works for datagrids with mui-x pro
+    // resizable: true, // only works for datagrids with mui-x pro
     // width is not dynamic yet https://github.com/mui/mui-x/issues/1241
     minWidth: 200,
     flex: 1
