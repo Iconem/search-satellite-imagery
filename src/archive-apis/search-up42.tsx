@@ -119,8 +119,8 @@ const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, up4
 const get_up42_preview_urls = (feature, up42_bearer_json) => {
   const preview_urls = {
     'up42_bearer_json': up42_bearer_json,
-    'preview_uri': `https://api.up42.com/catalog//${feature.properties.providerName}/image/${feature.properties.sceneId}/quicklook`,
-    'thumbnail_uri': `https://api.up42.com/catalog/${feature.properties.providerName}/image/${feature.properties.sceneId}/thumbnail`
+    'preview_uri': `https://api.up42.com/catalog/${feature.properties.providerName}/image/${feature.properties.providerProperties.id}/quicklook`,
+    'thumbnail_uri': `https://api.up42.com/catalog/${feature.properties.providerName}/image/${feature.properties.providerProperties.id}/thumbnail`
   }
   return preview_urls
 }
@@ -128,17 +128,16 @@ const get_up42_preview_urls = (feature, up42_bearer_json) => {
 const get_up42_previews_async = async (up42_results, up42_bearer_json) => {
   up42_results.features.forEach(async feature => {
     const preview_urls = get_up42_preview_urls(feature, up42_bearer_json)
-    console.log(preview_urls)
-    const thumbnail_uri_base64 = await ky.get(
+    const thumbnail_uri_blob = await ky.get(
       preview_urls.thumbnail_uri, 
       { headers: {'Authorization': up42_bearer_json} }
-    ).json();
-    feature.properties.thumbnail_uri = thumbnail_uri_base64;
-    // const preview_uri_base64 = await ky.get(
-    //   preview_urls.preview_uri, 
-    //   { headers: {'Authorization': up42_bearer_json} }
-    // ).json();
-    // feature.properties.preview_uri = preview_uri_base64;
+    ).blob();
+    feature.properties.thumbnail_uri = URL.createObjectURL(thumbnail_uri_blob);
+    const preview_uri_blob = await ky.get(
+      preview_urls.preview_uri, 
+      { headers: {'Authorization': up42_bearer_json} }
+    ).blob()
+    feature.properties.preview_uri = URL.createObjectURL(preview_uri_blob);
   })
 }
 
@@ -150,7 +149,7 @@ const format_up42_results = (up42_results_raw, searchPolygon) => {
         'geometry': feature.geometry,
         'properties': {
           // ...feature.properties,
-          id: uuidv4(),
+          id: feature.properties.sceneId,
           constellation: up42_constellation_dict[feature.properties.constellation]?.constellation || feature.properties.constellation,
           'price': get_up42_price(feature),
           'shapeIntersection': shapeIntersection(feature, searchPolygon),

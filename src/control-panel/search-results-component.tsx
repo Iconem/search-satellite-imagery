@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import {Tooltip, Typography, GlobalStyles} from '@mui/material';
-import { DataGrid, GridColumnMenu, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton, GridToolbarDensitySelector, GridRowHeightParams } from '@mui/x-data-grid';
+import { DataGrid, GridColumnMenu, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton, GridToolbarDensitySelector, GridRowHeightParams, GridColDef  } from '@mui/x-data-grid';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faCloudSun, faSquarePollHorizontal, faSatellite, faBolt, faVectorSquare, faDrawPolygon
@@ -45,7 +45,7 @@ function check_unknown(x, suffix) {
   return (x || x === 0) ? `${Math.round(x)}${suffix}` : '-'
 }
 
-const datagridColumns = [
+const datagridColumns: GridColDef[] = [
   { 
     field: 'acquisitionDate', 
     valueGetter: (params) => params.row.acquisitionDate.substring(0, 16).replace('T', ' '),
@@ -93,8 +93,9 @@ const datagridColumns = [
   // },
   { 
     field: 'provider',
+    headerName: 'provider',
     width: 160,
-    valueGetter: (params) => params.row?.provider,
+    // valueGetter: (params) => params.row?.provider,
     renderHeader: () => (<strong>Provider</strong>),
     renderCell: (params) => {
       return (<Tooltip title={params.value}><p>{params.value}</p></Tooltip>) 
@@ -285,10 +286,21 @@ function SearchResultsComponent(props) {
             <DataGrid
               density="compact"
               autoPageSize={true}
+              // autoHeight
               components={{
                 Toolbar: CustomGridToolbar,
                 // ColumnMenu: CustomColumnMenuComponent,
               }}
+              initialState={{
+                sorting: {
+                  sortModel: [{ field: "acquisitionDate", sort: "desc" }]
+                }, 
+                // detailPanel: { expandedRowIds: [1, 2, 3] }
+              }}
+              // If wanted to show image only in expanded detailed view
+              // getDetailPanelContent={({ row }) => <div>Row ID: {row.id}</div>}
+              checkboxSelection={false}
+              // selectionModel={selectionModel}
               getRowHeight={({ id, densityFactor }: GridRowHeightParams) => {
                 switch (densityFactor) {
                   case 0.7: 
