@@ -178,7 +178,7 @@ const constellation_dict = {
   },
   [Constellation.Kompsat3]: {
     satellites: [Satellites.KompSat3, Satellites.KompSat3A],
-    gsd: 0.7
+    gsd: 0.5
   },
   [Constellation.Kompsat2]: {
     satellites: [Satellites.KOMPSAT2],
@@ -473,6 +473,7 @@ export {
 
   // Per provider exports
   eos_constellation_dict,
+  eos_names,
   get_maxar_price,
   maxar_constellation_dict,
   head_constellation_dict,

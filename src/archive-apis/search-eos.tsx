@@ -4,7 +4,8 @@ import ky from 'ky';
 import {
   get_constellation_name,
   get_satellites_respecting_gsd,
-  eos_constellation_dict
+  eos_constellation_dict, 
+  eos_names
 } from './search-utilities'
 
 /* --------------- */
@@ -25,9 +26,13 @@ const eos_timeout_ms = 20_000
 // let eos_search_highres_url = 'https://api.eos.com/api/v5/allsensors' 
 const eos_search_highres_url = 'https://lms-reselling.eos.com/api/v5/allsensors'
 const search_eos_highres = async (search_settings, eos_apikey, setSnackbarOptions=null, eos_page_idx=1) => {
+  const satellites = get_satellites_respecting_gsd(search_settings.gsd)
+  const eos_satellites = satellites.map(s => eos_names[s]).filter(s => s)
+
+  console.log('eos satellites', eos_satellites)
   const eos_payload_highres = {
     'search':{
-      'satellites': get_satellites_respecting_gsd(search_settings.gsd),
+      'satellites': eos_satellites,
       // [ 
       //   'KOMPSAT-2', 'KOMPSAT-3A', 'KOMPSAT-3', 'SuperView 1A', 'SuperView 1B', 'SuperView 1C', 'SuperView 1D', 'Gaofen 1', 'Gaofen 2', 'Ziyuan-3', 'TripleSat Constellation-1', 'TripleSat Constellation-2', 'TripleSat Constellation-3'
       // ],
