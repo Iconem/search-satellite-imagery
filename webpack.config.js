@@ -49,6 +49,12 @@ const config = smp.wrap({
 
   module: {
     rules: [
+      // The below rule does create sourcemaps for node_modules which do not have any like react-map-gl, ky, math-gl
+      {
+        test: /\.js$/,
+        enforce: "pre",
+        use: ["source-map-loader"],
+      },
       {
         test: /\.(ts|js)x?$/,
         include: [resolve('./src')],
