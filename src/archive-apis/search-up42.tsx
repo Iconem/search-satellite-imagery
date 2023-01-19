@@ -109,6 +109,9 @@ const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, set
   const search_results_json = format_up42_results(up42_results_raw, searchPolygon)
   console.log('UP42 PAYLOAD: \n', up42_payload, '\nRAW UP42 search results: \n', up42_results_raw, '\nJSON UP42 search results: \n', search_results_json)
 
+  // Initiate search for previews
+  get_up42_previews_async(search_results_json, up42_bearer_json)
+
   return {
     search_results_json,
     up42_bearer_json,

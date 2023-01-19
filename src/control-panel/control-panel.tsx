@@ -16,12 +16,11 @@ tooltip for provider support
 import * as React from 'react';
 
 // MUI Components: Inputs | Data Display | Feedback+Nav | Layout | Mui-X-datepicker | Components API | Colors
-import {Button, Checkbox, Radio, RadioGroup, Slider, Switch, TextField, } from '@mui/material';
+import {Button} from '@mui/material';
 import {Snackbar, Alert} from '@mui/material';
-import {Chip, Divider, List, ListItem, Table, Tooltip, Typography} from '@mui/material';
-import {Backdrop, Dialog, Link} from '@mui/material';
-import {Box, Container, Grid, Stack, Paper, } from '@mui/material';
-import { CircularProgress, Collapse, Fab, Fade, FormControlLabel, Modal} from '@mui/material';
+import {Divider, List, ListItem, Table, Tooltip, Typography, ListItemText, ListItemIcon} from '@mui/material';
+import {Box, Container, Grid, Stack, } from '@mui/material';
+import { CircularProgress, LinearProgress, Collapse} from '@mui/material';
 
 // MUI Theming
 import { ThemeProvider, lighten, darken } from '@mui/material/styles';
@@ -33,26 +32,22 @@ import area from '@turf/area';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 // FontAwesome icons https://fontawesome.com/icons
 import { 
-  faChevronDown, faChevronUp, faDownload, faDrawPolygon, faSliders, 
+  faChevronDown, faChevronUp, faDownload, faDrawPolygon, faSliders, faCheck,
 } from '@fortawesome/free-solid-svg-icons'
 import { v4 as uuidv4 } from 'uuid';
 
 // import {search_up42, search_eos_highres, search_skywatch, search_head, search_maxar} from './search-apis'
 import {search_up42, get_up42_previews_async} from '../archive-apis/search-up42'
-// import search_up42 from '../archive-apis/search-up42'
-// import get_up42_previews_async from '../archive-apis/search-up42'
 import search_head from '../archive-apis/search-head'
 import search_maxar from '../archive-apis/search-maxar'
 import search_skywatch from '../archive-apis/search-skywatch'
 import search_eos_highres from '../archive-apis/search-eos'
 import {Providers} from '../archive-apis/search-utilities'
 
-
 import DateRangeComponent from './date-range-component'
 import SettingsComponent from './settings-component'
 import SearchResultsComponent from './search-results-component'
 import ApiKeysModalComponent from './api-keys-modal-component'
-
 
 /* Display COMPONENTS */
 /* AOI area COMPONENT */
@@ -81,42 +76,79 @@ function GSDFromIndex(gsd_index: number) {
   return (GSD_meters < 1)? `${Math.floor(GSD_meters*100)}cm` : `${GSD_meters}m`;
 }
 
+
+/* API Request Status */
+function APIRequestsStatuses(props) {
+  return (
+    <>
+    {(props.searchPromises 
+      && !Object.values(props.searchPromises).every((o:any) => o.searchFinishedForMoreThanDelay)) 
+      && 
+    <List dense={true}>
+      {Object.values(props.searchPromises)
+        .filter((o:any) => !o.searchFinishedForMoreThanDelay)
+        .map((o:any) => (
+        <ListItem>
+          <ListItemIcon>
+            {!o.searchFinished ? ( <Typography>...</Typography>) : (<FontAwesomeIcon icon={faCheck} /> )}
+          </ListItemIcon>
+          <ListItemText
+            primary={
+              !o.searchFinished ?
+              `Searching ${o.provider}...` : 
+              `Results returned by ${o.provider} API!`
+              // `${props.searchResults?.output?.features?.filter(f => f.properties.providerName.toLowerCase().includes(o.provider.toLowerCase())).length} results returned by o.provider!`
+            }
+            secondary={null}
+          />
+        </ListItem>
+      )
+      )}
+    </List>
+    }
+    </>
+  )
+}
+
+
+/* Search Button */
 function SearchButton(props) {
   const handleLoadingButtonClick = () => {
     if (!props.loadingResults) {
       props.search_imagery()
     }
   };
-
   return (
     <Box sx={{ display: 'flex', alignItems: 'center' }}>
       <Box sx={{ m: 1, position: 'relative', width: '100%' }}>
-        <Button
-          variant="contained"
-          sx={{width: '100%'}}
-          disabled={props.loadingResults}
-          onClick={handleLoadingButtonClick}
-        >
-          SEARCH
-        </Button>
-        {props.loadingResults && (
-          <CircularProgress
-            size={24}
-            sx={{
-              color: theme.palette.primary.main,
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              marginTop: '-12px',
-              marginLeft: '-12px',
-            }}
-          />
-        )}
+        
+          <Button
+            variant="contained"
+            sx={{width: '100%'}}
+            disabled={props.loadingResults}
+            onClick={handleLoadingButtonClick}
+          >
+            SEARCH
+          </Button>
+          {props.loadingResults && (
+            <CircularProgress
+              size={24}
+              sx={{
+                color: theme.palette.primary.main,
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                marginTop: '-12px',
+                marginLeft: '-12px',
+              }}
+            />
+          )}
       </Box>
     </Box>  
   );
 }
 
+/* Export Button has GeoJSON logic */
 function ExportButton(props) {
   function handleExportButtonClick() {
     const geojson_obj = JSON.parse(JSON.stringify(props.searchResults.output)) // deep copy
@@ -156,14 +188,25 @@ function ExportButton(props) {
     </Box>
   );
 }
-// fa-file-arrow-down fa-cloud-arrow-down 
 
 
+// -----------------------------------
+//     SEARCH API LOGIC
+// -----------------------------------
+
+const providers_search = {
+  [Providers.UP42]: search_up42,
+  [Providers.HEADAEROSPACE]: search_head,
+  [Providers.MAXAR_DIGITALGLOBE]: search_maxar,
+  [Providers.EOS]: search_eos_highres,
+  [Providers.SKYWATCH]: search_skywatch,
+}
 
 const emptyFeatureCollection = {
   features: [],
   type: "FeatureCollection"
 }
+const hideSearchDelay = 5000
 const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
   setters.setLoadingResults(true);
   const searchResultsOutput = JSON.parse(JSON.stringify(emptyFeatureCollection)) // Deep Copy
@@ -181,6 +224,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
         open: true, 
         message: 'More than 1 Polygon found, either delete the unwanted AOIs or start over!'
       })
+      return null
     }
   } else {
     console.log('\n\nCAUTION, USING DEFAULT COORDINATES FOR TESTING ONLY\n\n')
@@ -228,7 +272,6 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
     'output': searchResultsOutput,
   }
   setters.setSearchResults(searchResults)
-  // props.setSearchResults(searchResults)
 
   console.log(polygons, '\n Coordinates', coordinates, searchPolygon)
   // const search_polygon = polygons && polygons.length && (polygons.length > 0) && polygons[0]
@@ -252,41 +295,32 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
   }
   console.log(`SEARCH PARAMETERS: \n`, 
     'search_settings:\n', search_settings, '\n\n', 
-    `startDate: ${search_settings.startDate}\n`, 
-    `endDate: ${search_settings.endDate}\n`, 
-    `cloudCoverage: ${search_settings.cloudCoverage}\n`, 
     `GSD: ${search_settings.gsdIndex.map(GSDFromIndex)}\n`, 
-    `aoiCoverage: ${search_settings.aoiCoverage}%\n`, 
-    `sunElevation: ${search_settings.sunElevation}°\n`, 
-    `offNadirAngle: ${search_settings.offNadirAngle}°\n`, 
   )
   
   function update_search_results(new_results) {
     if (new_results) {
       console.log('length before push', searchResults.output.features.length)
+      // The below two lines commented out wont work because no change in shallow equality check
+      // searchResults.output.features.push(...new_results.features)
+      // setters.setSearchResults(searchResults)
+      setters.setSearchResults({
+        input: searchResults.input, // either ...searchResults, or input: searchResults.input, or simply 
+        output: {
+          type: 'FeatureCollection', 
+          features: [
+            ...searchResults.output.features, 
+            ...new_results.features
+          ]
+        }
+      })
       searchResults.output.features.push(...new_results.features)
-      setters.setSearchResults(searchResults)
-      // props.setSearchResults(searchResults)
       console.log('length after push', searchResults.output.features.length)
     }
   }
-
   // update_search_results(searchPolygon)
 
-  /**/ 
   // PROMISES FOR EACH SEARCH API
-  // const [r1, r2] = await Promise.all([
-  // const a = await Promise.all([
-
-
-  const providers_search = {
-    [Providers.UP42]: search_up42,
-    [Providers.HEADAEROSPACE]: search_head,
-    [Providers.MAXAR_DIGITALGLOBE]: search_maxar,
-    [Providers.EOS]: search_eos_highres,
-    [Providers.SKYWATCH]: search_skywatch,
-  }
-
   const search_promises = Object.fromEntries( // build a dict from a dict via an array of key-value pairs
     Object.keys(providers_search).map(
       provider => {
@@ -295,93 +329,49 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
           {
             provider, 
             searchFinished: false,
+            searchFinishedForMoreThanDelay: false,
             promise: new Promise(async resolve => {
               const { search_results_json } = await providers_search[provider]
                 (search_settings, apiKeys[provider], searchPolygon, setters.setSnackbarOptions)
               update_search_results(search_results_json)
               resolve(search_results_json)
-              console.log('PROMISES ARRAY AFTER', provider, search_promises)
+              search_promises[provider].searchFinished = true
+              // setters.setSearchPromises(search_promises)
+              setters.setSearchPromises({
+                ...search_promises,
+                [provider]: {
+                  ...search_promises[provider],
+                  searchFinished: true
+                }
+              })
+              // console.log('PROMISES ARRAY AFTER PROVIDER', provider, search_promises)
+
+              setTimeout(() => {
+                search_promises[provider].searchFinishedForMoreThanDelay = true
+                // setters.setSearchPromises(search_promises)
+                setters.setSearchPromises({
+                  ...search_promises,
+                  [provider]: {
+                    ...search_promises[provider],
+                    searchFinishedForMoreThanDelay: true
+                  }
+                })
+              }, hideSearchDelay);
             })
           }
         ]
       }
     )
   )
+  setters.setSearchPromises(search_promises)
   console.log('\n\nPROMISES\n\n', search_promises)
   Promise.all(Object.values(search_promises).map (o => o.promise))
   .then((results) => {
-    console.log(results)
     setters.setLoadingResults(false);
     setters.setSettingsCollapsed(true)
-    console.log('finished')
+    console.log('finished requests for all promises', results)
   })
   
- /*
-  Promise.all([
-    new Promise(async resolve => {
-      const { search_results_json:search_results_json_up42, up42_bearer_json } = (await search_up42(search_settings, apiKeys['UP42'], searchPolygon, setters.setSnackbarOptions))
-      update_search_results(search_results_json_up42)
-      resolve(search_results_json_up42)
-      get_up42_previews_async (search_results_json_up42, up42_bearer_json)
-      // return search_results_json_up42
-    }),
-    new Promise(async resolve => {
-      const { search_results_json:search_results_json_head } = await search_head(search_settings, '', searchPolygon, setters.setSnackbarOptions)
-      update_search_results(search_results_json_head)
-      resolve(search_results_json_head)
-      // return search_results_json_skywatch
-    }),
-    new Promise(async resolve => {
-      const { search_results_json:search_results_json_maxar } = await search_maxar(search_settings, apiKeys['MAXAR_DIGITALGLOBE'], searchPolygon, setters.setSnackbarOptions)
-      update_search_results(search_results_json_maxar)
-      resolve(search_results_json_maxar)
-      // return search_results_json_maxar
-    }),
-    // EOS and Skywatch are slower to return query results 
-    // new Promise(async resolve => {
-    //   const { search_results_json:search_results_json_eos } = await search_eos_highres(search_settings, apiKeys['EOS'], searchPolygon, setters.setSnackbarOptions) 
-    //   update_search_results(search_results_json_eos)
-    //   resolve(search_results_json_eos)
-    //   // return search_results_json_eos
-    // }),
-    // new Promise(async resolve => {
-    //   const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'], searchPolygon, setters.setSnackbarOptions)
-    //   update_search_results(search_results_json_skywatch)
-    //   resolve(search_results_json_skywatch)
-    //   // return search_results_json_skywatch
-    // }),
-  ])
-  .then((results) => {
-    console.log('ALL PROMISE END', results);
-    const searchResults = {
-      'input': searchPolygon,
-      'output': emptyFeatureCollection,
-    }
-    setters.setSearchResults(searchResults)
-    // setters.setSearchResults(emptyFeatureCollection)
-    results.forEach(r => update_search_results(r))
-    setters.setLoadingResults(false);
-    setters.setSettingsCollapsed(true)
-  });
-  console.log('outside PROMISE END');
-  */
-  // console.log('AWAIT PROMISE END', r1, r2);
-
-  /*
-  // const { search_results_json:search_results_json_up42, up42_bearer_json } = (await search_up42(search_settings, apiKeys['UP42'], searchPolygon))
-  // update_search_results(search_results_json_up42)
-  // const { search_results_json:search_results_json_eos } = await search_eos_highres(search_settings, apiKeys['EOS']) 
-  // update_search_results(search_results_json_eos)
-  // const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'])
-  // update_search_results(search_results_json_skywatch)
-  const { search_results_json:search_results_json_head } = await search_head(search_settings, searchPolygon)
-  update_search_results(search_results_json_head)
-  
-  // setters.setSearchResults(search_results_json);
-  // REMOVE WITH PROMISES 
-  setters.setLoadingResults(false);
-  setters.setSettingsCollapsed(true)
-  */
 }
 
 
@@ -410,13 +400,13 @@ function ControlPanel(props) {
   })
 
   const [apiKeys, setApiKeys] = React.useState({
-    'UP42': {
+    [Providers.UP42]: {
       projectId: process.env.UP42_PROJECT_ID,
       projectApiKey: process.env.UP42_PROJECT_APIKEY,
     }, 
-    'EOS': process.env.EOS_APIKEY,
-    'SKYWATCH': process.env.SKYWATCH_APIKEY,
-    'MAXAR_DIGITALGLOBE': process.env.MAXAR_DIGITALGLOBE_APIKEY,
+    [Providers.EOS]: process.env.EOS_APIKEY,
+    [Providers.SKYWATCH]: process.env.SKYWATCH_APIKEY,
+    [Providers.MAXAR_DIGITALGLOBE]: process.env.MAXAR_DIGITALGLOBE_APIKEY,
   })
   
   const setStartDate = (newValue: Date | null) => setSearchSettings({
@@ -429,6 +419,7 @@ function ControlPanel(props) {
   })
   
   const [loadingResults, setLoadingResults] = React.useState(false);
+  const [searchPromises, setSearchPromises] = React.useState([]);
 
   const [settingsCollapsed, setSettingsCollapsed] = React.useState(false);
   const [snackbarOptions, setSnackbarOptions] = React.useState({
@@ -444,6 +435,14 @@ function ControlPanel(props) {
       message: ''
     });
   };
+
+  const setters = {
+    setSearchPromises, 
+    setLoadingResults, 
+    setSearchResults: props.setSearchResults, 
+    setSettingsCollapsed, 
+    setSnackbarOptions
+  }
     
   return (
     <ThemeProvider theme={theme}>
@@ -524,7 +523,7 @@ function ControlPanel(props) {
             loadingResults={loadingResults} 
             setSearchResults= {props.setSearchResults}
             search_imagery={() => 
-              search_imagery(polygons, searchSettings, apiKeys, {setLoadingResults, setSearchResults: props.setSearchResults, setSettingsCollapsed, setSnackbarOptions})
+              search_imagery(polygons, searchSettings, apiKeys, setters)
             } 
           />
           </Grid>
@@ -534,6 +533,10 @@ function ControlPanel(props) {
               />
           </Grid>
         </Grid>
+        <APIRequestsStatuses 
+          searchPromises= {searchPromises}
+          searchResults={props.searchResults}
+        />
         <Snackbar
           open={snackbarOptions.open}
           autoHideDuration={5000}
