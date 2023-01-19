@@ -4,13 +4,15 @@
 // Custom Draw Modes: https://github.com/mapbox/mapbox-gl-draw/blob/main/docs/MODES.md
 // https://visgl.github.io/react-map-gl/examples/draw-polygon
 
+// NebulaGL has an importer import-component as well as a EditableGeoJsonLayer but heavy for simple map drawing, prefer react-map-gl-draw or react-mapbox-draw https://github.com/uber/nebula.gl/blob/master/modules/editor/src/import-component.tsx
+
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import DrawRectangle from 'mapbox-gl-draw-rectangle-mode';
 import {useControl} from 'react-map-gl';
 import type {MapRef, ControlPosition} from 'react-map-gl';
 import CustomDrawRectangle from './CustomDrawRectangle';
 
-// import LotsOfPointsMode from './draw-control-bis'
+import {LotsOfPointsMode, LotsOfPointsMode2} from './draw-control-bis'
 
 type DrawControlProps = ConstructorParameters<typeof MapboxDraw>[0] & {
   position?: ControlPosition;
@@ -32,7 +34,7 @@ type DrawControlProps = ConstructorParameters<typeof MapboxDraw>[0] & {
 const modes = MapboxDraw.modes as unknown as { [modeKey: string]: MapboxDraw.DrawMode | MapboxDraw.DrawCustomMode };
 modes['draw_polygon'] = DrawRectangle;
 modes['draw_rectangle'] = DrawRectangle;
-// modes['draw_line_string'] = LotsOfPointsMode // as MapboxDraw.DrawMode;
+// modes['draw_line_string'] = LotsOfPointsMode2 // as MapboxDraw.DrawMode;
 // modes['draw_line_string'] = 'draw_polygon' // MapboxDraw.DrawModes.DRAW_POLYGON;
 // .mapbox-gl-draw_line { background-image: url(''); }
 
@@ -48,7 +50,11 @@ export default function DrawControl(props: DrawControlProps) {
       const draw = new MapboxDraw({
         ...props,
         // defaultMode: 'draw_rectangle',
-        modes,
+        // modes,
+        modes: Object.assign({
+          draw_line_string: LotsOfPointsMode,
+          draw_test: LotsOfPointsMode,
+        }, MapboxDraw.modes),
       });
       // @ts-ignore
       // draw.changeMode('draw_rectangle');
@@ -63,6 +69,8 @@ export default function DrawControl(props: DrawControlProps) {
       position: props.position
     }
   );
+
+  // var id = Draw.set({ type: 'Point', coordinates: [0, 0] }, true);
 
   return null;
 }

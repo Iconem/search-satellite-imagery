@@ -8,7 +8,7 @@ import * as React from 'react';
 import {useState, useCallback} from 'react';
 import {NavigationControl, ScaleControl, MapRef} from 'react-map-gl';
 
-import {theme, draw_polygon_styles} from '../theme';
+import {draw_polygon_styles} from '../theme';
 import MapboxStyleSwitcher from './mapbox-style-switcher';
 import DrawControl from './draw-control';
 import GeocoderControl from './geocoder-control';
@@ -16,45 +16,32 @@ import CustomOverlay from './custom-overlay';
 
 
 
+import { v4 as uuidv4 } from 'uuid';
 import DrawControlBis from './draw-control-bis';
-import {fitBounds, WebMercatorViewport} from '@math.gl/web-mercator';
 import bbox from '@turf/bbox';
 import { kml } from "@tmcw/togeojson";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { 
-  faUpload, faFileArrowUp, 
-} from '@fortawesome/free-solid-svg-icons'
+import {  faUpload, faFileArrowUp } from '@fortawesome/free-solid-svg-icons'
+
 
 function KML_input(props) {
-
-  function handleChange(event) {
-    const kml_file = event.target.files[0]
-    console.log(kml_file)
-    const reader = new FileReader();
-
-    console.log('props in handleChange', props)
-    
+  function handleKMLUpload(event) {
     event.preventDefault()
+    const kml_file = event.target.files[0]
+    console.log('kml_file info', kml_file)
+    console.log('props in handleKMLUpload', props)
+    const reader = new FileReader();
     reader.onload = async (e) => { 
       const kml_content = e.target.result
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(kml_content as string, 'text/xml');
+      const xmlDoc = new DOMParser()
+        .parseFromString(kml_content as string, 'text/xml');
       const geojson_features = kml(xmlDoc)
-      console.log(geojson_features)
+      console.log('geojson_features from kml', geojson_features)
 
       // Zoom on imported kml
       const bounds = bbox(geojson_features)
       const [minLng, minLat, maxLng, maxLat] = bounds
-      const bounds_fit = fitBounds({
-        width: 800,
-        height: 800,
-        bounds: [
-          [minLng, minLat], // southwest bound first
-          [maxLng, maxLat]
-        ]
-      })
       console.log('mapRef', props)
-
       props.mapRef.current.fitBounds(
         [
           [minLng, minLat],
@@ -63,77 +50,24 @@ function KML_input(props) {
         {padding: 150, duration: 1000}
       );
 
-      // props.setDrawFeatures(
-      //   {
-      //     type: 'FeaureCollection',
-      //     features: [
-      //       {
-      //         // id: uuidv4(),
-      //         type: 'Feature',
-      //         geometry: {
-      //           coordinates: [geojson_features.features[0].geometry.coordinates[0].map(co => co.slice(0,2))],
-      //           type: 'Polygon'
-      //         }
-      //         // properties: {}
-      //       }
-      //     ]
-      //   }
-      // )
-      // props.setDrawFeatures(
-      //       {
-      //         // id: uuidv4(),
-      //         type: 'Feature',
-      //         geometry: {
-      //           coordinates: [geojson_features.features[0].geometry.coordinates[0].map(co => co.slice(0,2))],
-      //           type: 'Polygon'
-      //         }
-      //         // properties: {}
-      //       }
-      // )
-      // props.setDrawFeatures({
-      //   type: 'FeatureCollection',
-      //   features: [{
-      //   id: uuidv4(),
-      //   ...geojson_features.features[0]
-      // }]})
+      // Can be imported but not edited because not added to the draw features component
       console.log('props in onload', props)
-      // props.setDrawFeatures(currFeatures => {
-      //   const newFeatures = {...currFeatures};
-      //   for (const f of geojson_features.features) {
-      //     f.id = uuidv4().replaceAll('-', '')
-      //     f.properties = {}
-      //     newFeatures[f.id] = f;
-      //     console.log('load kml f', f)
-      //   } 
-      //     console.log('load kml newFeatures', newFeatures)
-      //   return newFeatures;
+      props.setDrawFeatures(
+        [{...geojson_features.features[0], id: 'imported_kml_feature'}]
+      )
+      // Not useful
+      // props.map.fire("draw.create", {
+      //   features: [{...geojson_features.features[0], id: 'imported_kml_feature'}]
       // });
-
-
-      props.map.fire("draw.create", {
-        features: [geojson_features.features[0]]
-      });
 
     };
     reader.readAsText(event.target.files[0], 'UTF-8')
-
-
-    // fetch("test/data/linestring.kml")
-    //   .then(function (response) {
-    //     return response.text();
-    //   })
-    //   .then(function (xml) {
-    //     console.log();
-    //   });
-
-
-    // setFile(event.target.files[0])
   }
 
   return (
     <div className="mapboxgl-ctrl mapboxgl-ctrl-group">
-    <input id="kmlUploadInput" type="file" onChange={e => handleChange(e)} style={{ pointerEvents: 'auto', display: 'none'  }} />
-    <button type="button" onClick={() => {document.getElementById('kmlUploadInput').click()}} >
+    <input id="kmlUploadInput" type="file" onChange={e => handleKMLUpload(e)} style={{ pointerEvents: 'auto', display: 'none'  }} />
+    <button type="button" title="Upload KML AOI" onClick={() => {document.getElementById('kmlUploadInput').click()}} >
       <span className="mapboxgl-ctrl-icon" style={{padding: '7px'}} ><FontAwesomeIcon icon={faUpload} /> </span>
     </button>
   </div>

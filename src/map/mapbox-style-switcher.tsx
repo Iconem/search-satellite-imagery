@@ -35,7 +35,7 @@ function MapboxStyleSwitcher(props) {
   return (
       (!styleSwitcherOpen) ? 
       <div className="mapboxgl-ctrl mapboxgl-ctrl-group">
-        <button type="button" onClick={() => {setStyleSwitcherOpen(!styleSwitcherOpen)}} >
+        <button type="button" title="Switch Basemap Style" onClick={() => {setStyleSwitcherOpen(!styleSwitcherOpen)}} >
           <span className="mapboxgl-ctrl-icon" style={{padding: '7px'}} ><FontAwesomeIcon icon={faMap} /> </span>
         </button>
       </div>
