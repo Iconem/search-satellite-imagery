@@ -129,6 +129,7 @@ const providers_dict = {
     Constellation.PlanetSkysat, 
     Constellation.TripleSat, 
     Constellation.Pleiades, 
+    Constellation.PleiadesNeo, 
     Constellation.Kompsat3, 
     Constellation.Kompsat2
   ],

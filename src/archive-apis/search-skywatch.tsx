@@ -17,6 +17,7 @@ const max_query_count = 8
 
 const search_skywatch = async (search_settings, skywatch_apikey, setSnackbarOptions=null) => {
   const resolution_array = [] // ['low', 'medium', 'high']
+  if (search_settings.gsd.min <= 0.5) resolution_array.push('very_high')
   if (search_settings.gsd.min <= 1) resolution_array.push('high')
   if (search_settings.gsd.max >= 5) resolution_array.push('low')
   if ((search_settings.gsd.min <= 1.5) && (search_settings.gsd.max >= 1.5) || (search_settings.gsd.min <= 5) && (search_settings.gsd.max >= 5)) resolution_array.push('medium')

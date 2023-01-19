@@ -292,16 +292,16 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
     }),
     /* EOS and Skywatch are slower to return query results */
     new Promise(async resolve => {
-      const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'], setters.setSnackbarOptions)
-      update_search_results(search_results_json_skywatch)
-      resolve(search_results_json_skywatch)
-      // return search_results_json_skywatch
-    }),
-    new Promise(async resolve => {
       const { search_results_json:search_results_json_eos } = await search_eos_highres(search_settings, apiKeys['EOS'], setters.setSnackbarOptions) 
       update_search_results(search_results_json_eos)
       resolve(search_results_json_eos)
       // return search_results_json_eos
+    }),
+    new Promise(async resolve => {
+      const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'], setters.setSnackbarOptions)
+      update_search_results(search_results_json_skywatch)
+      resolve(search_results_json_skywatch)
+      // return search_results_json_skywatch
     }),
   ])
   .then((results) => {
