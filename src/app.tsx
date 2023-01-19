@@ -62,6 +62,7 @@ export default function App() {
           latitude: 48.8616927,
           zoom: 10
         }}
+        ref={mapRef}
         hash={true}
         mapStyle={`mapbox://styles/mapbox/${basemapStyle}`}
         mapboxAccessToken={MAPBOX_TOKEN}

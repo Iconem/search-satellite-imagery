@@ -16,11 +16,14 @@ import CustomOverlay from './custom-overlay';
 
 
 
-import { v4 as uuidv4 } from 'uuid';
 import DrawControlBis from './draw-control-bis';
 import {fitBounds, WebMercatorViewport} from '@math.gl/web-mercator';
 import bbox from '@turf/bbox';
 import { kml } from "@tmcw/togeojson";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { 
+  faUpload, faFileArrowUp, 
+} from '@fortawesome/free-solid-svg-icons'
 
 function KML_input(props) {
 
@@ -52,12 +55,12 @@ function KML_input(props) {
       })
       console.log('mapRef', props)
 
-      props.map.fitBounds(
+      props.mapRef.current.fitBounds(
         [
           [minLng, minLat],
           [maxLng, maxLat]
         ],
-        {padding: 150, duration: 500}
+        {padding: 150, duration: 1000}
       );
 
       // props.setDrawFeatures(
@@ -128,7 +131,14 @@ function KML_input(props) {
   }
 
   return (
-    <input id="kmlUploadInput" type="file" onChange={e => handleChange(e)} style={{ pointerEvents: 'auto' }} />
+    <div className="mapboxgl-ctrl mapboxgl-ctrl-group">
+    <input id="kmlUploadInput" type="file" onChange={e => handleChange(e)} style={{ pointerEvents: 'auto', display: 'none'  }} />
+    <button type="button" onClick={() => {document.getElementById('kmlUploadInput').click()}} >
+      <span className="mapboxgl-ctrl-icon" style={{padding: '7px'}} ><FontAwesomeIcon icon={faUpload} /> </span>
+    </button>
+  </div>
+
+    
   )
 }
 
@@ -207,7 +217,6 @@ function MapControls(props) {
       </CustomOverlay>
       <CustomOverlay position="top-left" style={{ pointerEvents: "all" }} >
         <KML_input setDrawFeatures={props.setDrawFeatures} mapRef={props.mapRef}/>
-        {/*   ref={(ref) => this.upload = ref} style={{ display: 'none' }} /> */}
       </CustomOverlay>
 
     </>
