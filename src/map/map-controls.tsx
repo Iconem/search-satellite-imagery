@@ -116,12 +116,14 @@ function MapControls(props) {
 
   return (
     <>
-      <ScaleControl unit={"metric"}/>
       <GeocoderControl 
         mapboxAccessToken={props.mapboxAccessToken} 
         position="top-left"
         flyTo={{speed: 2.5}} 
       />
+      <CustomOverlay position="top-left" style={{ pointerEvents: "all" }} >
+        <KML_input setDrawFeatures={props.setDrawFeatures} mapRef={props.mapRef}/>
+      </CustomOverlay>
       <DrawControl
         // modes={modes}
         position="top-left"
@@ -149,10 +151,12 @@ function MapControls(props) {
           mapboxAccessToken={props.mapboxAccessToken} 
         />
       </CustomOverlay>
-      <CustomOverlay position="top-left" style={{ pointerEvents: "all" }} >
-        <KML_input setDrawFeatures={props.setDrawFeatures} mapRef={props.mapRef}/>
-      </CustomOverlay>
 
+      <ScaleControl 
+        unit={"metric"}
+        // position="top-left"
+        style={{clear: 'none'}}
+      />
     </>
   );
 }

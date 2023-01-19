@@ -25,7 +25,7 @@ const eos_timeout_ms = 20_000
 
 // let eos_search_highres_url = 'https://api.eos.com/api/v5/allsensors' 
 const eos_search_highres_url = 'https://lms-reselling.eos.com/api/v5/allsensors'
-const search_eos_highres = async (search_settings, eos_apikey, setSnackbarOptions=null, eos_page_idx=1) => {
+const search_eos_highres = async (search_settings, eos_apikey, searchPolygon=null, setSnackbarOptions=null, eos_page_idx=1) => {
   const satellites = get_satellites_respecting_gsd(search_settings.gsd)
   const eos_satellites = satellites.map(s => eos_names[s]).filter(s => s)
 

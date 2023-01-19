@@ -51,6 +51,10 @@ export default function App() {
     background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
     cursor: col-resize;
 }
+
+.mapboxgl-ctrl-bottom-left > .mapboxgl-ctrl {
+  clear: none;
+}
   `}
         </style>
       <Map
@@ -96,6 +100,8 @@ export default function App() {
         bottom: '3%',
         left: '1%',
         right: '1%', 
+        // margin: '10px',
+        // marginBottom: '40px',
         pointerEvents: 'none',
       }} > 
       <Split

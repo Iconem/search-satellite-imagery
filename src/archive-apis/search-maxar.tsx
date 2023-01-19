@@ -19,7 +19,7 @@ const maxar_limit = 500
 const maxar_search_url = 'https://api.discover.digitalglobe.com/v1/services/ImageServer/query'
 
 // CORS needed to reach maxar api server
-const search_maxar = async (search_settings, maxar_apikey, searchPolygon=null, maxar_bearer_json=null, maxar_next_links=null) => {
+const search_maxar = async (search_settings, maxar_apikey, searchPolygon=null, setSnackbarOptions=null, maxar_bearer_json=null, maxar_next_links=null) => {
   // await get_maxar_bearer(maxar_apikey)
   const date_format = {month: '2-digit', day: '2-digit', year: 'numeric'}
   const maxar_payload = 
@@ -53,17 +53,28 @@ const search_maxar = async (search_settings, maxar_apikey, searchPolygon=null, m
     // 'Cache-Control': 'no-cache',
   }
   console.log('headers', headers)
-  const maxar_results_raw = await ky.post(maxar_search_url, {
-    headers,
-    body: maxar_payload
-  }).json();
-  console.log('maxar PAYLOAD: \n', maxar_payload, '\nRAW maxar search results: \n', maxar_results_raw)
-  const search_results_json = format_maxar_results(maxar_results_raw, searchPolygon)
-  console.log('maxar PAYLOAD: \n', maxar_payload, '\nRAW maxar search results: \n', maxar_results_raw, '\nJSON maxar search results: \n', search_results_json)
-
-  return {
-    search_results_json,
-    maxar_bearer_json,
+  try {
+    const maxar_results_raw = await ky.post(maxar_search_url, {
+      headers,
+      body: maxar_payload
+    }).json();
+    console.log('maxar PAYLOAD: \n', maxar_payload, '\nRAW maxar search results: \n', maxar_results_raw)
+    const search_results_json = format_maxar_results(maxar_results_raw, searchPolygon)
+    console.log('maxar PAYLOAD: \n', maxar_payload, '\nRAW maxar search results: \n', maxar_results_raw, '\nJSON maxar search results: \n', search_results_json)
+  
+    return {
+      search_results_json,
+      maxar_bearer_json,
+    }
+  } catch (error) { 
+    // So promise always return
+    if (error.name === 'HTTPError') {
+      const errorJson = await error.response.json();
+      console.log('!!! --- ERROR on ky POST --- !!!')
+      return {
+        search_results_json: null,
+      }
+    }
   }
 }
 

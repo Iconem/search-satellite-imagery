@@ -45,6 +45,8 @@ import search_head from '../archive-apis/search-head'
 import search_maxar from '../archive-apis/search-maxar'
 import search_skywatch from '../archive-apis/search-skywatch'
 import search_eos_highres from '../archive-apis/search-eos'
+import {Providers} from '../archive-apis/search-utilities'
+
 
 import DateRangeComponent from './date-range-component'
 import SettingsComponent from './settings-component'
@@ -226,6 +228,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
     'output': searchResultsOutput,
   }
   setters.setSearchResults(searchResults)
+  // props.setSearchResults(searchResults)
 
   console.log(polygons, '\n Coordinates', coordinates, searchPolygon)
   // const search_polygon = polygons && polygons.length && (polygons.length > 0) && polygons[0]
@@ -259,50 +262,94 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
   )
   
   function update_search_results(new_results) {
-    searchResults.output.features.push(...new_results.features)
-    setters.setSearchResults(searchResults)
+    if (new_results) {
+      console.log('length before push', searchResults.output.features.length)
+      searchResults.output.features.push(...new_results.features)
+      setters.setSearchResults(searchResults)
+      // props.setSearchResults(searchResults)
+      console.log('length after push', searchResults.output.features.length)
+    }
   }
 
   // update_search_results(searchPolygon)
-
 
   /**/ 
   // PROMISES FOR EACH SEARCH API
   // const [r1, r2] = await Promise.all([
   // const a = await Promise.all([
+
+
+  const providers_search = {
+    [Providers.UP42]: search_up42,
+    [Providers.HEADAEROSPACE]: search_head,
+    [Providers.MAXAR_DIGITALGLOBE]: search_maxar,
+    [Providers.EOS]: search_eos_highres,
+    [Providers.SKYWATCH]: search_skywatch,
+  }
+
+  const search_promises = Object.fromEntries( // build a dict from a dict via an array of key-value pairs
+    Object.keys(providers_search).map(
+      provider => {
+        return [
+          provider, 
+          {
+            provider, 
+            searchFinished: false,
+            promise: new Promise(async resolve => {
+              const { search_results_json } = await providers_search[provider]
+                (search_settings, apiKeys[provider], searchPolygon, setters.setSnackbarOptions)
+              update_search_results(search_results_json)
+              resolve(search_results_json)
+              console.log('PROMISES ARRAY AFTER', provider, search_promises)
+            })
+          }
+        ]
+      }
+    )
+  )
+  console.log('\n\nPROMISES\n\n', search_promises)
+  Promise.all(Object.values(search_promises).map (o => o.promise))
+  .then((results) => {
+    console.log(results)
+    setters.setLoadingResults(false);
+    setters.setSettingsCollapsed(true)
+    console.log('finished')
+  })
+  
+ /*
   Promise.all([
     new Promise(async resolve => {
-      const { search_results_json:search_results_json_up42, up42_bearer_json } = (await search_up42(search_settings, apiKeys['UP42'], searchPolygon))
+      const { search_results_json:search_results_json_up42, up42_bearer_json } = (await search_up42(search_settings, apiKeys['UP42'], searchPolygon, setters.setSnackbarOptions))
       update_search_results(search_results_json_up42)
       resolve(search_results_json_up42)
       get_up42_previews_async (search_results_json_up42, up42_bearer_json)
       // return search_results_json_up42
     }),
     new Promise(async resolve => {
-      const { search_results_json:search_results_json_head } = await search_head(search_settings, searchPolygon)
+      const { search_results_json:search_results_json_head } = await search_head(search_settings, '', searchPolygon, setters.setSnackbarOptions)
       update_search_results(search_results_json_head)
       resolve(search_results_json_head)
       // return search_results_json_skywatch
     }),
     new Promise(async resolve => {
-      const { search_results_json:search_results_json_maxar } = await search_maxar(search_settings, apiKeys['MAXAR_DIGITALGLOBE'], searchPolygon)
+      const { search_results_json:search_results_json_maxar } = await search_maxar(search_settings, apiKeys['MAXAR_DIGITALGLOBE'], searchPolygon, setters.setSnackbarOptions)
       update_search_results(search_results_json_maxar)
       resolve(search_results_json_maxar)
       // return search_results_json_maxar
     }),
-    /* EOS and Skywatch are slower to return query results */
-    new Promise(async resolve => {
-      const { search_results_json:search_results_json_eos } = await search_eos_highres(search_settings, apiKeys['EOS'], setters.setSnackbarOptions) 
-      update_search_results(search_results_json_eos)
-      resolve(search_results_json_eos)
-      // return search_results_json_eos
-    }),
-    new Promise(async resolve => {
-      const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'], setters.setSnackbarOptions)
-      update_search_results(search_results_json_skywatch)
-      resolve(search_results_json_skywatch)
-      // return search_results_json_skywatch
-    }),
+    // EOS and Skywatch are slower to return query results 
+    // new Promise(async resolve => {
+    //   const { search_results_json:search_results_json_eos } = await search_eos_highres(search_settings, apiKeys['EOS'], searchPolygon, setters.setSnackbarOptions) 
+    //   update_search_results(search_results_json_eos)
+    //   resolve(search_results_json_eos)
+    //   // return search_results_json_eos
+    // }),
+    // new Promise(async resolve => {
+    //   const { search_results_json:search_results_json_skywatch } = await search_skywatch(search_settings, apiKeys['SKYWATCH'], searchPolygon, setters.setSnackbarOptions)
+    //   update_search_results(search_results_json_skywatch)
+    //   resolve(search_results_json_skywatch)
+    //   // return search_results_json_skywatch
+    // }),
   ])
   .then((results) => {
     console.log('ALL PROMISE END', results);
@@ -317,6 +364,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
     setters.setSettingsCollapsed(true)
   });
   console.log('outside PROMISE END');
+  */
   // console.log('AWAIT PROMISE END', r1, r2);
 
   /*
@@ -335,8 +383,6 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
   setters.setSettingsCollapsed(true)
   */
 }
-
-
 
 
 /* COMPONENTS DEFINITION */
@@ -476,6 +522,7 @@ function ControlPanel(props) {
           <Grid item xs={11}>
           <SearchButton 
             loadingResults={loadingResults} 
+            setSearchResults= {props.setSearchResults}
             search_imagery={() => 
               search_imagery(polygons, searchSettings, apiKeys, {setLoadingResults, setSearchResults: props.setSearchResults, setSettingsCollapsed, setSnackbarOptions})
             } 

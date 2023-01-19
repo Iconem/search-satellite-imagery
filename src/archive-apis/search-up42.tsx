@@ -60,7 +60,7 @@ function get_up42_price(feature) {
   return get_imagery_price(feature, feature.properties.constellation, up42_constellation_dict)
 }
 
-const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, up42_bearer_json=null, up42_next_links=null) => {
+const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, setSnackbarOptions=null, up42_bearer_json=null, up42_next_links=null) => {
   if (!up42_bearer_json) {
     up42_bearer_json = await get_up42_bearer(up42_apikey)
   }

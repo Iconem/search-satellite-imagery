@@ -6,7 +6,7 @@ import { lighten, darken } from '@mui/material/styles';
 import {theme} from '../theme';
 
 function FeaturesSourceAndLayer(props) {
-  console.log('FeaturesSourceAndLayer', props.features)
+  // console.log('FeaturesSourceAndLayer', props.features)
   return (
     <Source type="geojson" data={props.features}>
       {
