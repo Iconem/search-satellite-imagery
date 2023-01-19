@@ -32,7 +32,7 @@ import area from '@turf/area';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 // FontAwesome icons https://fontawesome.com/icons
 import { 
-  faChevronDown, faChevronUp, faDownload, faDrawPolygon, faSliders, faCheck,
+  faChevronDown, faChevronUp, faDownload, faDrawPolygon, faSliders, faCheck, faGaugeHigh, faSatelliteDish, faSatellite
 } from '@fortawesome/free-solid-svg-icons'
 import { v4 as uuidv4 } from 'uuid';
 
@@ -79,33 +79,52 @@ function GSDFromIndex(gsd_index: number) {
 
 /* API Request Status */
 function APIRequestsStatuses(props) {
+  const [advancedSettingsCollapsed, setAdvancedSettingsCollapsed] = React.useState(false) 
+
   return (
     <>
-    {(props.searchPromises 
-      && !Object.values(props.searchPromises).every((o:any) => o.searchFinishedForMoreThanDelay)) 
-      && 
-    <List dense={true}>
-      {Object.values(props.searchPromises)
-        .filter((o:any) => !o.searchFinishedForMoreThanDelay)
-        .map((o:any) => (
-        <ListItem>
-          <ListItemIcon>
-            {!o.searchFinished ? ( <Typography>...</Typography>) : (<FontAwesomeIcon icon={faCheck} /> )}
-          </ListItemIcon>
-          <ListItemText
-            primary={
-              !o.searchFinished ?
-              `Searching ${o.provider}...` : 
-              `Results returned by ${o.provider} API!`
-              // `${props.searchResults?.output?.features?.filter(f => f.properties.providerName.toLowerCase().includes(o.provider.toLowerCase())).length} results returned by o.provider!`
+      {(props.searchPromises 
+        && !Object.values(props.searchPromises).every((o:any) => o.searchFinishedForMoreThanDelay)) 
+        && 
+        <>
+          <Typography 
+            variant="subtitle2" 
+            onClick={() => setAdvancedSettingsCollapsed(!advancedSettingsCollapsed)} 
+            sx={{cursor: 'pointer', zIndex: 10}}
+          >
+            <FontAwesomeIcon icon={faSatelliteDish} /> 
+            &nbsp; Ongoing API Requests for search &nbsp; 
+            {
+              advancedSettingsCollapsed ? 
+              <FontAwesomeIcon icon={faChevronDown} /> : 
+              <FontAwesomeIcon icon={faChevronUp} />
             }
-            secondary={null}
-          />
-        </ListItem>
-      )
-      )}
-    </List>
-    }
+          </Typography>
+          <Collapse in={!advancedSettingsCollapsed} timeout="auto" unmountOnExit>
+          <List dense={true}>
+            {Object.values(props.searchPromises)
+              .filter((o:any) => !o.searchFinishedForMoreThanDelay)
+              .map((o:any, i) => (
+              <ListItem key={i}>
+                <ListItemIcon>
+                  {!o.searchFinished ? ( <Typography>...</Typography>) : (<FontAwesomeIcon icon={faCheck} /> )}
+                </ListItemIcon>
+                <ListItemText
+                  primary={
+                    !o.searchFinished ?
+                    `Searching ${o.provider}...` : 
+                    `Results returned by ${o.provider} API!`
+                    // `${props.searchResults?.output?.features?.filter(f => f.properties.providerName.toLowerCase().includes(o.provider.toLowerCase())).length} results returned by o.provider!`
+                  }
+                  secondary={null}
+                />
+              </ListItem>
+            )
+            )}
+          </List>
+          </Collapse>
+      </>
+      }
     </>
   )
 }
@@ -125,7 +144,7 @@ function SearchButton(props) {
           <Button
             variant="contained"
             sx={{width: '100%'}}
-            disabled={props.loadingResults}
+            disabled={props.loadingResults || !(props.polygons?.length > 0)}
             onClick={handleLoadingButtonClick}
           >
             SEARCH
@@ -224,9 +243,12 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
         open: true, 
         message: 'More than 1 Polygon found, either delete the unwanted AOIs or start over!'
       })
-      return null
+      setters.setLoadingResults(false);
+      return {output: emptyFeatureCollection}
     }
   } else {
+    setters.setLoadingResults(false);
+    return {output: emptyFeatureCollection}
     console.log('\n\nCAUTION, USING DEFAULT COORDINATES FOR TESTING ONLY\n\n')
     coordinates = [
       [
@@ -273,7 +295,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
   }
   setters.setSearchResults(searchResults)
 
-  console.log(polygons, '\n Coordinates', coordinates, searchPolygon)
+  console.log('Search Settings', polygons, '\n Coordinates', coordinates, searchPolygon)
   // const search_polygon = polygons && polygons.length && (polygons.length > 0) && polygons[0]
   
   if (area(searchPolygon as any) / 1_000_000 > 100_000 ) {
@@ -300,7 +322,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
   
   function update_search_results(new_results) {
     if (new_results) {
-      console.log('length before push', searchResults.output.features.length)
+      // console.log('length before push', searchResults.output.features.length)
       // The below two lines commented out wont work because no change in shallow equality check
       // searchResults.output.features.push(...new_results.features)
       // setters.setSearchResults(searchResults)
@@ -315,7 +337,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
         }
       })
       searchResults.output.features.push(...new_results.features)
-      console.log('length after push', searchResults.output.features.length)
+      // console.log('length after push', searchResults.output.features.length)
     }
   }
   // update_search_results(searchPolygon)
@@ -364,7 +386,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
     )
   )
   setters.setSearchPromises(search_promises)
-  console.log('\n\nPROMISES\n\n', search_promises)
+  console.log('Search API Requests Promises', search_promises)
   Promise.all(Object.values(search_promises).map (o => o.promise))
   .then((results) => {
     setters.setLoadingResults(false);
@@ -522,6 +544,7 @@ function ControlPanel(props) {
           <SearchButton 
             loadingResults={loadingResults} 
             setSearchResults= {props.setSearchResults}
+            polygons= {polygons}
             search_imagery={() => 
               search_imagery(polygons, searchSettings, apiKeys, setters)
             } 

@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { Button, TextField, List, ListItem, Link, Modal, Backdrop, Fade, Box, Typography, Divider } from '@mui/material';
+import {Providers} from '../archive-apis/search-utilities'
 
 function ApiKeysModalComponent(props) {
   const [infoModalOpen, setInfoModalOpen] = React.useState(false);
@@ -18,8 +19,6 @@ function ApiKeysModalComponent(props) {
     p: 10,
   };
 
-  // apiKeys={apiKeys} setApiKeys={setApiKeys
-  
   return (
     <>
       <Button onClick={() => setInfoModalOpen(true)}>Set API keys</Button>
@@ -45,11 +44,11 @@ function ApiKeysModalComponent(props) {
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <TextField 
-                  value={props.apiKeys['UP42']['projectId']} 
+                  value={props.apiKeys[Providers.UP42]['projectId']} 
                   onChange={(event) => props.setApiKeys({
                     ...props.apiKeys, 
-                    'UP42': {
-                      ...props.apiKeys['UP42'], 
+                    [Providers.UP42]: {
+                      ...props.apiKeys[Providers.UP42], 
                       projectId: event.target.value,
                     }
                   })} 
@@ -60,11 +59,11 @@ function ApiKeysModalComponent(props) {
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <TextField 
-                  value={props.apiKeys['UP42']['projectApiKey']} 
+                  value={props.apiKeys[Providers.UP42]['projectApiKey']} 
                   onChange={(event) => props.setApiKeys({
                     ...props.apiKeys, 
-                    'UP42': {
-                      ...props.apiKeys['UP42'], 
+                    [Providers.UP42]: {
+                      ...props.apiKeys[Providers.UP42], 
                       projectApiKey: event.target.value,
                     }
                   })} 
@@ -79,10 +78,10 @@ function ApiKeysModalComponent(props) {
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <TextField 
-                  value={props.apiKeys['EOS']} 
+                  value={props.apiKeys[Providers.EOS]} 
                   onChange={(event) => props.setApiKeys({
                     ...props.apiKeys, 
-                    'EOS': event.target.value
+                    [Providers.EOS]: event.target.value
                   })} 
                   label="EOS API key" 
                   type="search" 
@@ -94,10 +93,10 @@ function ApiKeysModalComponent(props) {
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <TextField 
-                value={props.apiKeys['SKYWATCH']} 
+                value={props.apiKeys[Providers.SKYWATCH]} 
                 onChange={(event) => props.setApiKeys({
                   ...props.apiKeys, 
-                  'SKYWATCH': event.target.value
+                  [Providers.SKYWATCH]: event.target.value
                 })} 
                 label="SKYWATCH API key" 
                 type="search" 
@@ -109,10 +108,10 @@ function ApiKeysModalComponent(props) {
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <TextField 
-                value={props.apiKeys['MAXAR_DIGITALGLOBE']} 
+                value={props.apiKeys[Providers.MAXAR_DIGITALGLOBE]} 
                 onChange={(event) => props.setApiKeys({
                   ...props.apiKeys, 
-                  'MAXAR_DIGITALGLOBE': event.target.value
+                  [Providers.MAXAR_DIGITALGLOBE]: event.target.value
                 })} 
                 label="MAXAR API key" 
                 type="search" 
