@@ -1,8 +1,9 @@
 {
   "scripts": {
     "preinstall": "npx npm-force-resolutions",
-    "start": "webpack-dev-server --progress --hot --open",
-    "start-local": "webpack-dev-server --env local --progress --hot --open"
+    "start": "webpack-dev-server --progress --hot --open --config webpack.dev.js",
+    "start-local": "webpack-dev-server --env local --progress --hot --open",
+    "build": "webpack --config webpack.prod.js"
   },
   "dependencies": {
     "@date-io/date-fns": "^2.14.0",
@@ -33,6 +34,7 @@
     "crypto": "^1.0.1",
     "crypto-browserify": "^3.12.0",
     "date-fns": "^2.28.0",
+    "esbuild": "0.17.3",
     "ky": "^0.30.0",
     "mapbox-gl": "^2.0.0",
     "mapbox-gl-draw-rectangle-mode": "^1.0.0",

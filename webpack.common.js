@@ -19,17 +19,6 @@ const smp = new SpeedMeasurePlugin();
 // }, {});
 
 const config = smp.wrap({
-  mode: 'development',
-
-  devServer: {
-    static: '.', 
-    headers: {
-      "Access-Control-Allow-Origin": "http://localhost:8080",
-      "Access-Control-Allow-Credentials": "true",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization, x-id, Content-Length, X-Requested-With",
-      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS"
-    },
-  },
 
   entry: {
     app: resolve('./src/app')
@@ -94,6 +83,4 @@ const config = smp.wrap({
 });
 
 // Enables bundling against src in this repo rather than the installed version
-module.exports = env => {
-  return env && env.local ? require('../webpack.config.local')(config)(env) : config;
-}
+module.exports = config
