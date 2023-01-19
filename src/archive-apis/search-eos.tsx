@@ -29,7 +29,7 @@ const search_eos_highres = async (search_settings, eos_apikey, searchPolygon=nul
   const satellites = get_satellites_respecting_gsd(search_settings.gsd)
   const eos_satellites = satellites.map(s => eos_names[s]).filter(s => s)
 
-  console.log('eos satellites', eos_satellites)
+  // console.log('eos satellites', eos_satellites)
   const eos_payload_highres = {
     'search':{
       'satellites': eos_satellites,

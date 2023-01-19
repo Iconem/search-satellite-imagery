@@ -34,7 +34,7 @@ const search_skywatch = async (search_settings, skywatch_apikey, searchPolygon=n
     'interval_length': 0,
     'order_by': ['resolution', 'date', 'cost']
   }
-  console.log('SKYWATCH PAYLOAD: \n', skywatch_payload, '\n')
+  // console.log('SKYWATCH PAYLOAD: \n', skywatch_payload, '\n')
 
   const searchId = await ky.post(skywatch_search_url, {
     headers: {'x-api-key': skywatch_apikey},

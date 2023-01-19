@@ -22,8 +22,8 @@ export default function App() {
   const mapRef = React.useRef<MapRef>();
 
   const [drawFeatures, setDrawFeatures] = useState({});
-  // const [searchResults, setSearchResults] = React.useState(null);
-  const [searchResults, setSearchResults] = React.useState(sample_results);
+  const [searchResults, setSearchResults] = React.useState(null);
+  // const [searchResults, setSearchResults] = React.useState(sample_results);
   const [footprintFeatures, setFootprintFeatures] = useState<null | GeoJSON.FeatureCollection>(null);
   // const [selectedFeature, setSelectedFeature] = useState<null | GeoJSON.Feature>(null);
   const [basemapStyle, setBasemapStyle] = useState("satellite-streets-v11");
@@ -83,13 +83,16 @@ export default function App() {
           mapRef={mapRef}
         />
         <FeaturesSourceAndLayer features={footprintFeatures} lineLayer={true} fillLayer={true} id={'footprintFeatures'}/>
+        {/* 
         <FeaturesSourceAndLayer features={
           // Object.values(drawFeatures)[0]
           {
             type: 'FeatureCollection', 
             features: Object.values(drawFeatures)
           }
-          } lineLayer={true} fillLayer={true} id={'aoiFeatures'} />
+          } lineLayer={true} fillLayer={true} id={'aoiFeatures'} 
+        /> 
+        */}
 
       </Map>
 

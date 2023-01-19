@@ -85,9 +85,9 @@ function MapControls(props) {
       // console.log(newFeatures, e.features)
       for (const f of e.features) {
         newFeatures[f.id] = f;
-        console.log('draw f', f)
+        // console.log('draw f', f)
       }
-      console.log('draw newFeatures', newFeatures)
+      // console.log('draw newFeatures', newFeatures)
       return newFeatures;
     });
   }, []);
@@ -97,9 +97,9 @@ function MapControls(props) {
       // console.log(newFeatures, e.features)
       for (const f of e.features) {
         newFeatures[f.id] = f;
-        console.log('draw f', f)
+        // console.log('draw f', f)
       }
-      console.log('draw newFeatures', newFeatures)
+      // console.log('draw newFeatures', newFeatures)
       return newFeatures;
     });
   }, []);
@@ -121,9 +121,6 @@ function MapControls(props) {
         position="top-left"
         flyTo={{speed: 2.5}} 
       />
-      <CustomOverlay position="top-left" style={{ pointerEvents: "all" }} >
-        <KML_input setDrawFeatures={props.setDrawFeatures} mapRef={props.mapRef}/>
-      </CustomOverlay>
       <DrawControl
         // modes={modes}
         position="top-left"
@@ -141,6 +138,9 @@ function MapControls(props) {
         onDelete={onDrawDelete}
         styles= {draw_polygon_styles}
       />
+      <CustomOverlay position="top-left" style={{ pointerEvents: "all" }} >
+        <KML_input setDrawFeatures={props.setDrawFeatures} mapRef={props.mapRef}/>
+      </CustomOverlay>
       <NavigationControl 
         showCompass= {false}
         position="top-left" 

@@ -52,8 +52,8 @@ const get_up42_bearer = async (up42_apikey) => {
     ).json();
 
     const up42_bearer_json = `Bearer ${up42_oauth_json['access_token']}`
-    console.log(`UP42 API KEY (projectId:projectApiKey): ${up42_apikey.projectId}:${up42_apikey.projectApiKey}`)
-    console.log('up42_bearer_json', {up42_bearer: up42_bearer_json})
+    // console.log(`UP42 API KEY (projectId:projectApiKey): ${up42_apikey.projectId}:${up42_apikey.projectApiKey}`)
+    // console.log('up42_bearer_json', {up42_bearer: up42_bearer_json})
     return up42_bearer_json
 }
 function get_up42_price(feature) {

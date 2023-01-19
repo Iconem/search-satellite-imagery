@@ -188,7 +188,7 @@ function RecursiveTreeView() {
   const parentMap = React.useMemo(() => {
     return goThroughAllNodes(treeview_data);
   }, []);
-  console.log("parentMAp", parentMap);
+  console.log("parentMap", parentMap);
 
   function goThroughAllNodes(nodes: RenderTree, map: Record<string, any> = {}) {
     if (!nodes.children) {

@@ -52,13 +52,12 @@ const search_maxar = async (search_settings, maxar_apikey, searchPolygon=null, s
     'Transfer-Encoding': 'compress',
     // 'Cache-Control': 'no-cache',
   }
-  console.log('headers', headers)
+  // console.log('Maxar headers', headers)
   try {
     const maxar_results_raw = await ky.post(maxar_search_url, {
       headers,
       body: maxar_payload
     }).json();
-    console.log('maxar PAYLOAD: \n', maxar_payload, '\nRAW maxar search results: \n', maxar_results_raw)
     const search_results_json = format_maxar_results(maxar_results_raw, searchPolygon)
     console.log('maxar PAYLOAD: \n', maxar_payload, '\nRAW maxar search results: \n', maxar_results_raw, '\nJSON maxar search results: \n', search_results_json)
   
