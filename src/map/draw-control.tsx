@@ -10,6 +10,8 @@ import {useControl} from 'react-map-gl';
 import type {MapRef, ControlPosition} from 'react-map-gl';
 import CustomDrawRectangle from './CustomDrawRectangle';
 
+// import LotsOfPointsMode from './draw-control-bis'
+
 type DrawControlProps = ConstructorParameters<typeof MapboxDraw>[0] & {
   position?: ControlPosition;
 
@@ -30,6 +32,7 @@ type DrawControlProps = ConstructorParameters<typeof MapboxDraw>[0] & {
 const modes = MapboxDraw.modes as unknown as { [modeKey: string]: MapboxDraw.DrawMode | MapboxDraw.DrawCustomMode };
 modes['draw_polygon'] = DrawRectangle;
 modes['draw_rectangle'] = DrawRectangle;
+// modes['draw_line_string'] = LotsOfPointsMode // as MapboxDraw.DrawMode;
 // modes['draw_line_string'] = 'draw_polygon' // MapboxDraw.DrawModes.DRAW_POLYGON;
 // .mapbox-gl-draw_line { background-image: url(''); }
 

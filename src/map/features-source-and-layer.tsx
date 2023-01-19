@@ -6,12 +6,13 @@ import { lighten, darken } from '@mui/material/styles';
 import {theme} from '../theme';
 
 function FeaturesSourceAndLayer(props) {
+  console.log('FeaturesSourceAndLayer', props.features)
   return (
     <Source type="geojson" data={props.features}>
       {
         props.lineLayer &&
         <Layer {...{
-          id: 'features-line',
+          id: 'features-line' + props.id,
           type: 'line',
           paint: {
             "line-color": lighten(theme.palette.primary.main, 0.5),
@@ -25,7 +26,7 @@ function FeaturesSourceAndLayer(props) {
       {
         props.fillLayer && 
         <Layer {...{
-          id: 'features-fill',
+          id: 'features-fill' + props.id,
           type: 'fill',
           paint: {
             'fill-color': lighten(theme.palette.primary.main, 0.5),

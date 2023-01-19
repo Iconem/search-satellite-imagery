@@ -21,6 +21,7 @@
     "@mui/material": "5.7.0",
     "@mui/x-data-grid": "^5.11.0",
     "@mui/x-date-pickers": "5.0.0-alpha.3",
+    "@tmcw/togeojson": "^5.6.0",
     "@turf/area": "^6.5.0",
     "@turf/bbox": "^6.5.0",
     "@turf/intersect": "^6.5.0",

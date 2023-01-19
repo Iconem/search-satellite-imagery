@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {useState} from 'react';
 import {render} from 'react-dom';
-import Map, {useMap} from 'react-map-gl';
+import Map, {useMap, MapRef} from 'react-map-gl';
 import type GeoJSON from 'geojson';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider } from '@mui/material/styles';
@@ -19,6 +19,7 @@ import sample_results from './sample_results_up42_head_maxar.json'
 
 export default function App() {
   const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN; 
+  const mapRef = React.useRef<MapRef>();
 
   const [drawFeatures, setDrawFeatures] = useState({});
   // const [searchResults, setSearchResults] = React.useState(null);
@@ -74,8 +75,16 @@ export default function App() {
           mapboxAccessToken={MAPBOX_TOKEN} 
           setDrawFeatures={setDrawFeatures} 
           setBasemapStyle={setBasemapStyle}
+          mapRef={mapRef}
         />
-        <FeaturesSourceAndLayer features={footprintFeatures} lineLayer={true} fillLayer={true} />
+        <FeaturesSourceAndLayer features={footprintFeatures} lineLayer={true} fillLayer={true} id={'footprintFeatures'}/>
+        <FeaturesSourceAndLayer features={
+          // Object.values(drawFeatures)[0]
+          {
+            type: 'FeatureCollection', 
+            features: Object.values(drawFeatures)
+          }
+          } lineLayer={true} fillLayer={true} id={'aoiFeatures'} />
 
       </Map>
 
