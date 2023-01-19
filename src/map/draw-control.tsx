@@ -12,7 +12,7 @@ import {useControl} from 'react-map-gl';
 import type {MapRef, ControlPosition} from 'react-map-gl';
 import CustomDrawRectangle from './CustomDrawRectangle';
 
-import {LotsOfPointsMode, LotsOfPointsMode2} from './draw-control-bis'
+import {LotsOfPointsMode, LotsOfPointsMode2} from './draw-control-test'
 
 type DrawControlProps = ConstructorParameters<typeof MapboxDraw>[0] & {
   position?: ControlPosition;

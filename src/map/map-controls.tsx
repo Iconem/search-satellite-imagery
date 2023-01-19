@@ -17,7 +17,7 @@ import CustomOverlay from './custom-overlay';
 
 
 import { v4 as uuidv4 } from 'uuid';
-import DrawControlBis from './draw-control-bis';
+import DrawControlBis from './draw-control-test';
 import bbox from '@turf/bbox';
 import { kml } from "@tmcw/togeojson";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
