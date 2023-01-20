@@ -1,24 +1,25 @@
 # search-satellite-imagery
 Search satellite Imagery Archive on aggregators like [UP42](https://console.up42.com/catalog), [SKYWATCH EarthCache](https://console.earthcache.com/search-archive), [EOS Landviewer](https://eos.com/landviewer), [HEAD Aerospace](https://headfinder.head-aerospace.eu/sales), [MAXAR](https://discover.maxar.com) via their respective APIs (official or not)
 
+![Screenshot](screenshot.jpg)
+
 ## Possible todos: 
 ### Short Term
- - Stores some search params to localStorage
- - Offer ability to Cancel ongoing request/promise?
  - Displays hovered or selected imagery (TMS or preview)
  - Cleanup of search-utilities and make each search extends a search object class
 ### Long Term
  - Helps order making (no deep-links for any platform unfortunately): make selection, export requests email with scene IDs
  - Order imagery via API
  - Not really useful: Sync datagrid focus on feature when hovered from timeline
+ - Not really useful: Offer ability to Cancel ongoing request/promise. Hard to do, promise resolve will always execute after ky get/post request finally resolves
 
 ## Design choices
  - react-map-gl v7 + mapbox-gl v2 mapbox/mapbox-gl-draw
  - mui (previously material-ui) v5 components and datagrid
  - ky
  - font-awesome v6
+ - react-split-pane ([issue](https://github.com/tomkp/react-split-pane/issues/713)) only supports react v16 so switching to react-resizable-panels instead: 
 
-![Screenshot](screenshot.jpg)
 
 ### React-map module
 react-map-gl vs react-mapbox-gl

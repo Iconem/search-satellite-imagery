@@ -1,7 +1,6 @@
 import * as React from 'react';
-import {useState} from 'react';
 import {render} from 'react-dom';
-import Map, {useMap, MapRef} from 'react-map-gl';
+import Map, {MapRef} from 'react-map-gl';
 import type GeoJSON from 'geojson';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider } from '@mui/material/styles';
@@ -13,59 +12,70 @@ import TimelineComponent from './control-panel/timeline-component';
 import MapControls from './map/map-controls';
 import FeaturesSourceAndLayer from './map/features-source-and-layer';
 import {theme} from './theme';
+import {useLocalStorage} from './utilities';
 
 import sample_results from './sample_results_up42_head_maxar.json'
-
 
 export default function App() {
   const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN; 
   const mapRef = React.useRef<MapRef>();
 
-  const [drawFeatures, setDrawFeatures] = useState({});
-  const [searchResults, setSearchResults] = React.useState(null);
+  // Default version of state
   // const [searchResults, setSearchResults] = React.useState(sample_results);
-  const [footprintFeatures, setFootprintFeatures] = useState<null | GeoJSON.FeatureCollection>(null);
-  // const [selectedFeature, setSelectedFeature] = useState<null | GeoJSON.Feature>(null);
-  const [basemapStyle, setBasemapStyle] = useState("satellite-streets-v11");
-  
-  // Support for split pane: react-split-pane only supports react v16 so switching to react-resizable-panels instead. https://github.com/tomkp/react-split-pane/issues/713
+  // const [searchResults, setSearchResults] = React.useState(null);
+  // const [basemapStyle, setBasemapStyle] = React.useState("satellite-streets-v11");
+  // const [drawFeatures, setDrawFeatures] = useLocalStorage('drawFeatures', {});
+  const [drawFeatures, setDrawFeatures] = React.useState({});
+  // Local Storage Version of some state params
+  const [searchResults, setSearchResults] = useLocalStorage('searchResults', null);
+  const [basemapStyle, setBasemapStyle] = useLocalStorage('basemapStyle', "satellite-streets-v11");
+  const [viewState, setViewState] = useLocalStorage('viewState', 
+    {
+      longitude: 2.3484,
+      latitude: 48.84997,
+      zoom: 12
+    }
+  );
 
+  const [footprintFeatures, setFootprintFeatures] = React.useState<null | GeoJSON.FeatureCollection>(null);
+  // const [selectedFeature, setSelectedFeature] = useState<null | GeoJSON.Feature>(null);
   
   return (
     <>
         <style>
-            {`
-  .split {
-    display: flex;
-    flex-direction: row;
+          {`
+.split {
+  display: flex;
+  flex-direction: row;
 }
 
 .gutter {
-    /*background-color: #eee;*/
-    background-repeat: no-repeat;
-    background-position: 50%;
-    pointer-events: auto;
+  /*background-color: #eee;*/
+  background-repeat: no-repeat;
+  background-position: 50%;
+  pointer-events: auto;
 }
 
 .gutter.gutter-horizontal {
-    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
-    cursor: col-resize;
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+  cursor: col-resize;
 }
 
 .mapboxgl-ctrl-bottom-left > .mapboxgl-ctrl {
   clear: none;
 }
-  `}
+          `}
         </style>
       <Map
-        initialViewState={{
-          // longitude: 0,
-          // latitude: 20,
-          // zoom: 2,
-          longitude: 2.335936,
-          latitude: 48.8616927,
-          zoom: 10
-        }}
+        // Either use this controlled state
+        {...viewState}
+        onMove={evt => setViewState(evt.viewState)}
+        // Or uncontrolled below
+        // initialViewState={{
+        //   longitude: 2.335936,
+        //   latitude: 48.8616927,
+        //   zoom: 10
+        // }}
         ref={mapRef}
         hash={true}
         mapStyle={`mapbox://styles/mapbox/${basemapStyle}`}

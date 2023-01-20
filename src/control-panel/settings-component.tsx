@@ -13,6 +13,7 @@ import {
 /* Factorization Component of settings header and default slider properties */
 import SettingsHeader from './settings-header' 
 import SatelliteImagerySourcesTreeview from "./satellite-imagery-sources-treeview";
+import {useLocalStorage} from '../utilities';
 
 // Default to small mui slider with 0-100 range and step 1
 const defaultSliderPorps = {
@@ -161,8 +162,8 @@ function OffNadirComponent(props) {
 }
 
 function AdvancedSettingsComponent(props) {
-  const [advancedSettingsCollapsed, setAdvancedSettingsCollapsed] = React.useState(true) // true false
-
+  // const [advancedSettingsCollapsed, setAdvancedSettingsCollapsed] = React.useState(true) 
+  const [advancedSettingsCollapsed, setAdvancedSettingsCollapsed] = useLocalStorage('advancedSettingsCollapsed', true)
   return (
     <>
       <Typography 

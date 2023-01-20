@@ -16,28 +16,27 @@ tooltip for provider support
 import * as React from 'react';
 
 // MUI Components: Inputs | Data Display | Feedback+Nav | Layout | Mui-X-datepicker | Components API | Colors
-import {Button} from '@mui/material';
-import {Snackbar, Alert} from '@mui/material';
-import {Divider, List, ListItem, Table, Tooltip, Typography, ListItemText, ListItemIcon} from '@mui/material';
-import {Box, Container, Grid, Stack, } from '@mui/material';
-import { CircularProgress, LinearProgress, Collapse} from '@mui/material';
+import {Button, Snackbar, Alert, CircularProgress, LinearProgress, Collapse} from '@mui/material';
+import {List, ListItem, ListItemText, ListItemIcon, Table, } from '@mui/material';
+import {Box, Container, Grid, Stack, Divider, Tooltip, Typography} from '@mui/material';
 
 // MUI Theming
 import { ThemeProvider, lighten, darken } from '@mui/material/styles';
 import {theme} from '../theme';
 
 // Other imports
+import {useLocalStorage} from '../utilities';
 import { subDays } from 'date-fns'
 import area from '@turf/area';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 // FontAwesome icons https://fontawesome.com/icons
 import { 
-  faChevronDown, faChevronUp, faDownload, faDrawPolygon, faSliders, faCheck, faGaugeHigh, faSatelliteDish, faSatellite
+  faChevronDown, faChevronUp, faDownload, faDrawPolygon, faSliders, faCheck, faSatelliteDish
 } from '@fortawesome/free-solid-svg-icons'
 import { v4 as uuidv4 } from 'uuid';
 
 // import {search_up42, search_eos_highres, search_skywatch, search_head, search_maxar} from './search-apis'
-import {search_up42, get_up42_previews_async} from '../archive-apis/search-up42'
+import search_up42 from '../archive-apis/search-up42'
 import search_head from '../archive-apis/search-head'
 import search_maxar from '../archive-apis/search-maxar'
 import search_skywatch from '../archive-apis/search-skywatch'
@@ -79,7 +78,8 @@ function GSDFromIndex(gsd_index: number) {
 
 /* API Request Status */
 function APIRequestsStatuses(props) {
-  const [advancedSettingsCollapsed, setAdvancedSettingsCollapsed] = React.useState(false) 
+  // const [apiRequestsStatusesCollapsed, setApiRequestsStatusesCollapsed] = React.useState(false) 
+  const [apiRequestsStatusesCollapsed, setApiRequestsStatusesCollapsed] = useLocalStorage('apiRequestsStatusesCollapsed', false);
 
   return (
     <>
@@ -89,18 +89,18 @@ function APIRequestsStatuses(props) {
         <>
           <Typography 
             variant="subtitle2" 
-            onClick={() => setAdvancedSettingsCollapsed(!advancedSettingsCollapsed)} 
+            onClick={() => setApiRequestsStatusesCollapsed(!apiRequestsStatusesCollapsed)} 
             sx={{cursor: 'pointer', zIndex: 10}}
           >
             <FontAwesomeIcon icon={faSatelliteDish} /> 
             &nbsp; Ongoing API Requests for search &nbsp; 
             {
-              advancedSettingsCollapsed ? 
+              apiRequestsStatusesCollapsed ? 
               <FontAwesomeIcon icon={faChevronDown} /> : 
               <FontAwesomeIcon icon={faChevronUp} />
             }
           </Typography>
-          <Collapse in={!advancedSettingsCollapsed} timeout="auto" unmountOnExit>
+          <Collapse in={!apiRequestsStatusesCollapsed} timeout="auto" unmountOnExit>
           <List dense={true}>
             {Object.values(props.searchPromises)
               .filter((o:any) => !o.searchFinishedForMoreThanDelay)
@@ -113,8 +113,8 @@ function APIRequestsStatuses(props) {
                   primary={
                     !o.searchFinished ?
                     `Searching ${o.provider}...` : 
-                    `Results returned by ${o.provider} API!`
-                    // `${props.searchResults?.output?.features?.filter(f => f.properties.providerName.toLowerCase().includes(o.provider.toLowerCase())).length} results returned by o.provider!`
+                    // `Results returned by ${o.provider} API!`
+                    `${props.searchResults?.output?.features?.filter(f => f.properties.provider?.toLowerCase().includes(o.provider?.toLowerCase())).length} results returned by ${o.provider}!`
                   }
                   secondary={null}
                 />
@@ -144,7 +144,9 @@ function SearchButton(props) {
           <Button
             variant="contained"
             sx={{width: '100%'}}
-            disabled={props.loadingResults || !(props.polygons?.length > 0)}
+            disabled={props.loadingResults 
+              // || !(props.polygons?.length > 0)
+            }
             onClick={handleLoadingButtonClick}
           >
             SEARCH
@@ -247,22 +249,28 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
       return {output: emptyFeatureCollection}
     }
   } else {
-    setters.setLoadingResults(false);
-    return {output: emptyFeatureCollection}
-    console.log('\n\nCAUTION, USING DEFAULT COORDINATES FOR TESTING ONLY\n\n')
-    coordinates = [
-      [
-        [ 2.3155246324913605, 48.882101638838435],
-        [ 2.3730642712838232, 48.882101638838435],
-        [ 2.3730642712838232, 48.831624620496],
-        [ 2.3155246324913605, 48.831624620496],
-        [ 2.3155246324913605, 48.882101638838435]
-      ]
-    ],
-    setters.setSnackbarOptions({
-      open: true, 
-      message: 'Default Polygon (Paris area) used since no rectangle polygon has been drawn!'
-    })
+    if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+      // dev code
+      console.log('\n\nCAUTION, USING DEFAULT COORDINATES FOR TESTING ONLY\n\n')
+      coordinates = [
+        [
+          [ 2.3155246324913605, 48.882101638838435],
+          [ 2.3730642712838232, 48.882101638838435],
+          [ 2.3730642712838232, 48.831624620496],
+          [ 2.3155246324913605, 48.831624620496],
+          [ 2.3155246324913605, 48.882101638838435]
+        ]
+      ],
+      setters.setSnackbarOptions({
+        open: true, 
+        message: 'Default Polygon (Paris area) used since no rectangle polygon has been drawn!'
+      })
+  } else {
+      // production code
+      setters.setLoadingResults(false);
+      return {output: emptyFeatureCollection}
+  }
+  
   }
   
   const searchPolygon = {
@@ -409,7 +417,18 @@ function ControlPanel(props) {
   const polygons = props.polygons
   // Fit all search settings in a single react state object
   const today = new Date()
-  const [searchSettings, setSearchSettings] = React.useState({
+  // const [searchSettings, setSearchSettings] = React.useState({
+  //   // polygon: null,
+  //   startDate: subDays(today, 1200), // 30
+  //   endDate: today, 
+  //   gsdIndex: [0, 4], 
+  //   cloudCoverage: 20, 
+  //   aoiCoverage: 80, 
+  //   sunElevation: [50, 90], 
+  //   offNadirAngle: [-60, 60], 
+  //   sensorsSelection: null, 
+  // })
+  const [searchSettings, setSearchSettings] = useLocalStorage('searchSettings', {
     // polygon: null,
     startDate: subDays(today, 1200), // 30
     endDate: today, 
@@ -419,17 +438,33 @@ function ControlPanel(props) {
     sunElevation: [50, 90], 
     offNadirAngle: [-60, 60], 
     sensorsSelection: null, 
-  })
+  });
+  if (typeof searchSettings.startDate === 'string' || searchSettings.startDate instanceof String) {
+    setSearchSettings({
+      ...searchSettings,
+      startDate: new Date(searchSettings.startDate), 
+      endDate: new Date(searchSettings.endDate),
+    })
+  }
 
-  const [apiKeys, setApiKeys] = React.useState({
-    [Providers.UP42]: {
-      projectId: process.env.UP42_PROJECT_ID,
-      projectApiKey: process.env.UP42_PROJECT_APIKEY,
-    }, 
-    [Providers.EOS]: process.env.EOS_APIKEY,
-    [Providers.SKYWATCH]: process.env.SKYWATCH_APIKEY,
-    [Providers.MAXAR_DIGITALGLOBE]: process.env.MAXAR_DIGITALGLOBE_APIKEY,
-  })
+  // const [apiKeys, setApiKeys] = React.useState({
+  //   [Providers.UP42]: {
+  //     projectId: process.env.UP42_PROJECT_ID,
+  //     projectApiKey: process.env.UP42_PROJECT_APIKEY,
+  //   }, 
+  //   [Providers.EOS]: process.env.EOS_APIKEY,
+  //   [Providers.SKYWATCH]: process.env.SKYWATCH_APIKEY,
+  //   [Providers.MAXAR_DIGITALGLOBE]: process.env.MAXAR_DIGITALGLOBE_APIKEY,
+  // })
+  const [apiKeys, setApiKeys] = useLocalStorage('apiKeys', {
+      [Providers.UP42]: {
+        projectId: process.env.UP42_PROJECT_ID,
+        projectApiKey: process.env.UP42_PROJECT_APIKEY,
+      }, 
+      [Providers.EOS]: process.env.EOS_APIKEY,
+      [Providers.SKYWATCH]: process.env.SKYWATCH_APIKEY,
+      [Providers.MAXAR_DIGITALGLOBE]: process.env.MAXAR_DIGITALGLOBE_APIKEY,
+    });
   
   const setStartDate = (newValue: Date | null) => setSearchSettings({
     ...searchSettings, 
@@ -443,7 +478,8 @@ function ControlPanel(props) {
   const [loadingResults, setLoadingResults] = React.useState(false);
   const [searchPromises, setSearchPromises] = React.useState([]);
 
-  const [settingsCollapsed, setSettingsCollapsed] = React.useState(false);
+  // const [settingsCollapsed, setSettingsCollapsed] = React.useState(false);
+  const [settingsCollapsed, setSettingsCollapsed] = useLocalStorage('settingsCollapsed', false);
   const [snackbarOptions, setSnackbarOptions] = React.useState({
     open: false, 
     message: ''
