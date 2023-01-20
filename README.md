@@ -1,12 +1,17 @@
 # search-satellite-imagery
-Search satellite Imagery Archive on aggregators like [UP42](https://console.up42.com/catalog), [SKYWATCH EarthCache](https://console.earthcache.com/search-archive), [EOS Landviewer](https://eos.com/landviewer), [HEAD Aerospace](https://headfinder.head-aerospace.eu/sales), [MAXAR](https://discover.maxar.com) via their respective APIs (official or not)
+Search satellite Imagery Archive on aggregators via their respective APIs (official or not), like:
+ - [UP42](https://console.up42.com/catalog)
+ - [SKYWATCH EarthCache](https://console.earthcache.com/search-archive)
+ - [EOS Landviewer](https://eos.com/landviewer)
+ - [HEAD Aerospace](https://headfinder.head-aerospace.eu/sales)
+ - [MAXAR](https://discover.maxar.com) 
 
 ![Screenshot](screenshot.jpg)
 
 ## Possible todos: 
 ### Short Term
  - Displays hovered or selected imagery (TMS or preview)
- - Cleanup of search-utilities and make each search extends a search object class
+ - Cleanup: search-utilities, make each search extends a search object class, polygon aoi be a single feature search param
 ### Long Term
  - Helps order making (no deep-links for any platform unfortunately): make selection, export requests email with scene IDs
  - Order imagery via API
@@ -14,11 +19,12 @@ Search satellite Imagery Archive on aggregators like [UP42](https://console.up42
  - Not really useful: Offer ability to Cancel ongoing request/promise. Hard to do, promise resolve will always execute after ky get/post request finally resolves
 
 ## Design choices
- - react-map-gl v7 + mapbox-gl v2 mapbox/mapbox-gl-draw
- - mui (previously material-ui) v5 components and datagrid
- - ky
- - font-awesome v6
- - react-split-pane ([issue](https://github.com/tomkp/react-split-pane/issues/713)) only supports react v16 so switching to react-resizable-panels instead: 
+ - [visgl/react-map-gl](https://github.com/visgl/react-map-gl) v7 + mapbox-gl v2 [mapbox/mapbox-gl-draw](https://github.com/mapbox/mapbox-gl-draw)
+ - [mui](https://mui.com/material-ui/getting-started/usage/) (previously material-ui) v5 components, inputs and datagrid
+ - [ky](https://github.com/sindresorhus/ky) HTTP client (based on browser Fetch, more elegant)
+ - [airbnb/visx](https://github.com/airbnb/visx) for charts and graphs
+ - [font-awesome](https://fontawesome.com/icons) v6
+ - [react-split-pane](https://github.com/tomkp/react-split-pane)  only supports react v16 ([issue](https://github.com/tomkp/react-split-pane/issues/713)) so switching to react-resizable-panels instead
 
 
 ### React-map module
@@ -32,9 +38,9 @@ Two options:
  - use this nebula.gl [react-map-gl-draw-example](https://nebula.gl/docs/interactive-examples/react-map-gl-draw-example) and update react-map-gl-draw to v1.0.3 and react-map-gl to v6 works + react v16. updating to v7 requires following [this guide](https://github.com/visgl/react-map-gl/blob/master/docs/upgrade-guide.md), among which updating api key, adding mapbox-gl as dependency. Currently, react-mapbox-gl-draw does not support react-map-gl v7 as seen [here](https://github.com/HSLdevcom/jore4/issues/657), neither supports react 18 as of yet (same github board). So this solution was not chosen.
 
 
-## Fetching POST/REST
-ky (built on the Fetch api, has retries, simpler syntax) > axios (built on the older XmlHttpRequest api)
+### Fetching POST/REST
+ky (built on the Fetch api, has retries, simpler syntax) seem a better choice than axios (built on the older XmlHttpRequest api)
 
  - use ky (based on fetch) or axios (based on xmlhttprequest older) or pure fetch which are browser based
- - Other [lsit](https://developer.vonage.com/blog/2020/09/23/5-ways-to-make-http-requests-in-node-js-2020-edition)
+ - Other [list](https://developer.vonage.com/blog/2020/09/23/5-ways-to-make-http-requests-in-node-js-2020-edition)
  - Previous alternative discontinued: [request](https://nodesource.com/blog/express-going-into-maintenance-mode)
