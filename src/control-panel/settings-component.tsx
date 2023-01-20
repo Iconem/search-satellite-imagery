@@ -16,7 +16,7 @@ import SatelliteImagerySourcesTreeview from "./satellite-imagery-sources-treevie
 import {useLocalStorage} from '../utilities';
 
 // Default to small mui slider with 0-100 range and step 1
-const defaultSliderPorps = {
+const defaultSliderProps = {
   min: 0, max: 100, step: 1,
   size: 'small', 'valueLabelDisplay': 'auto'
 }
@@ -70,7 +70,7 @@ function GSDComponent(props) {
         title={'GSD Resolution'}
         value={GSDFromIndex(props.searchSettings.gsdIndex[1])} />
       <CustomMarksSlider
-        {...defaultSliderPorps as any}
+        {...defaultSliderProps as any}
         min={0} max={GSD_steps.length - 1}
         marks={marks_GSD}
         value={props.searchSettings.gsdIndex}
@@ -96,7 +96,7 @@ function CloudinessComponent(props) {
         title={'Cloudiness'}
         value={`≤ ${props.searchSettings.cloudCoverage} %` } />
       <Slider
-        {...defaultSliderPorps as any}
+        {...defaultSliderProps as any}
         value={props.searchSettings.cloudCoverage}
         // onChange={handleCloudCoverageSlider}
         // onChange={props.handleSlider('cloudCoverage')}
@@ -116,7 +116,7 @@ function AoiCoverageComponent(props) {
         title={'AOI Coverage'}
         value={`≥ ${props.searchSettings.aoiCoverage}%` } />
       <Slider
-        {...defaultSliderPorps as any}
+        {...defaultSliderProps as any}
         value={props.searchSettings.aoiCoverage}
         // onChange={props.handleSlider('aoiCoverage')}
         onChange={handleSliderFun('aoiCoverage', props)}
@@ -133,7 +133,7 @@ function SunElevationComponent(props) {
         title={'Sun Elevation'}
         value={`${props.searchSettings.sunElevation[0]}° ≤ x ≤ ${props.searchSettings.sunElevation[1]}°` } />
       <Slider
-        {...defaultSliderPorps as any}
+        {...defaultSliderProps as any}
         min={0}
         max={90}
         value={props.searchSettings.sunElevation}
@@ -150,7 +150,7 @@ function OffNadirComponent(props) {
         title={'Off Nadir Angle'}
         value={`${props.searchSettings.offNadirAngle[0]}° ≤ x ≤ ${props.searchSettings.offNadirAngle[1]}°` } />
       <Slider
-        {...defaultSliderPorps as any}
+        {...defaultSliderProps as any}
         min={-60}
         max={60}
         value={props.searchSettings.offNadirAngle}
