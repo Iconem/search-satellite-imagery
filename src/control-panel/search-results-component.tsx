@@ -1,8 +1,8 @@
 // Component for presenting search results on a mui-x datagrid
 
 import * as React from 'react';
-import {Tooltip, Typography, GlobalStyles} from '@mui/material';
-import { DataGrid, GridColumnMenu, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton, GridToolbarDensitySelector, GridRowHeightParams, GridColDef  } from '@mui/x-data-grid';
+import {Tooltip, Typography, GlobalStyles, Box} from '@mui/material';
+import { DataGrid, GridColumnMenu, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton, GridToolbarDensitySelector, GridRowHeightParams, GridColDef } from '@mui/x-data-grid';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faCloudSun, faSquarePollHorizontal, faSatellite, faBolt, faVectorSquare, faDrawPolygon
@@ -45,13 +45,15 @@ function check_unknown(x, suffix) {
   return (x || x === 0) ? `${Math.round(x)}${suffix}` : '-'
 }
 
+const no_image_fallback_url = 'https://via.placeholder.com/300x300.webp/FFFFFF/000000?text=No+Image+Available'
+
 const datagridColumns: GridColDef[] = [
   { 
     field: 'acquisitionDate', 
     valueGetter: (params) => params.row.acquisitionDate.substring(0, 16).replace('T', ' '),
     renderCell: (params) => {
       const dateStr = params.value
-      return (<Tooltip title={dateStr}><p>{dateStr.substring(0, 10)}</p></Tooltip>) 
+      return (<Tooltip title={dateStr} disableInteractive ><p>{dateStr.substring(0, 10)}</p></Tooltip>) 
     },
     width: 90, // 120 to see datetime, 100 to see only date
     type: 'dateTime',
@@ -98,7 +100,7 @@ const datagridColumns: GridColDef[] = [
     // valueGetter: (params) => params.row?.provider,
     renderHeader: () => (<strong>Provider</strong>),
     renderCell: (params) => {
-      return (<Tooltip title={params.value}><p>{params.value}</p></Tooltip>) 
+      return (<Tooltip title={params.value} disableInteractive><p>{params.value}</p></Tooltip>) 
     },
   },
   { 
@@ -189,13 +191,18 @@ const datagridColumns: GridColDef[] = [
     field: 'thumbnail', 
     type: 'image',
     renderCell: (params) => (
-      <img src={params.value} 
-        style={{
+      <Box
+        component="img"
+        sx={{
           objectFit: 'cover',
           width: '100%',
           height: '100%',
-        }} 
+        }}
+        alt=""
+        src={params.value} 
+        // onerror={"this.src='alternative.jpg';"}
       />
+
     ),
     valueGetter: (params) => params.row?.thumbnail_uri, // thumbnail_uri or preview_uri
     hide: true
@@ -209,7 +216,12 @@ const datagridColumns: GridColDef[] = [
           objectFit: 'cover',
           width: '100%',
           height: '100%',
+         pointerEvents: 'none'
         }} 
+        onError={e => {
+           // or e.target.className = fallback_className
+          (e.target as any).src = no_image_fallback_url;
+        }}
       />
     ),
     valueGetter: (params) => params.row?.preview_uri, // thumbnail_uri or preview_uri
