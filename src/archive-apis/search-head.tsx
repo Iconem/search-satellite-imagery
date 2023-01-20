@@ -123,9 +123,10 @@ const format_head_results = (head_results_raw, searchPolygon=null) => {
           'shapeIntersection': null,
           // 'shapeIntersection': shapeIntersection(feature, searchPolygon),
           'price': null,
-          'preview_uri': null,          
-          'thumbnail_uri': null,          
+          'preview_uri': null,
+          'thumbnail_uri': null,
           'providerProperties': {
+            'preview_uri_tiles': null,
             'illuminationElevationAngle': r.sunel == -999 ? null : r.sunel,
             'incidenceAngle': r.offnadir == -999 ? null : r.offnadir,
             'azimuthAngle': null,
@@ -146,6 +147,7 @@ const format_head_results = (head_results_raw, searchPolygon=null) => {
       }
       const tile_coords = get_webmercator_tile_covering(feature, zoom_shift)
       feature.properties.preview_uri = head_tile_url(r, tile_coords.zoom, tile_coords.tile_x, tile_coords.tile_y, tile_ext)
+      feature.properties.providerProperties.preview_uri_tiles = head_tile_url(r, '{z}', '{x}', '{y}', tile_ext)
       feature.properties.thumbnail_uri = feature.properties.preview_uri
 
       return feature

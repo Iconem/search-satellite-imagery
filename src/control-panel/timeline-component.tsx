@@ -20,14 +20,12 @@ const accessors = {
 };
 
 const handleRowHover = (e, searchResults, setFootprintFeatures) => {
-  console.log( e)
   const rowIdx = parseInt(e.target.getAttribute('id'))
   const row = searchResults.output.features[rowIdx]
   // const rowId = e.target.parentElement.dataset.id;
   // const row = searchResults.output['features'].find(
   //   (el) => el.properties.id === rowId
   // );
-  console.log(row)
   setFootprintFeatures(row)
 };
 

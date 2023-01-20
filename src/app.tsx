@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {render} from 'react-dom';
-import Map, {MapRef} from 'react-map-gl';
+import Map, {ImageSource, MapRef} from 'react-map-gl';
 import type GeoJSON from 'geojson';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider } from '@mui/material/styles';
@@ -10,6 +10,7 @@ import Split from 'react-split'
 import ControlPanel from './control-panel/control-panel';
 import TimelineComponent from './control-panel/timeline-component';
 import MapControls from './map/map-controls';
+import CustomImageSource from './map/custom-image-source';
 import FeaturesSourceAndLayer from './map/features-source-and-layer';
 import {theme} from './theme';
 import {useLocalStorage} from './utilities';
@@ -103,6 +104,9 @@ export default function App() {
           } lineLayer={true} fillLayer={true} id={'aoiFeatures'} 
         /> 
         */}
+        
+        {/* Image Source and Layer can be placed on map via TMS or raster overlay if coordinates given in correct order */}
+        <CustomImageSource feature={footprintFeatures} />
 
       </Map>
 
