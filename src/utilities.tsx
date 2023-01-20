@@ -14,6 +14,16 @@ const useLocalStorage = (storageKey, fallbackState) => {
   return [value, setValue];
 };
 
+
+/* GSD */
+const GSD_steps = [ 0, 0.15, 0.30, 0.50, 1, 2, 5, 15, 30];
+function GSDFromIndex(gsd_index: number) {
+  const GSD_meters = GSD_steps[gsd_index];
+  return (GSD_meters < 1)? `${Math.floor(GSD_meters*100)}cm` : `${GSD_meters}m`;
+}
+
 export {
-  useLocalStorage
+  useLocalStorage, 
+  GSD_steps, 
+  GSDFromIndex
 }
