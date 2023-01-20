@@ -12,7 +12,7 @@ Tree view https://mui.com/material-ui/react-tree-view/#gmail-clone
 import * as React from 'react';
 
 // MUI Components: Inputs | Data Display | Feedback+Nav | Layout | Mui-X-datepicker | Components API | Colors
-import {Snackbar, Alert, Collapse, Box, Grid, Stack, Typography} from '@mui/material';
+import {Snackbar, Alert, Collapse, Box, Grid, Stack, Typography, Slider} from '@mui/material';
 
 // MUI Theming
 import { ThemeProvider, lighten, darken } from '@mui/material/styles';
@@ -179,6 +179,15 @@ function ControlPanel(props) {
 
         {/* AOI and DateRange Components */}
         <AOIComponent polygons={polygons} />
+        {/* setRasterOpacity={props.setRasterOpacity} */}
+        <Slider
+          min= {0} max= {1} step= {0.01}
+          size= {'small'}
+          valueLabelDisplay= {'auto'}
+          value={props.rasterOpacity}
+          onChange={(event: Event, newValue: number | number[]) => props.setRasterOpacity(newValue)}
+          valueLabelFormat={value => `Imagery Opacity: ${value*100}%`}
+        />
         {/* <DateRangeComponent startDate={searchSettings.startDate} setStartDate={setStartDate} endDate={searchSettings.endDate} setEndDate={setEndDate} /> */}
         <DateRangeComponent startDate={searchSettings.startDate} setStartDate={setStartDate} endDate={searchSettings.endDate} setEndDate={setEndDate} />
 

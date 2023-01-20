@@ -30,6 +30,7 @@ export default function App() {
   // Local Storage Version of some state params
   const [searchResults, setSearchResults] = useLocalStorage('searchResults', null);
   const [basemapStyle, setBasemapStyle] = useLocalStorage('basemapStyle', "satellite-streets-v11");
+  const [rasterOpacity, setRasterOpacity] = useLocalStorage('rasterOpacity', 0.8);
   const [viewState, setViewState] = useLocalStorage('viewState', 
     {
       longitude: 2.3484,
@@ -106,7 +107,7 @@ export default function App() {
         */}
         
         {/* Image Source and Layer can be placed on map via TMS or raster overlay if coordinates given in correct order */}
-        <CustomImageSource feature={footprintFeatures} />
+        <CustomImageSource feature={footprintFeatures} rasterOpacity={rasterOpacity}/>
 
       </Map>
 
@@ -145,6 +146,7 @@ export default function App() {
           // setSelectedFeature={setSelectedFeature} 
           searchResults={searchResults} 
           setSearchResults={setSearchResults} 
+          rasterOpacity={rasterOpacity} setRasterOpacity={setRasterOpacity}
         />
       </Split>
       </div>
