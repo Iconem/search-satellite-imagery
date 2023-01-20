@@ -33,7 +33,8 @@ const search_skywatch = async (search_settings, skywatch_apikey, searchPolygon=n
     'resolution': resolution_array,
     'coverage': search_settings.aoiCoverage,
     'interval_length': 0,
-    'order_by': ['resolution', 'date', 'cost']
+    'order_by': ['resolution', 'date', 'cost'],
+    // "cloudCoverage": search_settings.cloudCoverage // not working
   }
   // console.log('SKYWATCH PAYLOAD: \n', skywatch_payload, '\n')
 
@@ -60,7 +61,7 @@ const search_skywatch = async (search_settings, skywatch_apikey, searchPolygon=n
   }
   
   if (search_results_raw) {
-    const search_results_json = format_skywatch_results(search_results_raw)
+    const search_results_json = format_skywatch_results(search_results_raw, search_settings)
     console.log('SKYWATCH PAYLOAD: \n', skywatch_payload, '\nRAW SKYWATCH search results: \n', search_results_raw, '\nJSON SKYWATCH search results: \n', search_results_json)
     return {search_results_json}
   }
@@ -85,11 +86,13 @@ const search_skywatch = async (search_settings, skywatch_apikey, searchPolygon=n
   }
 }
 
-const format_skywatch_results = (skywatch_results_raw) => {
+const format_skywatch_results = (skywatch_results_raw, search_settings) => {
   // 'pagination': { 'per_page': 0, 'total': 0, 'count': 0, 'cursor': {},}
   return {
     'type': 'FeatureCollection',
-    'features': skywatch_results_raw.data.map(r => ({
+    'features': skywatch_results_raw.data
+      .filter(r => r.result_cloud_cover_percentage <= search_settings.cloudCoverage)
+      .map(r => ({
       'geometry': r.location,
       'properties': {
         'providerPlatform': `${Providers.SKYWATCH}`, 
