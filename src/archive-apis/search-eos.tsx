@@ -5,7 +5,8 @@ import {
   get_constellation_name,
   get_satellites_respecting_gsd,
   eos_constellation_dict, 
-  eos_names
+  eos_names, 
+  Providers,
 } from './search-utilities'
 
 /* --------------- */
@@ -105,8 +106,8 @@ const format_eos_results = (eos_results_raw) => {
       {
         'geometry': r.dataGeometry,
         'properties': {
-          'providerPlatform': `EOS`, 
-          'provider': `EOS/${r.satellite}`,
+          'providerPlatform': `${Providers.EOS}`, 
+          'provider': `${Providers.EOS}/${r.satellite}`,
           'id': r.sceneID, 
           'acquisitionDate': new Date(r.date).toISOString(), //'2019-03-23T10:24:03.000Z',
           'resolution': r.resolution, // '1.5 m/pxl'

@@ -156,8 +156,8 @@ const format_up42_results = (up42_results_raw, searchPolygon) => {
           constellation: up42_constellation_dict[feature.properties.constellation]?.constellation || feature.properties.constellation,
           'price': get_up42_price(feature),
           'shapeIntersection': shapeIntersection(feature, searchPolygon),
-          'providerPlatform': `UP42`, 
-          'provider': `UP42/${feature.properties.producer}`, // /${feature.properties.providerName}
+          'providerPlatform': `${Providers.UP42}`, 
+          'provider': `${Providers.UP42}/${feature.properties.producer}`, // /${feature.properties.providerName}
           // 
           'providerProperties': feature.properties.providerProperties,
           'providerName': feature.properties.providerName,
@@ -173,12 +173,9 @@ const format_up42_results = (up42_results_raw, searchPolygon) => {
   }
 }
 
-export {
-  search_up42, 
-  get_up42_previews_async
-}
-
-// export default {
-//   search_up42_f, 
+// export {
+//   search_up42, 
 //   get_up42_previews_async
 // }
+
+export default search_up42 

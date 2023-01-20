@@ -2,7 +2,7 @@
 
 import ky from 'ky';
 import {encode as base64_encode} from 'base-64';
-import {shapeIntersection, max_abs, get_maxar_price, get_constellation_name, maxar_constellation_dict} from './search-utilities'
+import {shapeIntersection, max_abs, get_maxar_price, get_constellation_name, maxar_constellation_dict, Providers} from './search-utilities'
 import { v4 as uuidv4 } from 'uuid';
 
 /* ---------------------------- */
@@ -91,14 +91,14 @@ const format_maxar_results = (maxar_results_raw, searchPolygon) => {
           // ...f.attributes,
           
           // 'constellation': maxar_constellation_dict[f.attributes.vehicle_name]?.constellation || f.attributes.vehicle_name,
-          'providerPlatform': `MAXAR`, 
+          'providerPlatform': `${Providers.MAXAR_DIGITALGLOBE}`, 
           'constellation': get_constellation_name(f.attributes.vehicle_name, maxar_constellation_dict), // maxar_constellation_dict[f.attributes.vehicle_name]?.constellation || f.attributes.vehicle_name,
           'acquisitionDate': (new Date(f.attributes.collect_time_start || f.attributes.start_time || 0)).toISOString(), // or end_time '2019-03-23T10:24:03.000Z',
           'price': null,
           'shapeIntersection': null, // shapeIntersection(f, searchPolygon),
 
           'id': f.attributes.image_identifier || uuidv4(), 
-          'provider': `Maxar_DigitalGlobe/${f.attributes.vehicle_name}`,
+          'provider': `${Providers.MAXAR_DIGITALGLOBE}/${f.attributes.vehicle_name}`,
           // 'id': f.attributes.image_identifier || randomUUID(), uuid
           'resolution': f.attributes.pan_resolution_avg, // multi_resolution_avg
           'cloudCoverage': f.attributes.area_cloud_cover_percentage,

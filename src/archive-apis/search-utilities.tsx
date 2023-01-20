@@ -107,7 +107,7 @@ enum Constellation {
 
 enum Providers {
   UP42 = 'UP42',
-  HEADAEROSPACE = 'HEAD Aerospace',
+  HEADAEROSPACE = 'HEAD',
   MAXAR_DIGITALGLOBE = 'MAXAR',
   EOS = 'EOS',
   SKYWATCH = 'SKYWATCH',

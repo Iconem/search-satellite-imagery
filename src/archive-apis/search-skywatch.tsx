@@ -1,6 +1,7 @@
 // Code for searching SkyWatch API 
 
 import ky from 'ky';
+import {Providers} from './search-utilities'
 
 /* -------------- */
 /*    SKYWATCH    */
@@ -91,8 +92,8 @@ const format_skywatch_results = (skywatch_results_raw) => {
     'features': skywatch_results_raw.data.map(r => ({
       'geometry': r.location,
       'properties': {
-        'providerPlatform': `SKYWATCH`, 
-        'provider': `SKYWATCH/${r.source}`,
+        'providerPlatform': `${Providers.SKYWATCH}`, 
+        'provider': `${Providers.SKYWATCH}/${r.source}`,
         'id': r.product_name,
         'skywatch_id': r.id, 
         'acquisitionDate': r.start_time, // or end_time '2019-03-23T10:24:03.000Z',

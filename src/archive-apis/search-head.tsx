@@ -110,8 +110,8 @@ const format_head_results = (head_results_raw, searchPolygon=null) => {
           ]
         },
         'properties': { 
-          'providerPlatform': `HEAD`, 
-          'provider': `HEAD/${head_constellation_dict[r.sensor]?.constellation || r.sensor}`,
+          'providerPlatform': Providers.HEADAEROSPACE, 
+          'provider': `${Providers.HEADAEROSPACE}/${head_constellation_dict[r.sensor]?.constellation || r.sensor}`,
           'id': r.identifier, 
           'acquisitionDate': r.acquisitiontime.replace(' ', 'T') + '.0003Z', // or new Date(r.datedir).toISOString()
           'resolution': constellation_dict[head_constellation_dict[r.sensor]?.constellation]?.gsd || null, 
