@@ -5,6 +5,10 @@ const Dotenv = require('dotenv-webpack');
 const SpeedMeasurePlugin = require("speed-measure-webpack-plugin");
 const smp = new SpeedMeasurePlugin();
 
+const BundleAnalyzerPlugin =
+  require("webpack-bundle-analyzer").BundleAnalyzerPlugin
+
+
 // For env variables passing to the frontend code (webpack replaces occurences of process.env.var by their respective value)
 // Can more simply use Dotenv plugin with .env filepath and safe: true param
 // Otherwise, could also use below code
@@ -69,6 +73,7 @@ const config = smp.wrap({
   // Read environment variable. Recommended way is to simply use Dotenv with .env at root of project
   // https://webpack.js.org/plugins/environment-plugin/
   plugins: [
+    new BundleAnalyzerPlugin(),
     new Dotenv({
       path: './.env', // Path to .env file (this is the default)
       safe: true,     // load .env.example (defaults to "false" which does not use dotenv-safe)
