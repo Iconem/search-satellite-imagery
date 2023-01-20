@@ -31,6 +31,7 @@ export default function App() {
   const [searchResults, setSearchResults] = useLocalStorage('searchResults', null);
   const [basemapStyle, setBasemapStyle] = useLocalStorage('basemapStyle', "satellite-streets-v11");
   const [rasterOpacity, setRasterOpacity] = useLocalStorage('rasterOpacity', 0.8);
+  const [splitPanelSizesPercent, setSplitPanelSizesPercent] = useLocalStorage('splitPanelSizesPercent', [75, 25]);
   const [viewState, setViewState] = useLocalStorage('viewState', 
     {
       longitude: 2.3484,
@@ -123,7 +124,7 @@ export default function App() {
         pointerEvents: 'none',
       }} > 
       <Split
-        sizes={[75, 25]}
+        sizes={splitPanelSizesPercent}
         minSize={100}
         expandToMin={false}
         gutterSize={10}
@@ -134,6 +135,9 @@ export default function App() {
         cursor="col-resize"
         className="split"
         style={{height: '100%'}}
+        onDragEnd= {function (sizes) {
+            setSplitPanelSizesPercent(sizes)
+        }}
       >
         <TimelineComponent 
           searchResults={searchResults}  
