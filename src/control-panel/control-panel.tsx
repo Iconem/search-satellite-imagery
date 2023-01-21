@@ -179,18 +179,7 @@ function ControlPanel(props) {
 
         {/* AOI and DateRange Components */}
         <AOIComponent polygons={polygons} />
-        {/* setRasterOpacity={props.setRasterOpacity} */}
-        <Slider
-          min= {0} max= {1} step= {0.01}
-          size= {'small'}
-          valueLabelDisplay= {'auto'}
-          value={props.rasterOpacity}
-          onChange={(event: Event, newValue: number | number[]) => props.setRasterOpacity(newValue)}
-          valueLabelFormat={value => `Imagery Opacity: ${value*100}%`}
-        />
-        {/* <DateRangeComponent startDate={searchSettings.startDate} setStartDate={setStartDate} endDate={searchSettings.endDate} setEndDate={setEndDate} /> */}
         <DateRangeComponent startDate={searchSettings.startDate} setStartDate={setStartDate} endDate={searchSettings.endDate} setEndDate={setEndDate} />
-
 
         {/* SETTINGS Component */}
         <Typography 

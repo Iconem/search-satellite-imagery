@@ -47,6 +47,8 @@ export default function App() {
     <>
         <style>
           {`
+
+/* Split pane style and gutter */
 .split {
   display: flex;
   flex-direction: row;
@@ -64,9 +66,20 @@ export default function App() {
   cursor: col-resize;
 }
 
+/* Display Controls at bottom-left horizontally sequentially, so never hidden by timeline */
 .mapboxgl-ctrl-bottom-left > .mapboxgl-ctrl {
   clear: none;
 }
+
+/* Vertical Slider Fix in mapbox control */
+.mapboxgl-ctrl.mapboxgl-ctrl-group .MuiSlider-valueLabelOpen {
+  transform:translateX(65%) translateY(25%) scale(1);
+}
+.mapboxgl-ctrl.mapboxgl-ctrl-group .MuiSlider-valueLabel:before {
+  bottom: 50%;
+  left: 0;
+}
+
           `}
         </style>
       <Map
@@ -94,6 +107,7 @@ export default function App() {
           setDrawFeatures={setDrawFeatures} 
           setBasemapStyle={setBasemapStyle}
           mapRef={mapRef}
+          rasterOpacity={rasterOpacity} setRasterOpacity={setRasterOpacity}
         />
         <FeaturesSourceAndLayer features={footprintFeatures} lineLayer={true} fillLayer={true} id={'footprintFeatures'}/>
         {/* 

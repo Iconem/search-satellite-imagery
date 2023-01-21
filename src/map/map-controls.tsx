@@ -22,6 +22,7 @@ import bbox from '@turf/bbox';
 import { kml } from "@tmcw/togeojson";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {  faUpload, faFileArrowUp } from '@fortawesome/free-solid-svg-icons'
+import {Slider} from '@mui/material';
 
 
 function KML_input(props) {
@@ -151,6 +152,35 @@ function MapControls(props) {
           mapboxAccessToken={props.mapboxAccessToken} 
         />
       </CustomOverlay>
+
+      <CustomOverlay position="top-left" style={{ pointerEvents: "all" }} >
+        <div 
+          className="mapboxgl-ctrl mapboxgl-ctrl-group" 
+          style={{
+            height: '100px',
+            paddingTop: '10px',
+            paddingBottom: '10px',
+          }}
+        >
+          <Slider
+              min= {0} max= {1} step= {0.01}
+              size= {'small'}
+              orientation= {'vertical'}
+              valueLabelDisplay= {'auto'}
+              value={props.rasterOpacity}
+              onChange={(event: Event, newValue: number | number[]) => props.setRasterOpacity(newValue)}
+              valueLabelFormat={value => `Imagery Opacity: ${(value*100).toFixed(0)}%`}
+              // Imagery Opacity: 
+              // color={'#000'}
+              sx={{
+                '& input[type="range"]': {
+                  WebkitAppearance: 'slider-vertical',
+                },
+              }}
+            />
+        </div>
+      </CustomOverlay>
+
 
       <ScaleControl 
         unit={"metric"}

@@ -45,7 +45,7 @@ function check_unknown(x, suffix) {
   return (x || x === 0) ? `${Math.round(x)}${suffix}` : '-'
 }
 
-const no_image_fallback_url = 'https://via.placeholder.com/300x300.webp/FFFFFF/000000?text=No+Image+Available'
+const no_image_fallback_url = 'https://via.placeholder.com/300x300.webp/FFFFFF/000000?text=No+Preview+Available'
 
 const datagridColumns: GridColDef[] = [
   { 
@@ -333,10 +333,10 @@ function SearchResultsComponent(props) {
               componentsProps={{
                 row: {
                   onMouseEnter: e => handleRowHover(e, searchResults, props.setFootprintFeatures),
-                  onMouseLeave: e => props.setFootprintFeatures({
-                    coordinates: [], 
-                    type: 'Polygon'
-                  }) 
+                  // onMouseLeave: e => props.setFootprintFeatures({
+                  //   coordinates: [], 
+                  //   type: 'Polygon'
+                  // }) 
                 }, 
                 columnMenu: { 
                   // background: 'red', 
