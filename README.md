@@ -8,13 +8,25 @@ Search satellite Imagery Archive on aggregators via their respective APIs (offic
 
 ![Screenshot](screenshot.jpg)
 
+## Features
+ - Set search settings (AOI polygon, dates and resolution), and advanced settings (cloud coverage, aoi coverage, sun elevation, off-nadir) and API keys
+ - DrawControls on map to draw a rectangle, edit basemap style, import KML to set map bounds (aoi), control raster opacity, plus standards geocoder and map zoom, 
+ - Search each API (official or not) and parse results
+ - Displays results in a datagrid table with editable visible column, filter on one property, density, and auto fills sidepanel. Shows date, GSD, provider, and compute price and preview if not returned by API
+ - Displays timeline with acquisition date of results
+ - Hover over data table or timeline shows footprint on map and highlights date on timeline
+ - Displays hovered or selected imagery on map (TMS or raster previews)
+ - Stores UI and search params to localStorage (as well as search results)
+
 ## Possible todos: 
 ### Short Term
- - Displays hovered or selected imagery (TMS or preview)
- - Cleanup: search-utilities, make each search extends a search object class, polygon aoi be a single feature search param
+ - Search any new STAC catalog (UP42 is one): Give it the STAC URL, parse results and columns to display in datagrid
+ - Cleanup: search-utilities, make each search extends a search object class, polygon aoi be a single feature search param, each geojson feature be a real geojson feature (search input, results)
+ - Check localStorage object type and signature to avoid breaking changes in storage object name 
+ - Not easy: add react state feature to drawcontrol that can be edited (so polygon imported from kml or localstorage can be edited)
 ### Long Term
  - Helps order making (no deep-links for any platform unfortunately): make selection, export requests email with scene IDs
- - Order imagery via API
+ - Order archive imagery via API (no tasking)
  - Not really useful: Sync datagrid focus on feature when hovered from timeline
  - Not really useful: Offer ability to Cancel ongoing request/promise. Hard to do, promise resolve will always execute after ky get/post request finally resolves
 
