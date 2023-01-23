@@ -139,8 +139,7 @@ const format_head_results = (head_results_raw, searchPolygon=null) => {
       feature.properties.price = get_head_price(feature)
       
       // Set preview uri by tapping into the TMS tiles (no other way, pretty bad)
-      // const tile_ext = r.sensor.includes('SV') && false ? 'png' : 'jpg'
-      const tile_ext = 'png'
+      const tile_ext = r.sensor.includes('SV') && false ? 'png' : 'jpg'
       let zoom_shift = 1
       if (r.sensor.includes('SV')) {
         // For a few portion of SV images, extension is png
@@ -149,7 +148,7 @@ const format_head_results = (head_results_raw, searchPolygon=null) => {
       const tile_coords = get_webmercator_tile_covering(feature, zoom_shift)
       feature.properties.preview_uri = head_tile_url(r, tile_coords.zoom, tile_coords.tile_x, tile_coords.tile_y, tile_ext)
       feature.properties.providerProperties.preview_uri_tiles = {
-        url: head_tile_url(r, '{z}', '{x}', '{y}', tile_ext),
+        url: head_tile_url(r, '{z}', '{x}', '{y}', 'png'),
         minzoom : tile_coords.zoom - 2,
         maxzoom : tile_coords.zoom + 2,
       }

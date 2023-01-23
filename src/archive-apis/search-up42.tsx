@@ -141,6 +141,16 @@ const get_up42_previews_async = async (up42_results, up42_bearer_json) => {
       { headers: {'Authorization': up42_bearer_json} }
     ).blob()
     feature.properties.preview_uri = URL.createObjectURL(preview_uri_blob);
+    
+    // console.log(feature.properties.thumbnail_uri, thumbnail_uri_blob)
+    // These blobs would need to be stored on IndexedDB, which has larger storage limitation than localStorage' 5MB
+    // See this example: https://levelup.gitconnected.com/how-to-use-blob-in-browser-to-cache-ee9577b77daa based on [jakearchibald/idb-keyval](https://github.com/jakearchibald/idb-keyval)
+    // import { get, set } from 'idb-keyval';
+    // var fileReader = new FileReader();
+    // fileReader.onload = function(e) {
+    //   feature.properties.preview_uri = e.target.result;
+    // }
+    // fileReader.readAsDataURL(preview_uri_blob);
   })
 }
 

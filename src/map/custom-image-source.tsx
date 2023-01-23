@@ -43,10 +43,13 @@ function CustomImageSource(props) {
         {(use_tms_source) && <Source
             id="map-source-tms"
             type="raster"
-            tiles={[props.feature?.properties?.providerProperties?.preview_uri_tiles?.url || '']}
+            tiles={[
+              props.feature?.properties?.providerProperties?.preview_uri_tiles?.url || '',
+              // props.feature?.properties?.providerProperties?.preview_uri_tiles?.url?.replaceAll('.png', '.jpg') || ''
+            ]}
             tileSize={256}
             scheme={'xyz'}
-            bounds= {footprint_bbox} /* [sw.lng, sw.lat, ne.lng, ne.lat] */ 
+            bounds= {footprint_bbox}
             minzoom={props.feature?.properties?.providerProperties?.preview_uri_tiles?.minzoom || 1 }
             maxzoom={props.feature?.properties?.providerProperties?.preview_uri_tiles?.maxzoom || 20}
             key={props.feature?.properties?.id}

@@ -1,13 +1,18 @@
 import * as React from 'react';
 
 // Utility to get react state from localStorage if exists
-// https://www.robinwieruch.de/local-storage-react/
-// TODO: Check if var in localStorage has same type and values
-// https://stackoverflow.com/questions/14368596/how-can-i-check-that-two-objects-have-the-same-set-of-property-names
+// From https://www.robinwieruch.de/local-storage-react/
 const useLocalStorage = (storageKey, fallbackState) => {
-  const [value, setValue] = React.useState(
-    JSON.parse(localStorage.getItem(storageKey) as string) ?? fallbackState
-  );
+  let initValue = JSON.parse((localStorage.getItem(storageKey) || null) as string) ?? fallbackState
+
+  // If fallbackState is not null, then: if it has a type, check localStorage value has same type / or if type is object (and arrays are objects), check they have the same signature
+  if (fallbackState) {
+    if( ((typeof initValue) !== (typeof fallbackState)) 
+     || ((typeof initValue == 'object') && (fallbackState !== null) && !objectsHaveSameKeys(fallbackState, initValue))) {
+      initValue = fallbackState
+    }
+  }
+  const [value, setValue] = React.useState( initValue );
 
   React.useEffect(() => {
     localStorage.setItem(storageKey, JSON.stringify(value));
@@ -16,6 +21,15 @@ const useLocalStorage = (storageKey, fallbackState) => {
   return [value, setValue];
 };
 
+
+// Check if object vars have same attribs and props, or are both (or all) arrays
+// From https://stackoverflow.com/questions/14368596/how-can-i-check-that-two-objects-have-the-same-set-of-property-names
+function objectsHaveSameKeys(...objects) {
+  const areAllArrays = objects.every(arr => Array.isArray(arr))
+  const allKeys = objects.reduce((keys, object) => keys.concat(Object.keys(object)), []);
+  const union = new Set(allKeys);
+  return areAllArrays || objects.every(object => union.size === Object.keys(object).length);
+}
 
 /* GSD */
 const GSD_steps = [ 0, 0.15, 0.30, 0.50, 1, 2, 5, 15, 30];
