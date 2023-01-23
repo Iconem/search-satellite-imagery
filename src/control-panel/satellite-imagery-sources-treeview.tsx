@@ -22,6 +22,7 @@ interface RenderTree {
   id: string;
   name: string;
   children?: RenderTree[];
+  disabled?: boolean;
 }
 
 const treeview_root_id = 'treeview-provider-root'
@@ -36,6 +37,7 @@ const treeview_data: RenderTree = {
       children: providers_dict[provider_key].map(constellation_key => ({
         id: `treeview-constellation-${provider_key}-${constellation_key}`,
         name: `${constellation_key} - ${100 * constellation_dict[constellation_key]?.gsd}cm`,
+        disabled: true
       }))
     })
   )
@@ -312,6 +314,7 @@ const RecursiveTreeView: React.FC<IMyProps> = (props: IMyProps) => {
                   getOnChange(event.currentTarget.checked, nodes)
                 }
                 onClick={(e) => e.stopPropagation()}
+                disabled={nodes.disabled}
               />
             }
             label={<Typography variant="subtitle2">{nodes.name}</Typography>}
