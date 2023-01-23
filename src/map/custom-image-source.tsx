@@ -15,6 +15,7 @@ function CustomImageSource(props) {
 
   // BUG DURING TREE SHAKING WITH other conditional if with same div types and different ids
   let coordinates;
+  let footprint_bbox = [-180, -90, 180, 90]
   if (props.feature?.geometry?.coordinates?.length == 1) {
     coordinates = props.feature.geometry?.coordinates[0]
     if (!Array.isArray(coordinates)) {
@@ -24,7 +25,8 @@ function CustomImageSource(props) {
     let footprintPolygon = turf.polygon(props.feature.geometry?.coordinates)
     // footprintPolygon = simplify(footprintPolygon, {tolerance: 0.01, highQuality: false});
     // footprintPolygon = rewind(footprintPolygon);
-    footprintPolygon = turf.bboxPolygon(turf.bbox(footprintPolygon));
+    footprint_bbox = turf.bbox(footprintPolygon)
+    footprintPolygon = turf.bboxPolygon(footprint_bbox);
     // BBOX is the easiest way to get the aoi footprint cooordinates sorted in the right order (needs from NW, clockwise)
     // Can also simplify the footprint to get a 4-coords polygon rather than 20-ish
     coordinates = turf.getCoords(footprintPolygon)[0].slice(0,4).reverse()
@@ -35,22 +37,29 @@ function CustomImageSource(props) {
   }
 
   if (props.feature?.properties?.preview_uri && props.rasterOpacity > 0) {
+    console.log('existing feature for custom imagery source', props.feature.properties.providerProperties.preview_uri_tiles, props.feature.properties.preview_uri, props.rasterOpacity, 'use_tms_source', use_tms_source)
     return (
       <>
-        <Source
+        {(use_tms_source) && <Source
             id="map-source-tms"
             type="raster"
-            tiles={[props.feature.properties.providerProperties.preview_uri_tiles || '']}
-            tileSize= {256}
-        />
-        <Source
+            tiles={[props.feature?.properties?.providerProperties?.preview_uri_tiles?.url || '']}
+            tileSize={256}
+            scheme={'xyz'}
+            bounds= {footprint_bbox} /* [sw.lng, sw.lat, ne.lng, ne.lat] */ 
+            minzoom={props.feature?.properties?.providerProperties?.preview_uri_tiles?.minzoom || 1 }
+            maxzoom={props.feature?.properties?.providerProperties?.preview_uri_tiles?.maxzoom || 20}
+            key={props.feature?.properties?.id}
+        />}
+        {(!use_tms_source) && <Source
             id="map-source-raster"
             type="image"
-            url={props.feature.properties.preview_uri || ''}
+            url={(use_tms_source ? '' : props.feature.properties.preview_uri) || ''}
             coordinates={coordinates}
+            key={props.feature?.properties?.id}
             // url={''}
             // coordinates={[[0,0],[0,0],[0,0],[0,0]]}
-        />
+        />}
         <Layer
           id="overlay"
           source={use_tms_source ? "map-source-tms" : "map-source-raster"}
@@ -58,6 +67,7 @@ function CustomImageSource(props) {
           paint={{ "raster-opacity": props.rasterOpacity }}
           minzoom= {0}
           maxzoom= {22}
+          key={`use-tms-source-${use_tms_source}`}
         /> 
       </>
     );
