@@ -20,7 +20,7 @@ Search satellite Imagery Archive on aggregators via their respective APIs (offic
 
 ## Possible todos: 
 ### Short Term
- - Search any new STAC catalog (UP42 is one): Give it the STAC URL, parse results and columns to display in datagrid
+ - Search any new STAC catalog (UP42 is one): Give it the STAC URL, parse results and columns to display in datagrid. Could use existing STAC tooling, but there does not seem to be any JS search client library - only full-fledged apps like [stac-server](https://github.com/stac-utils/stac-server) or [leaflet layer](https://github.com/stac-utils/stac-layer) and [stac-search](https://github.com/radiantearth/stac-browser/) (to deploy a stac, these are the go-to resource: [stac-fastapi](https://github.com/stac-utils/stac-fastapi) and pystac)
  - Cleanup: search-utilities, make each search extends a search object class, polygon aoi be a single feature search param, each geojson feature be a real geojson feature (search input, results)
  - Check localStorage object type and signature to avoid breaking changes in storage object name 
  - Not easy: add react state feature to drawcontrol that can be edited (so polygon imported from kml or localstorage can be edited)
@@ -29,6 +29,13 @@ Search satellite Imagery Archive on aggregators via their respective APIs (offic
  - Order archive imagery via API (no tasking)
  - Not really useful: Sync datagrid focus on feature when hovered from timeline
  - Not really useful: Offer ability to Cancel ongoing request/promise. Hard to do, promise resolve will always execute after ky get/post request finally resolves
+
+## Development
+```bash
+npm install
+npm run start
+npm run build
+```
 
 ## Design choices
  - [visgl/react-map-gl](https://github.com/visgl/react-map-gl) v7 + mapbox-gl v2 [mapbox/mapbox-gl-draw](https://github.com/mapbox/mapbox-gl-draw)

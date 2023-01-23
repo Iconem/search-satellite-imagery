@@ -12,7 +12,7 @@ import {
 
 /* Factorization Component of settings header and default slider properties */
 import SettingsHeader from './settings-header' 
-import SatelliteImagerySourcesTreeview from "./satellite-imagery-sources-treeview";
+import {SatelliteImagerySourcesTreeview} from "./satellite-imagery-sources-treeview";
 import {useLocalStorage} from '../utilities';
 
 // Default to small mui slider with 0-100 range and step 1
@@ -199,7 +199,8 @@ function SettingsComponent(props) {
       />
 
       <SatelliteImagerySourcesTreeview 
-        searchSettings={props.searchSettings}  setSearchSettings={props.setSearchSettings}
+          setProvidersTreeviewDataSelection={props.setProvidersTreeviewDataSelection} 
+          providersTreeviewDataSelection={props.providersTreeviewDataSelection} 
       />
     </>
   );

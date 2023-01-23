@@ -2,6 +2,8 @@ import * as React from 'react';
 
 // Utility to get react state from localStorage if exists
 // https://www.robinwieruch.de/local-storage-react/
+// TODO: Check if var in localStorage has same type and values
+// https://stackoverflow.com/questions/14368596/how-can-i-check-that-two-objects-have-the-same-set-of-property-names
 const useLocalStorage = (storageKey, fallbackState) => {
   const [value, setValue] = React.useState(
     JSON.parse(localStorage.getItem(storageKey) as string) ?? fallbackState

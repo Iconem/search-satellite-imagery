@@ -29,7 +29,7 @@ function CustomImageSource(props) {
     // Can also simplify the footprint to get a 4-coords polygon rather than 20-ish
     coordinates = turf.getCoords(footprintPolygon)[0].slice(0,4).reverse()
     // coordinates = footprintPolygon.geometry.coordinates[0].slice(0,4).reverse()
-    console.log('coordinates', coordinates, props.feature.properties.preview_uri, use_tms_source)
+    // console.log('coordinates', coordinates, props.feature.properties.preview_uri, use_tms_source)
   } else {
     coordinates = [[0,0],[0,0],[0,0],[0,0]]
   }

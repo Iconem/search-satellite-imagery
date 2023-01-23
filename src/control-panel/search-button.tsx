@@ -19,10 +19,11 @@ import { GSD_steps, GSDFromIndex} from '../utilities'
 /* Search Button */
 function SearchButton(props) {
   const handleLoadingButtonClick = () => {
+    console.log('SearchButton props.providersTreeviewDataSelection', props.providersTreeviewDataSelection)
     // if (!props.loadingResults) {
       // props.search_imagery()
     // }
-    search_imagery(props.polygons, props.searchSettings, props.apiKeys, props.setters)
+    search_imagery(props.polygons, props.searchSettings, props.apiKeys, props.setters, props.providersTreeviewDataSelection)
   };
   return (
     <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -74,7 +75,7 @@ const emptyFeatureCollection = {
   type: "FeatureCollection"
 }
 const hideSearchDelay = 5000
-const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
+const search_imagery = async (polygons, searchSettings, apiKeys, setters, providersTreeviewDataSelection) => {
   setters.setLoadingResults(true);
   const searchResultsOutput = JSON.parse(JSON.stringify(emptyFeatureCollection)) // Deep Copy
   
@@ -196,9 +197,18 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
   }
   // update_search_results(searchPolygon)
 
+  // Filter only selected search APIs
+  const filtered_providers_search = providersTreeviewDataSelection ? 
+    Object.fromEntries(
+      Object.entries(providers_search)
+        .filter(([key]) => providersTreeviewDataSelection.some(treeId => treeId.includes(key)))
+    )
+    : providers_search;
+  console.log('filtered_providers_search', providers_search, filtered_providers_search)
+
   // PROMISES FOR EACH SEARCH API
   const search_promises = Object.fromEntries( // build a dict from a dict via an array of key-value pairs
-    Object.keys(providers_search).map(
+    Object.keys(filtered_providers_search).map(
       provider => {
         return [
           provider, 
@@ -207,7 +217,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters) => {
             searchFinished: false,
             searchFinishedForMoreThanDelay: false,
             promise: new Promise(async resolve => {
-              const { search_results_json } = await providers_search[provider]
+              const { search_results_json } = await filtered_providers_search[provider]
                 (search_settings, apiKeys[provider], searchPolygon, setters.setSnackbarOptions)
               update_search_results(search_results_json)
               resolve(search_results_json)

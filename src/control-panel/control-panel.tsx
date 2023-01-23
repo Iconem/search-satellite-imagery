@@ -38,6 +38,7 @@ import SearchButton from './search-button'
 import ExportButton from './export-button'
 import APIRequestsStatuses from './api-requests-statuses'
 import { GSD_steps } from '../utilities'
+import {sourcesTreeviewInitialSelection} from "./satellite-imagery-sources-treeview";
 
 /* Display COMPONENTS */
 /* AOI area COMPONENT */
@@ -135,6 +136,8 @@ function ControlPanel(props) {
     setSettingsCollapsed, 
     setSnackbarOptions
   }
+
+  const [providersTreeviewDataSelection, setProvidersTreeviewDataSelection] = useLocalStorage('providersTreeviewDataSelection', sourcesTreeviewInitialSelection());
     
   return (
     <ThemeProvider theme={theme}>
@@ -200,6 +203,8 @@ function ControlPanel(props) {
             <SettingsComponent 
               searchSettings={searchSettings} setSearchSettings={setSearchSettings} 
               GSD_steps={GSD_steps} 
+              setProvidersTreeviewDataSelection={setProvidersTreeviewDataSelection} 
+              providersTreeviewDataSelection={providersTreeviewDataSelection} 
             />
 
             <ApiKeysModalComponent apiKeys={apiKeys} setApiKeys={setApiKeys} />
@@ -215,6 +220,7 @@ function ControlPanel(props) {
             searchSettings={searchSettings}
             apiKeys={apiKeys}
             loadingResults={loadingResults} 
+            providersTreeviewDataSelection={providersTreeviewDataSelection} 
           />
           </Grid>
           <Grid item xs={1}>

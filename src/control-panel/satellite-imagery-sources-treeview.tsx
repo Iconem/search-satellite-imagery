@@ -7,10 +7,10 @@ import {TreeView, TreeItem} from "@mui/lab";
 import { TextField, Typography, } from '@mui/material';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {Collapse, Checkbox, FormControlLabel} from '@mui/material';
-import { v4 as uuidv4 } from 'uuid';
 import { 
   faChevronDown, faChevronUp, faChevronRight, faSatellite,
 } from '@fortawesome/free-solid-svg-icons'
+import {useLocalStorage} from '../utilities';
 
 import {
   providers_dict,
@@ -24,16 +24,17 @@ interface RenderTree {
   children?: RenderTree[];
 }
 
-const treeview_root_id = uuidv4()
+const treeview_root_id = 'treeview-provider-root'
+// function treeview_data(): RenderTree {
 const treeview_data: RenderTree = {
   id: treeview_root_id,
   name: "Satellite Sources",
   children: Object.keys(providers_dict).map(provider_key => 
     ({
-      id: uuidv4(),
+      id: `treeview-provider-${provider_key}`,
       name: provider_key,
       children: providers_dict[provider_key].map(constellation_key => ({
-        id: uuidv4(),
+        id: `treeview-constellation-${provider_key}-${constellation_key}`,
         name: `${constellation_key} - ${100 * constellation_dict[constellation_key]?.gsd}cm`,
       }))
     })
@@ -173,22 +174,31 @@ const data_manual: RenderTree = {
 };
 */
 
-const initialSelection = treeview_data.children.map(provider => {
+const sourcesTreeviewInitialSelection = () => treeview_data.children.map(provider => {
   const sel_i = provider.children.map(source => source.id)
   sel_i.push(provider.id)
   return sel_i
 }).flat()
 
-function RecursiveTreeView() {
-  const [selected, setSelected] = React.useState<string[]>(initialSelection);
-  console.log('selected', selected);
 
-  const selectedSet = React.useMemo(() => new Set(selected), [selected]);
+interface IMyProps {
+  setProvidersTreeviewDataSelection: Function,
+  providersTreeviewDataSelection: any,
+}
+
+const RecursiveTreeView: React.FC<IMyProps> = (props: IMyProps) => {
+// function RecursiveTreeView(): React.FC<IMyProps> = (props: IMyProps) {
+  // const [selected, setSelected] = React.useState<string[]>(sourcesTreeviewInitialSelection());
+  // console.log('selected', selected);
+
+  // const selectedSet = React.useMemo(() => new Set(selected), [selected]);
+  const selectedSet = React.useMemo(() => new Set(props.providersTreeviewDataSelection), [props.providersTreeviewDataSelection]);
 
   const parentMap = React.useMemo(() => {
     return goThroughAllNodes(treeview_data);
   }, []);
-  console.log("parentMap", parentMap);
+  // console.log("parentMap", parentMap);
+  // console.log("treeview_data.children", treeview_data, treeview_data.children);
 
   function goThroughAllNodes(nodes: RenderTree, map: Record<string, any> = {}) {
     if (!nodes.children) {
@@ -257,14 +267,17 @@ function RecursiveTreeView() {
     console.log("childNodesToChange", { childNodesToToggle, checked });
 
     let array = checked
-      ? [...selected, ...childNodesToToggle]
-      : selected
+      // ? [...selected, ...childNodesToToggle]
+      // : selected
+      ? [...props.providersTreeviewDataSelection, ...childNodesToToggle]
+      : props.providersTreeviewDataSelection
           .filter((value) => !childNodesToToggle.includes(value))
           .filter((value) => !path.includes(value));
 
     array = array.filter((v, i) => array.indexOf(v) === i);
 
-    setSelected(array);
+    // setSelected(array);
+    props.setProvidersTreeviewDataSelection(array);
   }
 
   const renderTree = (nodes: RenderTree) => {
@@ -281,7 +294,8 @@ function RecursiveTreeView() {
     if (allSelectedChildren && !selectedSet.has(nodes.id)) {
       console.log("if allSelectedChildren");
 
-      setSelected([...selected, nodes.id]);
+      // setSelected([...selected, nodes.id]);
+      props.setProvidersTreeviewDataSelection([...props.providersTreeviewDataSelection, nodes.id]);
     }
 
     return (
@@ -326,8 +340,9 @@ function RecursiveTreeView() {
 
 
 function SatelliteImagerySourcesTreeview(props) {
-  const [advancedSettingsCollapsed, setAdvancedSettingsCollapsed] = React.useState(true) // true
-  
+  // const [advancedSettingsCollapsed, setAdvancedSettingsCollapsed] = React.useState(true) // true
+  const [advancedSettingsCollapsed, setAdvancedSettingsCollapsed] = useLocalStorage('satelliteImagerySourcesTreeviewCollapsed', true)
+
   return (
       <>
       <Typography 
@@ -344,11 +359,18 @@ function SatelliteImagerySourcesTreeview(props) {
           }
       </Typography>
       <Collapse in={!advancedSettingsCollapsed} timeout="auto" unmountOnExit>
-          <RecursiveTreeView />
+          <RecursiveTreeView 
+            setProvidersTreeviewDataSelection={props.setProvidersTreeviewDataSelection} 
+            providersTreeviewDataSelection={props.providersTreeviewDataSelection} 
+          />
 
       </Collapse>
       </>
   );
 }
   
-export default React.memo(SatelliteImagerySourcesTreeview);
+// export default React.memo(SatelliteImagerySourcesTreeview);
+export {
+  SatelliteImagerySourcesTreeview,
+  sourcesTreeviewInitialSelection
+}

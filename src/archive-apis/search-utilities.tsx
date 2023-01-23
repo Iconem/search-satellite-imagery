@@ -124,22 +124,6 @@ const providers_dict = {
     // Constellation.NearMap,
     // Constellation.HxGN, 
   ], 
-  // Constellation.HeadSuperview, Constellation.Earthscanner, 
-  [Providers.SKYWATCH]: [
-    Constellation.PlanetSkysat, 
-    Constellation.TripleSat, 
-    Constellation.Pleiades, 
-    Constellation.PleiadesNeo, 
-    Constellation.Kompsat3, 
-    Constellation.Kompsat2
-  ],
-  [Providers.EOS]: [
-    Constellation.Superview1, 
-    Constellation.Superview2, 
-    Constellation.Kompsat3, 
-    Constellation.Kompsat2, 
-    Constellation.Gaofen1
-  ], 
   [Providers.HEADAEROSPACE]: [
     Constellation.Superview1, 
     Constellation.Superview2, 
@@ -154,6 +138,21 @@ const providers_dict = {
     Constellation.WorldView_3_4, 
     Constellation.QuickBird2, 
     Constellation.Ikonos1
+  ],
+  [Providers.EOS]: [
+    Constellation.Superview1, 
+    Constellation.Superview2, 
+    Constellation.Kompsat3, 
+    Constellation.Kompsat2, 
+    Constellation.Gaofen1
+  ], 
+  [Providers.SKYWATCH]: [
+    Constellation.PlanetSkysat, 
+    Constellation.TripleSat, 
+    Constellation.Pleiades, 
+    Constellation.PleiadesNeo, 
+    Constellation.Kompsat3, 
+    Constellation.Kompsat2
   ],
   // 'SENTINELHUB': [Constellation.Pleiades,  Constellation.Worldview],
 }
