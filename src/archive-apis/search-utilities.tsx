@@ -42,9 +42,9 @@ enum Satellites {
   SuperView1C = 'SuperView 1C',
   SuperView1D = 'SuperView 1D',
   SuperView2 = 'SuperView 2',
-  TripleSat1 = 'TripleSat 1',
-  TripleSat2 = 'TripleSat 2',
-  TripleSat3 = 'TripleSat 3',
+  TripleSat1 = '21AT TripleSat 1',
+  TripleSat2 = '21AT TripleSat 2',
+  TripleSat3 = '21AT TripleSat 3',
   KompSat3 = 'KompSat 3',
   KompSat3A = 'KompSat 3A',
   KOMPSAT2 = 'KOMPSAT 2',
@@ -56,13 +56,14 @@ enum Satellites {
   JilinGXA = 'Jilin-GXA',
   JilinGF02AB = 'Jilin-GF02A/B',
   DailyVision1mJLGF3 = 'DailyVision1m-JLGF3',
-  Pleiades = 'Pleiades',
-  PleiadesNeo = 'PleiadesNeo',
+  Pleiades = 'OneAtlas Pleiades',
+  PleiadesNeo = 'OneAtlas PleiadesNeo',
   Worldview = 'Worldview',
   PlanetSkysat = 'PlanetSkysat',
   EarthScanner = 'EarthScanner',
   HxGN = 'HxGN',
   NearMap = 'NearMap',
+  NearSpace = 'NearSpace',
   GeoEye1 = 'GeoEye-1',
   WorldView1 = 'WorldView-1',
   WorldView2 = 'WorldView-2',
@@ -73,6 +74,7 @@ enum Satellites {
   JL1GF03 = 'JL1GF03',
   JL101A = 'JL101A',
   JL104 = 'JL104',
+  CapellaSpace= 'CapellaSpace',
 }
 enum Constellation {
   Pleiades = 'Pleiades',
@@ -101,7 +103,8 @@ enum Constellation {
   JL101A = 'JL101A',
   JL104 = 'JL104',
   SPOT = 'SPOT',
-  NearSpace = 'NearSpace'
+  NearSpace = 'NearSpace',
+  CapellaSpace = 'CapellaSpace'
 }
 
 
@@ -121,6 +124,7 @@ const providers_dict = {
     Constellation.TripleSat,
     Constellation.SPOT,
     Constellation.NearSpace,
+    Constellation.CapellaSpace,
     // Constellation.NearMap,
     // Constellation.HxGN, 
   ], 
@@ -260,6 +264,15 @@ const constellation_dict = {
   [Constellation.JL104]: {
     satellites: [Satellites.JL104],
     gsd: 1
+  },
+  
+  [Constellation.NearSpace]: {
+    satellites: [Satellites.NearSpace],
+    gsd: 0.3
+  },
+  [Constellation.CapellaSpace]: {
+    satellites: [Satellites.CapellaSpace],
+    gsd: 0.5
   },
 
 }
