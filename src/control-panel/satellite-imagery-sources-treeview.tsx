@@ -37,7 +37,7 @@ const treeview_data: RenderTree = {
       children: providers_dict[provider_key].map(constellation_key => ({
         id: `treeview-constellation-${provider_key}-${constellation_key}`,
         name: `${constellation_key} - ${100 * constellation_dict[constellation_key]?.gsd}cm`,
-        disabled: false
+        disabled: true
       }))
     })
   )

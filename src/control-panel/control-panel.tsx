@@ -138,7 +138,7 @@ function ControlPanel(props) {
   }
 
   const [providersTreeviewDataSelection, setProvidersTreeviewDataSelection] = useLocalStorage('providersTreeviewDataSelection', sourcesTreeviewInitialSelection());
-    
+  
   return (
     <ThemeProvider theme={theme}>
       {/* 

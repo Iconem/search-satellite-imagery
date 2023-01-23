@@ -20,7 +20,7 @@ import { v4 as uuidv4 } from 'uuid';
 // host among [nearspacelabs, 21at, oneatlas, airbus, capellaspace, iceye, spectra, airbus, intermap]
 // https://api.up42.com/catalog/hosts/${hostname}/stac/search
 
-const up42_limit = 500
+const up42_limit = 500 // can be 500
 const look_for_next_page = true
 
 /*
@@ -34,7 +34,7 @@ const producer_list = [
 */
 const producer_list = providers_dict[Providers.UP42].map(constellation => up42_producers_names[constellation])
 const useDeprecatedApi = false
-const exclude_hosts = ['airbus', 'iceye', 'spectra', 'airbus-elevation']
+const exclude_hosts = ['airbus', 'iceye', 'intermap', 'spectra', 'airbus-elevation']
 
 /*
 https://api.up42.com/catalog/oneatlas/image/cccc4352-ed18-433e-b18d-0b132af3face/thumbnail
@@ -46,7 +46,7 @@ with authorization: Bearer ...
 returns a base64 image  
 */
 
-const up42_search_url = 'https://api.up42.com/catalog/stac/search'
+const UP42_SEARCH_URL = 'https://api.up42.com/catalog/stac/search'
 const get_up42_bearer = async (up42_apikey) => {
     const up42_projectApi = base64_encode(`${up42_apikey.projectId}:${up42_apikey.projectApiKey}`)
     const up42_oauth_json = await ky.post(
@@ -79,6 +79,31 @@ const get_up42_hosts = async ( up42_apikey, up42_bearer_json=null ) => {
   const hosts_list = (hosts_req as any).data
   // const hostnames_list = hosts_list.map(h => h.name)
   return hosts_list
+}
+
+async function search_for_next_page(up42_results_raw, search_settings, up42_apikey, searchPolygon, setSnackbarOptions, up42_bearer_json) {
+  
+  if (look_for_next_page) {
+    const up42_next_links = (up42_results_raw as any).links ?? []
+    const up42_next_href = up42_next_links.find(l => l.rel == 'next')?.href
+    if (up42_next_href) {
+      const nextResults = await search_up42(search_settings, up42_apikey, searchPolygon, setSnackbarOptions, up42_bearer_json, up42_next_href)
+
+      up42_results_raw?.features.push(
+        ...nextResults?.search_results_json?.features
+      )
+      // console.log('length', up42_results_raw?.features?.length)
+      // // Reverse engineer the next URL: 
+      // const up42_nexturl_suffix = up42_next_href.substring(up42_next_href?.lastIndexOf('/'))
+      // const up42_next_token = up42_nexturl_suffix.substring('/search?next='.length).replaceAll('%3D', '=')
+      // const up42_next_object = JSON.parse(window.atob(up42_next_token))
+      // const up42_next_offset = up42_next_object?.nextOffset
+      // console.log('Looking for UP42 next page results with page next token ', up42_next_token, up42_next_object, up42_next_offset, '\n\n\n\n\n')
+      // // Could as well encode it this way: 
+      // // const next = window.btoa(JSON.stringify({"providerName":"oneatlas","nextOffset":200}    ))
+    }
+  }
+  return up42_results_raw
 }
 
 // const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, setSnackbarOptions=null, up42_bearer_json=null, up42_next_links=null) => {
@@ -119,14 +144,17 @@ const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, set
     }
   }
   let up42_results_raw;
-  if (useDeprecatedApi) {
-    up42_results_raw = await ky.post(up42_search_url + next_url, {
+  if (useDeprecatedApi || next_url !== '') {
+    const up42_search_url = next_url !== '' ? next_url : UP42_SEARCH_URL
+    up42_results_raw = await ky.post(up42_search_url, {
       headers: {'Authorization': up42_bearer_json},
       json: up42_payload
     }).json();
+    // console.log('up42_results_raw.features.length', up42_results_raw.features.length)
+    await search_for_next_page(up42_results_raw, search_settings, up42_apikey, searchPolygon, setSnackbarOptions, up42_bearer_json)
   } else {
     let hosts_list = await get_up42_hosts ( up42_apikey, up42_bearer_json )
-    console.log('Hosts list', hosts_list.map(h => h.name), hosts_list, '\n\n')
+    console.log('UP42 Hosts list', hosts_list.map(h => h.name), hosts_list, '\n\n')
     hosts_list = hosts_list.filter(host => 
       !exclude_hosts.includes(host.name)
     )
@@ -140,22 +168,26 @@ const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, set
           hostname, 
           {
             promise: new Promise(async resolve => {
+              const up42_search_host_url = `https://api.up42.com/catalog/hosts/${hostname}/stac/search` // next_url !== '' ? next_url : UP42_SEARCH_URL
               const up42_results_raw = await ky.post(
-                `https://api.up42.com/catalog/hosts/${hostname}/stac/search`, 
+                up42_search_host_url, 
                 {
                   headers: {'Authorization': up42_bearer_json},
                   json: up42_payload
                 }
-              ).json();
-              console.log('Host', hostname, 'up42_results_raw', up42_results_raw)
+              ).json() as any;
+              console.log(`Host ${hostname} results: `, up42_results_raw)
+
+              // Should update up42_results_raw.features
+              await search_for_next_page(up42_results_raw, search_settings, up42_apikey, searchPolygon, setSnackbarOptions, up42_bearer_json)
+
               resolve(up42_results_raw)
             })
           }
         ]}))
-    console.log('before promise.all', search_promises)
     const thing = await Promise.all(Object.values(search_promises).map (o => o.promise))
     .then((results) => {
-      console.log('finished requests for all promises', results)
+      console.log('finished requests for all hosts promises', results)
       const requests_features_flat = results.map(res => (res as any)?.features).flat()
       up42_results_raw = {
         'features': requests_features_flat
@@ -163,7 +195,6 @@ const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, set
       console.log('results_flat', up42_results_raw)
       return up42_results_raw
     })
-    console.log('after promise.all', search_promises, thing)
   }
 
 
@@ -171,16 +202,7 @@ const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, set
   const search_results_json = format_up42_results(up42_results_raw, searchPolygon)
   console.log('UP42 PAYLOAD: \n', up42_payload, '\nRAW UP42 search results: \n', up42_results_raw, '\nJSON UP42 search results: \n', search_results_json)
 
-
-  if (look_for_next_page) {
-    const up42_next_links = (up42_results_raw as any).links ?? []
-    const up42_next_href = up42_next_links.find(l => l.rel == 'next')?.href
-    const up42_next_token = up42_next_href?.substring(up42_next_href?.lastIndexOf('/'))
-    next_url = `?next=${up42_next_token}`
-    console.log('Looking for UP42 next page results with page next token ', up42_next_token)
-  }
-
-  // Initiate search for previews
+  // Initiate search for previews/thumbnails
   get_up42_previews_async(search_results_json, up42_bearer_json)
 
   return {
@@ -236,7 +258,7 @@ const format_up42_results = (up42_results_raw, searchPolygon) => {
         'geometry': feature.geometry,
         'properties': {
           // ...feature.properties,
-          id: feature.properties.sceneId,
+          id: feature.properties.sceneId ?? uuidv4(),
           constellation: up42_constellation_dict[feature.properties.constellation]?.constellation || feature.properties.constellation,
           'price': get_up42_price(feature),
           'shapeIntersection': shapeIntersection(feature, searchPolygon),
@@ -245,7 +267,7 @@ const format_up42_results = (up42_results_raw, searchPolygon) => {
           // 
           'providerProperties': feature.properties.providerProperties,
           'providerName': feature.properties.providerName,
-          'sceneId': feature.properties.sceneId,
+          'sceneId': feature.properties.sceneId ?? uuidv4(),
           'cloudCoverage': feature.properties.cloudCoverage,
           'acquisitionDate': feature.properties.acquisitionDate,
           'resolution': feature.properties.resolution,

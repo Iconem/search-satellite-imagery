@@ -15,6 +15,7 @@ import {Providers} from '../archive-apis/search-utilities'
 import { GSD_steps, GSDFromIndex} from '../utilities'
 
 
+const productionMode = !process.env.NODE_ENV || process.env.NODE_ENV === 'production'
 
 /* Search Button */
 function SearchButton(props) {
@@ -25,6 +26,8 @@ function SearchButton(props) {
     // }
     search_imagery(props.polygons, props.searchSettings, props.apiKeys, props.setters, props.providersTreeviewDataSelection)
   };
+  const buttonDisabled = props.loadingResults 
+    || (productionMode && (!(props.polygons?.length > 0)))
   return (
     <Box sx={{ display: 'flex', alignItems: 'center' }}>
       <Box sx={{ m: 1, position: 'relative', width: '100%' }}>
@@ -32,9 +35,7 @@ function SearchButton(props) {
           <Button
             variant="contained"
             sx={{width: '100%'}}
-            disabled={props.loadingResults 
-              // || !(props.polygons?.length > 0)
-            }
+            disabled={buttonDisabled}
             onClick={handleLoadingButtonClick}
           >
             SEARCH
@@ -96,7 +97,15 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
       return {output: emptyFeatureCollection}
     }
   } else {
-    if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+    if (productionMode) {
+      // production code
+      setters.setLoadingResults(false);
+      setters.setSnackbarOptions({
+        open: true, 
+        message: 'WARNING ! No rectangle AOI polygon has been drawn !'
+      })
+      return {output: emptyFeatureCollection}
+  } else {
       // dev code
       console.log('\n\nCAUTION, USING DEFAULT COORDINATES FOR TESTING ONLY\n\n')
       coordinates = [
@@ -110,12 +119,9 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
       ],
       setters.setSnackbarOptions({
         open: true, 
-        message: 'Default Polygon (Paris area) used since no rectangle polygon has been drawn!'
+        message: 'WARNING ! Default Polygon (Paris area) used since no rectangle polygon has been drawn !'
       })
-  } else {
-      // production code
-      setters.setLoadingResults(false);
-      return {output: emptyFeatureCollection}
+      // return {output: emptyFeatureCollection}
   }
   
   }
@@ -255,7 +261,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
   .then((results) => {
     setters.setLoadingResults(false);
     setters.setSettingsCollapsed(true)
-    console.log('finished requests for all promises', results)
+    console.log('FINISHED requests for all Providers promises!', results)
   })
   
 }
