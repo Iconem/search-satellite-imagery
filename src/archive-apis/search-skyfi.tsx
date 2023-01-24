@@ -133,8 +133,8 @@ const format_skyfi_results = (skyfi_results_raw, searchPolygon) => {
               'sensor_day_night_ms': feature.sensor,
             }
           },
-          'preview_uri': Object.values(feature?.thumbnailUrls)?.at(-1) || '', // feature.previewUrl, // feature.thumbnailBase64,
-          'thumbnail_uri':  Object.values(feature?.thumbnailUrls)?.at(-1) || '', // "thumbnailUrls": { "300x300": 'url'}
+          'preview_uri': Object.values(feature?.thumbnailUrls)?.at(-1) || null, // feature.previewUrl, // feature.thumbnailBase64,
+          'thumbnail_uri':  Object.values(feature?.thumbnailUrls)?.at(-1) || null, // "thumbnailUrls": { "300x300": 'url'}
 
           'constellation': `${feature.provider}/${feature.name}`,
           'providerName': feature.providerName,
