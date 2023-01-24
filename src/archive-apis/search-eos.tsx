@@ -74,7 +74,7 @@ const search_eos_highres = async (search_settings, eos_apikey, searchPolygon=nul
     ).json()
 
     const search_results_json = format_eos_results(search_results_raw)
-    console.log('EOS PAYLOAD: \n', eos_payload_highres, '\nRAW EOS search results raw: \n', search_results_raw, '\nRAW EOS search results raw: \n', search_results_json)
+    console.log('EOS PAYLOAD: \n', eos_payload_highres, '\nRAW EOS search results raw: \n', search_results_raw, '\nJSON EOS search results: \n', search_results_json)
     return { search_results_json, }
 	} catch (error) {
 		// if (error.name === 'AbortError') {
@@ -110,7 +110,7 @@ const format_eos_results = (eos_results_raw) => {
           'provider': `${Providers.EOS}/${r.satellite}`,
           'id': r.sceneID, 
           'acquisitionDate': new Date(r.date).toISOString(), //'2019-03-23T10:24:03.000Z',
-          'resolution': r.resolution, // '1.5 m/pxl'
+          'resolution': parseFloat(r.resolution?.replace(' m/pxl', '') ?? '0'), // '1.5 m/pxl'
           'cloudCoverage': r.cloudCoverage,
           'constellation': get_constellation_name(r.satellite, eos_constellation_dict),
           // 'constellation': r.satellite in eos_constellation_dict ? eos_constellation_dict[r.satellite].constellation : r.satellite,
