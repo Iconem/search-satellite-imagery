@@ -124,6 +124,12 @@ function ApiKeysModalComponent(props) {
               <ListItem sx={{ display: 'list-item' }}>
               <Typography>No API key needed for HEAD Aerospace API Search</Typography>
               </ListItem>
+              <ListItem sx={{ display: 'list-item' }}>
+                <Typography variant="h6"> <Link href="https://app.skyfi.com/explore" target="_blank">SkyFi</Link> </Typography>
+              </ListItem>
+              <ListItem sx={{ display: 'list-item' }}>
+              <Typography>No API key needed for SkyFi Explore at the moment</Typography>
+              </ListItem>
             </List>
 
             <Divider variant="middle" />

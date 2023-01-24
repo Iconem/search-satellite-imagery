@@ -5,6 +5,7 @@ Search satellite Imagery Archive on aggregators via their respective APIs (offic
  - [EOS Landviewer](https://eos.com/landviewer)
  - [HEAD Aerospace](https://headfinder.head-aerospace.eu/sales)
  - [MAXAR](https://discover.maxar.com) 
+ - [SKYFI](https://app.skyfi.com/explore)
 
 ![Screenshot](screenshot.jpg)
 
@@ -17,11 +18,11 @@ Search satellite Imagery Archive on aggregators via their respective APIs (offic
  - Hover over data table or timeline shows footprint on map and highlights date on timeline
  - Displays hovered or selected imagery on map (TMS or raster previews)
  - Stores UI and search params to localStorage (as well as search results). Also, checks localStorage object typeof (string, number, array, object) against fallbackState, and hasSameProperties (for objects) to avoid breaking changes in storage object name 
+ - Pagination when more results than pagesize (up42 limit of 500 requests per page etc is handled, needs to check other providers pagination and eventually factorize code)
 
 ## Possible todos: 
 ### Short Term
  - Search any new STAC catalog (UP42 is one): Give it the STAC URL, parse results and columns to display in datagrid. Could use existing STAC tooling, but there does not seem to be any JS search client library - only full-fledged apps like [stac-server](https://github.com/stac-utils/stac-server) or [leaflet layer](https://github.com/stac-utils/stac-layer) and [stac-search](https://github.com/radiantearth/stac-browser/) (to deploy a stac, these are the go-to resource: [stac-fastapi](https://github.com/stac-utils/stac-fastapi) and pystac)
- - Pagination when more results than pagesize (up42 limit of 500 requests per page etc is handled, needs to check other providers pagination and eventually factorize code)
  - Cleanup: search-utilities, make each search extends a search object class, polygon aoi be a single feature search param, each geojson feature be a real geojson feature (search input, results)
  - Not easy: add react state feature to drawcontrol that can be edited (so polygon imported from kml or localstorage can be edited)
 ### Long Term

@@ -11,7 +11,10 @@ import * as turf from "@turf/turf";
 
 function CustomImageSource(props) {
   // console.log('CustomImageSource', props.feature)
-  const use_tms_source = props.feature?.properties?.providerPlatform == Providers.HEADAEROSPACE
+  const use_tms_source = [
+    Providers.HEADAEROSPACE, 
+    Providers.SKYFI
+  ].includes(props.feature?.properties?.providerPlatform)
 
   // BUG DURING TREE SHAKING WITH other conditional if with same div types and different ids
   let coordinates;
@@ -25,7 +28,7 @@ function CustomImageSource(props) {
     let footprintPolygon = turf.polygon(props.feature.geometry?.coordinates)
     // footprintPolygon = simplify(footprintPolygon, {tolerance: 0.01, highQuality: false});
     // footprintPolygon = rewind(footprintPolygon);
-    footprint_bbox = turf.bbox(footprintPolygon)
+    const footprint_bbox = turf.bbox(footprintPolygon)
     footprintPolygon = turf.bboxPolygon(footprint_bbox);
     // BBOX is the easiest way to get the aoi footprint cooordinates sorted in the right order (needs from NW, clockwise)
     // Can also simplify the footprint to get a 4-coords polygon rather than 20-ish
@@ -37,21 +40,22 @@ function CustomImageSource(props) {
   }
 
   if (props.feature?.properties?.preview_uri && props.rasterOpacity > 0) {
-    console.log('existing feature for custom imagery source', props.feature.properties.providerProperties.preview_uri_tiles, props.feature.properties.preview_uri, props.rasterOpacity, 'use_tms_source', use_tms_source)
+    // console.log('existing feature for custom imagery source', props.feature.properties.providerProperties.preview_uri_tiles, props.feature.properties.preview_uri, props.rasterOpacity, 'use_tms_source', use_tms_source)
+    const preview_uri_tiles = props.feature?.properties?.providerProperties?.preview_uri_tiles ?? null
     return (
       <>
         {(use_tms_source) && <Source
             id="map-source-tms"
             type="raster"
             tiles={[
-              props.feature?.properties?.providerProperties?.preview_uri_tiles?.url || '',
-              // props.feature?.properties?.providerProperties?.preview_uri_tiles?.url?.replaceAll('.png', '.jpg') || ''
+              preview_uri_tiles?.url || '',
+              // preview_uri_tiles?.url?.replaceAll('.png', '.jpg') || ''
             ]}
-            tileSize={256}
-            scheme={'xyz'}
+            tileSize={preview_uri_tiles?.tileSize || 256}
+            scheme={preview_uri_tiles?.scheme || 'xyz'}
             bounds= {footprint_bbox}
-            minzoom={props.feature?.properties?.providerProperties?.preview_uri_tiles?.minzoom || 1 }
-            maxzoom={props.feature?.properties?.providerProperties?.preview_uri_tiles?.maxzoom || 20}
+            minzoom={preview_uri_tiles?.minzoom || 1 }
+            maxzoom={preview_uri_tiles?.maxzoom || 20}
             key={props.feature?.properties?.id}
         />}
         {(!use_tms_source) && <Source

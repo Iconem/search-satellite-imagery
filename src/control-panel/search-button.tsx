@@ -9,8 +9,9 @@ import { v4 as uuidv4 } from 'uuid';
 import search_up42 from '../archive-apis/search-up42'
 import search_head from '../archive-apis/search-head'
 import search_maxar from '../archive-apis/search-maxar'
-import search_skywatch from '../archive-apis/search-skywatch'
 import search_eos_highres from '../archive-apis/search-eos'
+import search_skywatch from '../archive-apis/search-skywatch'
+import search_skyfi from '../archive-apis/search-skyfi'
 import {Providers} from '../archive-apis/search-utilities'
 import { GSD_steps, GSDFromIndex} from '../utilities'
 
@@ -69,6 +70,7 @@ const providers_search = {
   [Providers.MAXAR_DIGITALGLOBE]: search_maxar,
   [Providers.EOS]: search_eos_highres,
   [Providers.SKYWATCH]: search_skywatch,
+  [Providers.SKYFI]: search_skyfi,
 }
 
 const emptyFeatureCollection = {

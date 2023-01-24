@@ -104,7 +104,8 @@ enum Constellation {
   JL104 = 'JL104',
   SPOT = 'SPOT',
   NearSpace = 'NearSpace',
-  CapellaSpace = 'CapellaSpace'
+  CapellaSpace = 'CapellaSpace',
+  Skyfi = 'Skyfi'
 }
 
 
@@ -114,6 +115,7 @@ enum Providers {
   MAXAR_DIGITALGLOBE = 'MAXAR',
   EOS = 'EOS',
   SKYWATCH = 'SKYWATCH',
+  SKYFI = 'SKYFI',
 }
 
 
@@ -157,6 +159,9 @@ const providers_dict = {
     Constellation.PleiadesNeo, 
     Constellation.Kompsat3, 
     Constellation.Kompsat2
+  ],
+  [Providers.SKYFI]: [
+    Constellation.SKYFI
   ],
   // 'SENTINELHUB': [Constellation.Pleiades,  Constellation.Worldview],
 }
