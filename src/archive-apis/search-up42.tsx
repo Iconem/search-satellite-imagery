@@ -273,7 +273,7 @@ const format_up42_results = (up42_results_raw, searchPolygon) => {
           'price': get_up42_price(feature),
           'shapeIntersection': shapeIntersection(feature, searchPolygon),
           'providerPlatform': `${Providers.UP42}`, 
-          'provider': `${Providers.UP42}/${feature.properties.producer}`, // /${feature.properties.providerName}
+          'provider': `${Providers.UP42}/${feature.properties.producer}-${feature.properties.constellation}`, // /${feature.properties.providerName}
           // 
           'providerProperties': feature.properties.providerProperties,
           'providerName': feature.properties.providerName,

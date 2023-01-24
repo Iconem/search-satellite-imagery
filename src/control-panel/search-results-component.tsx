@@ -252,7 +252,7 @@ const datagridColumns: GridColDef[] = [
     valueGetter: (params) => params.row?.id,
     hide: false,
     renderHeader: () => (
-      <Tooltip title={'Identifier of scene/image/product on the corresponding platform provider'}>
+      <Tooltip title={'Identifier of scene/image/product on the corresponding platform provider'} disableInteractive>
       <strong> Identifier </strong>
       </Tooltip> 
     ),

@@ -26,7 +26,6 @@ const head_satellites_sel =
   .filter(unique)
   .join('$')
   + '$'
-console.log('head_satellites_sel', head_satellites_sel)
 
 // in https://headfinder.head-aerospace.eu/cat-01/_ML-lib-01.js?2021-12-27
 // in https://headfinder.head-aerospace.eu/cat-01/V-073.js?2022-05-11

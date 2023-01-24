@@ -36,8 +36,8 @@ export default function App() {
     {
       longitude: 2.3484,
       latitude: 48.84997,
-      zoom: 12
-    }
+      zoom: 12,
+    }, false
   );
 
   const [footprintFeatures, setFootprintFeatures] = React.useState<null | GeoJSON.FeatureCollection>(null);

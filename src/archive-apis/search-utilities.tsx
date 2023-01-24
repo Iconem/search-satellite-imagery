@@ -372,9 +372,19 @@ const head_constellation_dict = {
 }
 
 const up42_constellation_dict = {
-  'PHR': {
+  'phr': {
     constellation: Constellation.Pleiades,
     price_per_sq_km: 10, // (10EUR/km2) no min
+    min_area: 0
+  },
+  'pneo': {
+    constellation: Constellation.PleiadesNeo,
+    price_per_sq_km: 15,  // TODO: check pricing and min_area
+    min_area: 0
+  },
+  'triplesat': {
+    constellation: Constellation.TripleSat,
+    price_per_sq_km: 15,  // TODO: check pricing and min_area
     min_area: 0
   },
   // 'HEAD SuperView': {

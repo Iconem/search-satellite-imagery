@@ -115,7 +115,7 @@ const format_skyfi_results = (skyfi_results_raw, searchPolygon) => {
           id: feature.archiveId ?? uuidv4(),
           'sceneId': feature.archiveId ?? uuidv4(),
           'providerPlatform': `${Providers.SKYFI}`, 
-          'provider': `${Providers.SKYFI}/${feature.provider}`, 
+          'provider': `${Providers.SKYFI}/${feature.provider}-${feature.name}`, 
           'resolution': feature.platformResolution / 100,
           'acquisitionDate': (new Date(feature.date)).toISOString(), // "2022-11-26T14:49:32+00:00"
           'cloudCoverage': feature.cloudCoveragePercent,
