@@ -16,7 +16,7 @@ const perform_skywatch_search = (skywatch_apikey, searchId) =>
 
 const max_query_count = 8
 
-const search_skywatch = async (search_settings, skywatch_apikey, searchPolygon=null, setSnackbarOptions=null) => {
+const search_skywatch = async (search_settings, skywatch_apikey, searchPolygon=null, setters=null) => {
   const resolution_array = [] // ['low', 'medium', 'high']
   if (search_settings.gsd.min <= 0.5) resolution_array.push('very_high')
   if (search_settings.gsd.min <= 1) resolution_array.push('high')
@@ -68,12 +68,12 @@ const search_skywatch = async (search_settings, skywatch_apikey, searchPolygon=n
   
   // Return Empty Feature Collection if search requests timed-out after all retries, and notice user via snackbar
   console.log('Returning empty FeatureCollection')
-  if (setSnackbarOptions) {
-    setSnackbarOptions({
+  if (setters.setSnackbarOptions) {
+    setters.setSnackbarOptions({
       open: false, 
       message: ''
     })
-    setSnackbarOptions({
+    setters.setSnackbarOptions({
       open: true, 
       message: `Search Results Request timed-out on Skywatch after ${n_queries} tries and final delay of ${retry_delay/1000}s`
     })
@@ -91,7 +91,7 @@ const format_skywatch_results = (skywatch_results_raw, search_settings) => {
   return {
     'type': 'FeatureCollection',
     'features': skywatch_results_raw.data
-      .filter(r => r.result_cloud_cover_percentage <= search_settings.cloudCoverage)
+      // .filter(r => r.result_cloud_cover_percentage <= search_settings.cloudCoverage)
       .map(r => ({
       'geometry': r.location,
       'properties': {

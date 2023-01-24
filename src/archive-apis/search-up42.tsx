@@ -81,13 +81,13 @@ const get_up42_hosts = async ( up42_apikey, up42_bearer_json=null ) => {
   return hosts_list
 }
 
-async function search_for_next_page(up42_results_raw, search_settings, up42_apikey, searchPolygon, setSnackbarOptions, up42_bearer_json) {
+async function search_for_next_page(up42_results_raw, search_settings, up42_apikey, searchPolygon, setters, up42_bearer_json) {
   
   if (look_for_next_page) {
     const up42_next_links = (up42_results_raw as any).links ?? []
     const up42_next_href = up42_next_links.find(l => l.rel == 'next')?.href
     if (up42_next_href) {
-      const nextResults = await search_up42(search_settings, up42_apikey, searchPolygon, setSnackbarOptions, up42_bearer_json, up42_next_href)
+      const nextResults = await search_up42(search_settings, up42_apikey, searchPolygon, setters, up42_bearer_json, up42_next_href)
 
       up42_results_raw?.features.push(
         ...nextResults?.search_results_json?.features
@@ -107,7 +107,7 @@ async function search_for_next_page(up42_results_raw, search_settings, up42_apik
 }
 
 // const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, setSnackbarOptions=null, up42_bearer_json=null, up42_next_links=null) => {
-const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, setSnackbarOptions=null, up42_bearer_json=null, next_url='') => {
+const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, setters=null, up42_bearer_json=null, next_url='') => {
   if (!up42_bearer_json) {
     up42_bearer_json = await get_up42_bearer(up42_apikey)
   }
@@ -151,7 +151,7 @@ const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, set
       json: up42_payload
     }).json();
     // console.log('up42_results_raw.features.length', up42_results_raw.features.length)
-    await search_for_next_page(up42_results_raw, search_settings, up42_apikey, searchPolygon, setSnackbarOptions, up42_bearer_json)
+    await search_for_next_page(up42_results_raw, search_settings, up42_apikey, searchPolygon, setters, up42_bearer_json)
   } else {
     let hosts_list = await get_up42_hosts ( up42_apikey, up42_bearer_json )
     console.log('UP42 Hosts list', hosts_list.map(h => h.name), hosts_list, '\n\n')
@@ -179,7 +179,7 @@ const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, set
               console.log(`Host ${hostname} results: `, up42_results_raw)
 
               // Should update up42_results_raw.features
-              await search_for_next_page(up42_results_raw, search_settings, up42_apikey, searchPolygon, setSnackbarOptions, up42_bearer_json)
+              await search_for_next_page(up42_results_raw, search_settings, up42_apikey, searchPolygon, setters, up42_bearer_json)
 
               resolve(up42_results_raw)
             })
@@ -203,7 +203,17 @@ const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, set
   console.log('UP42 PAYLOAD: \n', up42_payload, '\nRAW UP42 search results: \n', up42_results_raw, '\nJSON UP42 search results: \n', search_results_json)
 
   // Initiate search for previews/thumbnails
-  get_up42_previews_async(search_results_json, up42_bearer_json)
+  get_up42_previews_async(search_results_json, up42_bearer_json).then(
+    (results) => {
+      if (setters) {
+      const searchResults = {
+        'input': searchPolygon,
+        'output': results,
+      }
+      console.log('UP42 search previews have been retrieved, setting react state')
+      setters.setSearchResults(searchResults)
+    }
+  })
 
   return {
     search_results_json,

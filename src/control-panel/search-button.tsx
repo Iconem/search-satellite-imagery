@@ -226,7 +226,16 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
             searchFinishedForMoreThanDelay: false,
             promise: new Promise(async resolve => {
               const { search_results_json } = await filtered_providers_search[provider]
-                (search_settings, apiKeys[provider], searchPolygon, setters.setSnackbarOptions)
+                (search_settings, apiKeys[provider], searchPolygon, setters)
+
+              // Filter out results not matching resquest
+              search_results_json.features = search_results_json.features.filter(
+                f => 
+                  searchPolygon.properties.gsd_min <= f.properties.resolution
+                  && f.properties.resolution <= searchPolygon.properties.gsd_max
+                  && f.properties.cloudCoverage <= searchPolygon.properties.cloudCoverage
+              )
+              
               update_search_results(search_results_json)
               resolve(search_results_json)
               search_promises[provider].searchFinished = true

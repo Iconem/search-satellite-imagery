@@ -44,8 +44,7 @@ const get_skyfi_bearer = async (apikey) => {
 }
 
 
-// const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, setSnackbarOptions=null, up42_bearer_json=null, up42_next_links=null) => {
-const search_skyfi = async (search_settings, skyfi_apikey, searchPolygon=null, setSnackbarOptions=null, pageIdx = 0) => {
+const search_skyfi = async (search_settings, skyfi_apikey, searchPolygon=null, setters=null, pageIdx = 0) => {
   const resolution_array = []
   if (search_settings.gsd.min <= 0.5) resolution_array.push('VERY HIGH')
   if ((search_settings.gsd.min <= 0.5) && (search_settings.gsd.max >= 0.5) || (search_settings.gsd.min <= 1) && (search_settings.gsd.max >= 1)) resolution_array.push('HIGH')
@@ -86,7 +85,7 @@ const search_skyfi = async (search_settings, skyfi_apikey, searchPolygon=null, s
 
   
   if (look_for_next_page && (skyfi_results_raw as any).numTotalArchives > pageSize * pageIdx) {
-    const nextResults = await search_skyfi(search_settings, skyfi_apikey, searchPolygon, setSnackbarOptions, pageIdx + 1)
+    const nextResults = await search_skyfi(search_settings, skyfi_apikey, searchPolygon, setters, pageIdx + 1)
     // Looking for next results
     search_results_json?.features.push(
       ...nextResults?.search_results_json?.features
@@ -106,8 +105,6 @@ const format_skyfi_results = (skyfi_results_raw, searchPolygon) => {
   // meta':{'limit':1,'page':1,'found':15},
   return {
     'features': skyfi_results_raw.archives
-    // .filter(r => (searchPolygon.properties.gsd_min <= r.platformResolution / 100)
-    //     && r.platformResolution / 100 <= searchPolygon.properties.gsd_max)
       .map(feature => (
       {
         'geometry': wkt_parse(feature.footprint),

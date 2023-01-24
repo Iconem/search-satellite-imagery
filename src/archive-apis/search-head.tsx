@@ -39,7 +39,7 @@ function get_head_price(feature) {
 }
 const max_abs = (x) => Math.max(...x.map(Math.abs))
 
-const search_head = async (search_settings, apikey='', searchPolygon=null, setSnackbarOptions=null) => {
+const search_head = async (search_settings, apikey='', searchPolygon=null, setters=null) => {
   const polygon_str = JSON.stringify(search_settings.coordinates.map(c => c.map(xy => [xy[1], xy[0]])))
   const polygon_coords = (polygon_str.replaceAll('[', '(') as string).replaceAll(']', ')') as string
 

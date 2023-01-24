@@ -26,7 +26,7 @@ const eos_timeout_ms = 20_000
 
 // let eos_search_highres_url = 'https://api.eos.com/api/v5/allsensors' 
 const eos_search_highres_url = 'https://lms-reselling.eos.com/api/v5/allsensors'
-const search_eos_highres = async (search_settings, eos_apikey, searchPolygon=null, setSnackbarOptions=null, eos_page_idx=1) => {
+const search_eos_highres = async (search_settings, eos_apikey, searchPolygon=null, setters=null, eos_page_idx=1) => {
   const satellites = get_satellites_respecting_gsd(search_settings.gsd)
   const eos_satellites = satellites.map(s => eos_names[s]).filter(s => s)
 
@@ -79,13 +79,13 @@ const search_eos_highres = async (search_settings, eos_apikey, searchPolygon=nul
 	} catch (error) {
 		// if (error.name === 'AbortError') {
     console.log('Returning empty FeatureCollection, probably because of timeout', error)
-    if (setSnackbarOptions) {
-      setSnackbarOptions({
+    if (setters.setSnackbarOptions) {
+      setters.setSnackbarOptions({
         open: false, 
         message: ''
       })
       console.log('set')
-      setSnackbarOptions({
+      setters.setSnackbarOptions({
         open: true, 
         message: `Search Results Request timed-out on EOS API after ${eos_timeout_ms/1000}s`
       })	

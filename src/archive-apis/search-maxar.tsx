@@ -19,7 +19,7 @@ const maxar_limit = 500
 const maxar_search_url = 'https://api.discover.digitalglobe.com/v1/services/ImageServer/query'
 
 // CORS needed to reach maxar api server
-const search_maxar = async (search_settings, maxar_apikey, searchPolygon=null, setSnackbarOptions=null, maxar_bearer_json=null, maxar_next_links=null) => {
+const search_maxar = async (search_settings, maxar_apikey, searchPolygon=null, setters=null, maxar_bearer_json=null, maxar_next_links=null) => {
   // await get_maxar_bearer(maxar_apikey)
   const date_format = {month: '2-digit', day: '2-digit', year: 'numeric'}
   const maxar_payload = 
