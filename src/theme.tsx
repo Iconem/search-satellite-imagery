@@ -2,10 +2,10 @@ import { createTheme, lighten, darken } from '@mui/material/styles';
 import { blue, red, green } from '@mui/material/colors';
 
 // A custom theme for this app
-const theme = createTheme({
+const getDesignTokens = (themePaletteMode) => ({
   spacing: 2,
   palette: {
-    mode: 'light', // dark or light
+    mode: themePaletteMode, // dark or light
     primary: {
       main: blue[500],
     },
@@ -70,7 +70,7 @@ const theme = createTheme({
 
 // mapbox-gl-draw styles:
 // https://github.com/mapbox/mapbox-gl-draw/blob/main/docs/EXAMPLES.md
-const draw_polygon_styles = [
+const draw_polygon_styles = (theme) => [
   // ACTIVE (being drawn)
   // line stroke
   {
@@ -190,6 +190,6 @@ const draw_polygon_styles = [
 ];
 
 export {
-  theme,
+  getDesignTokens,
   draw_polygon_styles
 }

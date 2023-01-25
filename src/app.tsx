@@ -1,23 +1,24 @@
 import * as React from 'react';
 import {render} from 'react-dom';
-import Map, {ImageSource, MapRef} from 'react-map-gl';
+import Map, {MapRef} from 'react-map-gl';
 import type GeoJSON from 'geojson';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider } from '@mui/material/styles';
 import Split from 'react-split'
 
 // Custom Components and theme
+import { createTheme, lighten, darken } from '@mui/material/styles';
+import {getDesignTokens} from './theme';
 import ControlPanel from './control-panel/control-panel';
 import TimelineComponent from './control-panel/timeline-component';
 import MapControls from './map/map-controls';
 import CustomImageSource from './map/custom-image-source';
 import FeaturesSourceAndLayer from './map/features-source-and-layer';
-import {theme} from './theme';
 import {useLocalStorage} from './utilities';
 
 import sample_results from './sample_results_up42_head_maxar.json'
 
-export default function App() {
+export default function App(props) {
   const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN; 
   const mapRef = React.useRef<MapRef>();
 
@@ -103,13 +104,19 @@ export default function App() {
         // onStyleLoad={this.onMapLoad}
       >
         <MapControls 
+          theme={props.theme} 
           mapboxAccessToken={MAPBOX_TOKEN} 
           setDrawFeatures={setDrawFeatures} 
           setBasemapStyle={setBasemapStyle}
           mapRef={mapRef}
           rasterOpacity={rasterOpacity} setRasterOpacity={setRasterOpacity}
+          themePaletteMode={props.themePaletteMode} setThemePaletteMode={props.setThemePaletteMode}
         />
-        <FeaturesSourceAndLayer features={footprintFeatures} lineLayer={true} fillLayer={true} id={'footprintFeatures'}/>
+        <FeaturesSourceAndLayer 
+          theme={props.theme}
+          features={footprintFeatures} 
+          lineLayer={true} fillLayer={true} id={'footprintFeatures'}
+        />
         {/* 
         <FeaturesSourceAndLayer features={
           // Object.values(drawFeatures)[0]
@@ -154,11 +161,13 @@ export default function App() {
         }}
       >
         <TimelineComponent 
+          theme={props.theme}
           searchResults={searchResults}  
           footprintFeatures={footprintFeatures} 
           setFootprintFeatures={setFootprintFeatures} 
         />
         <ControlPanel 
+          theme={props.theme}
           polygons={Object.values(drawFeatures)} 
           setFootprintFeatures={setFootprintFeatures} 
           // setSelectedFeature={setSelectedFeature} 
@@ -174,11 +183,21 @@ export default function App() {
   );
 }
 
-export function renderToDom(container) {
-  render(
+export function ThemedApp() {
+  const [themePaletteMode, setThemePaletteMode] = useLocalStorage('themePaletteMode', 'light');
+  const theme = createTheme(getDesignTokens(themePaletteMode));
+  // const theme = React.useMemo(() => createTheme(a), [themePaletteMode]);
+  return (
     <ThemeProvider theme={theme}>
-    <CssBaseline />
-    <App />
-  </ThemeProvider>,
-  container);
+      <CssBaseline />
+      <App 
+        theme={theme}
+        themePaletteMode={themePaletteMode} setThemePaletteMode={setThemePaletteMode}
+      />
+    </ThemeProvider>
+  );
+}
+
+export function renderToDom(container) {
+  render( <ThemedApp/> , container);
 }

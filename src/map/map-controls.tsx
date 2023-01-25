@@ -17,11 +17,10 @@ import CustomOverlay from './custom-overlay';
 
 
 import { v4 as uuidv4 } from 'uuid';
-import DrawControlBis from './draw-control-test';
 import bbox from '@turf/bbox';
 import { kml } from "@tmcw/togeojson";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {  faUpload, faFileArrowUp } from '@fortawesome/free-solid-svg-icons'
+import {  faUpload, faSun, faMoon } from '@fortawesome/free-solid-svg-icons'
 import {Slider} from '@mui/material';
 
 
@@ -137,7 +136,7 @@ function MapControls(props) {
         onCreate={onDrawCreate}
         onUpdate={onDrawUpdate}
         onDelete={onDrawDelete}
-        styles= {draw_polygon_styles}
+        styles= {draw_polygon_styles(props.theme)}
       />
       <CustomOverlay position="top-left" style={{ pointerEvents: "all" }} >
         <KML_input setDrawFeatures={props.setDrawFeatures} mapRef={props.mapRef}/>
@@ -187,6 +186,15 @@ function MapControls(props) {
         // position="top-left"
         style={{clear: 'none'}}
       />
+
+      {/* Control Theme Mode Dark vs Light */}
+      <CustomOverlay position="top-left" style={{ pointerEvents: "all" }} >
+      <div className="mapboxgl-ctrl mapboxgl-ctrl-group">
+        <button type="button" title="Upload KML AOI" onClick={() => props.setThemePaletteMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'))} >
+          <span className="mapboxgl-ctrl-icon" style={{padding: '7px'}} ><FontAwesomeIcon icon={props.themePaletteMode == 'dark' ? faSun : faMoon} /> </span>
+        </button>
+        </div>
+      </CustomOverlay>
     </>
   );
 }

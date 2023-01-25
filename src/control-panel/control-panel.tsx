@@ -16,7 +16,6 @@ import {Snackbar, Alert, Collapse, Box, Grid, Stack, Typography, Slider} from '@
 
 // MUI Theming
 import { ThemeProvider, lighten, darken } from '@mui/material/styles';
-import {theme} from '../theme';
 
 // Other imports
 import {useLocalStorage} from '../utilities';
@@ -138,9 +137,10 @@ function ControlPanel(props) {
   }
 
   const [providersTreeviewDataSelection, setProvidersTreeviewDataSelection] = useLocalStorage('providersTreeviewDataSelection', sourcesTreeviewInitialSelection());
-  
+  const theme = props.theme
+
   return (
-    <ThemeProvider theme={theme}>
+    <>
       {/* 
       <Container sx={{
         background: theme.palette.background.default,
@@ -215,6 +215,7 @@ function ControlPanel(props) {
         <Grid container spacing={2}>
           <Grid item xs={11}>
           <SearchButton
+            theme={props.theme}
             setters={setters} /* among which the important setSearchResults */
             polygons= {polygons}
             searchSettings={searchSettings}
@@ -251,7 +252,7 @@ function ControlPanel(props) {
 
       </div>
       </div>
-    </ThemeProvider>
+    </>
   );
 }
 

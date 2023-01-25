@@ -1,7 +1,6 @@
 import * as React from 'react';
 
 import {Box, Button, CircularProgress} from '@mui/material';
-import {theme} from '../theme';
 import area from '@turf/area';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -45,7 +44,7 @@ function SearchButton(props) {
             <CircularProgress
               size={24}
               sx={{
-                color: theme.palette.primary.main,
+                color: props.theme.palette.primary.main,
                 position: 'absolute',
                 top: '50%',
                 left: '50%',

@@ -3,9 +3,9 @@
 import * as React from 'react';
 import {Source, Layer} from 'react-map-gl';
 import { lighten, darken } from '@mui/material/styles';
-import {theme} from '../theme';
 
 function FeaturesSourceAndLayer(props) {
+  const theme = props.theme
   // console.log('FeaturesSourceAndLayer', props.features)
   return (
     <Source type="geojson" data={props.features}>

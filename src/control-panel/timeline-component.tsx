@@ -3,7 +3,6 @@
 
 import * as React from 'react';
 import { ThemeProvider } from '@mui/material/styles';
-import {theme} from '../theme';
 
 import {GlyphCircle} from '@visx/glyph'
 import {
@@ -35,8 +34,9 @@ const handleRowHover = (e, searchResults, setFootprintFeatures) => {
 // });
 
 function TimelineComponent(props) {
+  const theme = props.theme
   return (
-    <ThemeProvider theme={theme}>
+    <>
         <div 
         className="control-panel" 
         style={{
@@ -55,7 +55,7 @@ function TimelineComponent(props) {
         <div
           style={{
             width: '100%',
-            backgroundColor: 'white',
+            backgroundColor: theme.palette.background.default,
           }}
         >
         {props.searchResults?.output?.features?.length > 0 &&
@@ -67,7 +67,13 @@ function TimelineComponent(props) {
             yScale={{ type: "linear", domain: [0, 1], zero: false }}
           >
 
-            <Axis orientation="bottom" />
+            <Axis orientation="bottom" 
+              stroke={theme.palette.text.secondary}
+              tickStroke={theme.palette.text.secondary}
+              tickLabelProps={() => ({
+                fill: theme.palette.text.secondary,
+              })}
+            />
             <Grid rows={false} columns={false} numTicks={4} />
             <Group pointerEvents="auto">
             <GlyphSeries 
@@ -77,8 +83,8 @@ function TimelineComponent(props) {
               renderGlyph={({ x, y, key  }: any) => ( //  { left: number; top: number }
                 <GlyphCircle 
                   left={x} top={y}
-                  stroke={'#777'} // theme.palette.primary.main}
-                  fill={'#fff'}
+                  stroke={theme.palette.text.secondary} // {'#777'} // theme.palette.primary.main}
+                  fill={theme.palette.background.default}
                   strokeWidth={2}
 
                   // For handling Mouse Hover
@@ -129,7 +135,7 @@ function TimelineComponent(props) {
                     <GlyphCircle 
                       left={x} top={y}
                       stroke={theme.palette.primary.main} // '#ff0000'} // 
-                      fill={'#fff'}
+                      fill={theme.palette.background.default}
                       strokeWidth={3}
                       size={100}
                       fillOpacity={1}
@@ -143,16 +149,20 @@ function TimelineComponent(props) {
                   dy={20} 
                 >
                   <AnnotationCircleSubject 
-                    stroke={'#000'}
+                    stroke={theme.palette.text.primary}
+                    
                   />
                   <AnnotationLabel
                     title={`${accessors.xAccessor(props.footprintFeatures)?.toISOString().split('T')[0]}`}
                     subtitle={''}
-                    width={135}
                     showAnchorLine={false}
                     backgroundProps={{
                       strokeWidth: 0,
                       strokeOpacity: 0,
+                      fill: theme.palette.background.default
+                    }}
+                    titleProps={{
+                      fill: theme.palette.text.primary
                     }}
                   />
                 </Annotation>
@@ -165,7 +175,7 @@ function TimelineComponent(props) {
       }
         </div>
       </div>
-    </ThemeProvider>
+    </>
   );
 }
 
