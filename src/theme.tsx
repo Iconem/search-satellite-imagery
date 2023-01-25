@@ -7,7 +7,8 @@ const getDesignTokens = (themePaletteMode) => ({
   palette: {
     mode: themePaletteMode, // dark or light
     primary: {
-      main: blue[500],
+      // main: red[500],
+      main: blue.A400,
     },
     /*
     secondary: {
@@ -48,6 +49,7 @@ const getDesignTokens = (themePaletteMode) => ({
         // size: 'small',
         // step: 1,
         // valueLabelDisplay: "auto"
+        margin: "10px"
       },
     },
     // MuiGridPanel: {

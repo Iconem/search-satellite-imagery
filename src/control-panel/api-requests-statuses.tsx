@@ -38,8 +38,11 @@ function APIRequestsStatuses(props) {
             {Object.values(props.searchPromises)
               .filter((o:any) => !o.searchFinishedForMoreThanDelay)
               .map((o:any, i) => (
-              <ListItem key={i}>
-                <ListItemIcon>
+              <ListItem key={i} sx={{ color: o.searchFinished ? props.theme.palette.success.light : props.theme.palette.text.primary}}
+              >
+                <ListItemIcon
+                  sx={{ color: o.searchFinished ? props.theme.palette.success.light : props.theme.palette.text.primary}}
+                >
                   {!o.searchFinished ? ( <Typography>...</Typography>) : (<FontAwesomeIcon icon={faCheck} /> )}
                 </ListItemIcon>
                 <ListItemText

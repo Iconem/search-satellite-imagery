@@ -42,7 +42,6 @@ function TimelineComponent(props) {
         style={{
           background: theme.palette.background.default,
           color: theme.palette.text.primary, 
-          backgroundColor: 'transparent',
           width: '100%',
 
           boxShadow: '0 2px 4px rgba(0,0,0,0.3)',

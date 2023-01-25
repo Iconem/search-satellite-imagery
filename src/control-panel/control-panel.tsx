@@ -231,6 +231,7 @@ function ControlPanel(props) {
           </Grid>
         </Grid>
         <APIRequestsStatuses 
+          theme={props.theme}
           searchPromises= {searchPromises}
           searchResults={props.searchResults}
         />

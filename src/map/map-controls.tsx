@@ -190,7 +190,7 @@ function MapControls(props) {
       {/* Control Theme Mode Dark vs Light */}
       <CustomOverlay position="top-left" style={{ pointerEvents: "all" }} >
       <div className="mapboxgl-ctrl mapboxgl-ctrl-group">
-        <button type="button" title="Upload KML AOI" onClick={() => props.setThemePaletteMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'))} >
+        <button type="button" title={`Set ${props.themePaletteMode == 'dark' ? 'Light' : 'Dark'} Mode`} onClick={() => props.setThemePaletteMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'))} >
           <span className="mapboxgl-ctrl-icon" style={{padding: '7px'}} ><FontAwesomeIcon icon={props.themePaletteMode == 'dark' ? faSun : faMoon} /> </span>
         </button>
         </div>

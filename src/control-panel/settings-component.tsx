@@ -69,15 +69,17 @@ function GSDComponent(props) {
         icon={faTableCellsLarge} 
         title={'GSD Resolution'}
         value={GSDFromIndex(props.searchSettings.gsdIndex[1])} />
-      <CustomMarksSlider
-        {...defaultSliderProps as any}
-        min={0} max={GSD_steps.length - 1}
-        marks={marks_GSD}
-        value={props.searchSettings.gsdIndex}
-        valueLabelFormat={GSDFromIndex}
-        onChange={handleSliderFun('gsdIndex', props)}
-      />
-      <Box sx={{ m: 1, p:2 }} />
+        <div style={{marginLeft: '7px', marginRight: '7px'}}>
+          <CustomMarksSlider
+            {...defaultSliderProps as any}
+            min={0} max={GSD_steps.length - 1}
+            marks={marks_GSD}
+            value={props.searchSettings.gsdIndex}
+            valueLabelFormat={GSDFromIndex}
+            onChange={handleSliderFun('gsdIndex', props)}
+          />
+        </div>
+        <Box sx={{ m: 1, p:2 }} />
     </>
   );
 }
@@ -95,14 +97,16 @@ function CloudinessComponent(props) {
         icon={faCloudSun} 
         title={'Cloudiness'}
         value={`≤ ${props.searchSettings.cloudCoverage} %` } />
-      <Slider
-        {...defaultSliderProps as any}
-        value={props.searchSettings.cloudCoverage}
-        // onChange={handleCloudCoverageSlider}
-        // onChange={props.handleSlider('cloudCoverage')}
-        onChange={handleSliderFun('cloudCoverage', props)}
-        valueLabelFormat={value => `${value}%`}
-      />
+        <div style={{marginLeft: '7px', marginRight: '7px'}}>
+          <Slider
+            {...defaultSliderProps as any}
+            value={props.searchSettings.cloudCoverage}
+            // onChange={handleCloudCoverageSlider}
+            // onChange={props.handleSlider('cloudCoverage')}
+            onChange={handleSliderFun('cloudCoverage', props)}
+            valueLabelFormat={value => `${value}%`}
+          />
+        </div>
     </>
   );
 }
@@ -115,14 +119,16 @@ function AoiCoverageComponent(props) {
         icon={faCropSimple} 
         title={'AOI Coverage'}
         value={`≥ ${props.searchSettings.aoiCoverage}%` } />
-      <Slider
-        {...defaultSliderProps as any}
-        value={props.searchSettings.aoiCoverage}
-        // onChange={props.handleSlider('aoiCoverage')}
-        onChange={handleSliderFun('aoiCoverage', props)}
-        track="inverted"
-        valueLabelFormat={appendSuffix('%')}
-      /> 
+        <div style={{marginLeft: '7px', marginRight: '7px'}}>
+          <Slider
+          {...defaultSliderProps as any}
+          value={props.searchSettings.aoiCoverage}
+          // onChange={props.handleSlider('aoiCoverage')}
+          onChange={handleSliderFun('aoiCoverage', props)}
+          track="inverted"
+          valueLabelFormat={appendSuffix('%')}
+        />
+      </div> 
     </>
   );
 }
@@ -132,14 +138,16 @@ function SunElevationComponent(props) {
       <SettingsHeader 
         title={'Sun Elevation'}
         value={`${props.searchSettings.sunElevation[0]}° ≤ x ≤ ${props.searchSettings.sunElevation[1]}°` } />
-      <Slider
-        {...defaultSliderProps as any}
-        min={0}
-        max={90}
-        value={props.searchSettings.sunElevation}
-        onChange={handleSliderFun('sunElevation', props)}
-        valueLabelFormat={appendSuffix('°')}
-      /> 
+        <div style={{marginLeft: '7px', marginRight: '7px'}}>
+          <Slider
+            {...defaultSliderProps as any}
+            min={0}
+            max={90}
+            value={props.searchSettings.sunElevation}
+            onChange={handleSliderFun('sunElevation', props)}
+            valueLabelFormat={appendSuffix('°')}
+          /> 
+        </div>
     </>
   );
 }
@@ -149,14 +157,16 @@ function OffNadirComponent(props) {
       <SettingsHeader 
         title={'Off Nadir Angle'}
         value={`${props.searchSettings.offNadirAngle[0]}° ≤ x ≤ ${props.searchSettings.offNadirAngle[1]}°` } />
-      <Slider
-        {...defaultSliderProps as any}
-        min={-60}
-        max={60}
-        value={props.searchSettings.offNadirAngle}
-        onChange={handleSliderFun('offNadirAngle', props)}
-        valueLabelFormat={appendSuffix('°')}
-      /> 
+        <div style={{marginLeft: '7px', marginRight: '7px'}}>
+          <Slider
+            {...defaultSliderProps as any}
+            min={-60}
+            max={60}
+            value={props.searchSettings.offNadirAngle}
+            onChange={handleSliderFun('offNadirAngle', props)}
+            valueLabelFormat={appendSuffix('°')}
+          /> 
+        </div>
     </>
   );
 }
