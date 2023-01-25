@@ -18,6 +18,15 @@ import {useLocalStorage} from './utilities';
 
 import sample_results from './sample_results_up42_head_maxar.json'
 
+const usePrevious = <T extends unknown>(value: T): T | undefined => {
+  const ref = React.useRef<T>();
+  React.useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+};
+
+
 export default function App(props) {
   const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN; 
   const mapRef = React.useRef<MapRef>();
@@ -40,6 +49,25 @@ export default function App(props) {
       zoom: 12,
     }, false
   );
+
+  // Edit map center when split panel modified
+  const prevSplitPanelSizesPercent = usePrevious(splitPanelSizesPercent);
+  React.useEffect(() => {
+    if(prevSplitPanelSizesPercent !== splitPanelSizesPercent) {
+      // const moveRatio = window.innerWidth * (splitPanelSizesPercent - prevSplitPanelSizesPercent)
+      const moveRatio = prevSplitPanelSizesPercent ? 
+        (window.innerWidth) * (splitPanelSizesPercent[1] - prevSplitPanelSizesPercent[1]) / 100 
+        : 0
+      const currentBounds = mapRef.current?.getBounds()
+      console.log('SPLIT MOVED, width', window.innerWidth, prevSplitPanelSizesPercent, splitPanelSizesPercent, 'ratio', moveRatio, 'currentBounds', currentBounds)
+      mapRef?.current?.fitBounds(
+        currentBounds, 
+        {padding: {top: 0, bottom:0, left: 0, right: moveRatio}}
+      );
+    } else {
+      // console.log('Split did not move')
+    }
+  }, [splitPanelSizesPercent]);
 
   const [footprintFeatures, setFootprintFeatures] = React.useState<null | GeoJSON.FeatureCollection>(null);
   // const [selectedFeature, setSelectedFeature] = useState<null | GeoJSON.Feature>(null);
