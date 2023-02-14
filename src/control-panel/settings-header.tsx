@@ -15,7 +15,7 @@ function SettingsHeader(props) {
         </Typography> 
       </Grid>
       <Grid item xs={3}>
-        <Typography variant="subtitle2" align={'right'}> 
+        <Typography variant="subtitle2" align={'right'} style={{paddingRight: '4px'}}> 
           {props.value}
         </Typography>
       </Grid>
