@@ -27,6 +27,17 @@ const usePrevious = <T extends unknown>(value: T): T | undefined => {
 };
 
 
+const defaultViewStateNaturalearth = {
+  longitude: 53.75,
+  latitude: 0.13,
+  zoom: 2.35,
+}
+const defaultViewStateMercator = {
+  longitude: 28.75,
+  latitude: 33.34,
+  zoom: 2.5,
+}
+
 export default function App(props) {
   const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN; 
   const mapRef = React.useRef<MapRef>();
@@ -43,11 +54,7 @@ export default function App(props) {
   const [rasterOpacity, setRasterOpacity] = useLocalStorage('rasterOpacity', 0.8);
   const [splitPanelSizesPercent, setSplitPanelSizesPercent] = useLocalStorage('splitPanelSizesPercent', [75, 25]);
   const [viewState, setViewState] = useLocalStorage('viewState', 
-    {
-      longitude: 28.74,
-      latitude: 33.34,
-      zoom: 2.5,
-    }, false
+    defaultViewStateNaturalearth, false
   );
 
   // Edit map center when split panel modified
