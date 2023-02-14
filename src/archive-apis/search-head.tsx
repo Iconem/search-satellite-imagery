@@ -27,7 +27,7 @@ const _head_satellites_sel =
   .join('$')
   + '$'
 
-  const head_satellites_sel = '$SuperView-NEO$GFMM$SuperView$EarthScanner-KF1$Jilin-GXA$DailyVision1m-JLGF3$Jilin-GF02A/B$GaoFen-2$'
+  const head_satellites_sel = '$SuperView-NEO$Jilin-GF04$GFMM$SuperView-2$SuperView$EarthScanner-KF1$GaoFen-7$Jilin-GXA$DailyVision1m-JLGF3$Jilin-GF02A/B$GaoFen-2$'
 
 // in https://headfinder.head-aerospace.eu/cat-01/_ML-lib-01.js?2021-12-27
 // in https://headfinder.head-aerospace.eu/cat-01/V-073.js?2022-05-11
@@ -41,16 +41,12 @@ function get_head_price(feature) {
 const max_abs = (x) => Math.max(...x.map(Math.abs))
 
 const search_head = async (search_settings, apikey='', searchPolygon=null, setters=null) => {
-  const polygon_str = JSON.stringify(search_settings.coordinates.map(c => c.map(xy => [xy[1], xy[0]])))
+  const polygon_str = JSON.stringify(search_settings.coordinates.map(c => c.slice(0, -1).map(xy => [xy[1], xy[0]])))
   const polygon_coords = (polygon_str.replaceAll('[', '(') as string).replaceAll(']', ')') as string
-
   // Setup request string for HEAD with hash in get url
-  // const request_string = `&category=search-browser-01&browserfp=2230104508&session=875857144&searchcnt=3&mousemovecnt=2617&tilescnt=2545&sessionsecs=1379&catalogue=PU&catconfigid=HEAD-wc37&aoi=polygon${polygon_coords}&maxscenes=${head_limit}&datestart=${search_settings.startDate.toISOString().substring(0,10)}&dateend=${search_settings.endDate.toISOString().substring(0,10)}&cloudmax=${search_settings.cloudCoverage}&offnadirmax=${max_abs(search_settings.offNadirAngle)}&overlapmin=${search_settings.aoiCoverage}&scenename=&satellites=${head_satellites_sel}&`
-  const request_string = `&category=search-browser-01&browserfp=605607837&session=489042521&searchcnt=1&mousemovecnt=357&tilescnt=905&sessionsecs=220&catalogue=PU&catconfigid=HEAD-wc37&aoi=polygon${polygon_coords}&maxscenes=${head_limit}&datestart=${search_settings.startDate.toISOString().substring(0,10)}&dateend=${search_settings.endDate.toISOString().substring(0,10)}&cloudmax=${search_settings.cloudCoverage}&offnadirmax=${max_abs(search_settings.offNadirAngle)}&overlapmin=${search_settings.aoiCoverage}&scenename=&satellites=${head_satellites_sel}&`
+  const request_string = `&category=search-browser-01&browserfp=605607837&session=812167136&searchcnt=2&mousemovecnt=818&tilescnt=861&sessionsecs=118&catalogue=PU&catconfigid=HEAD-wc37&aoi=polygon${polygon_coords}&maxscenes=${head_limit}&datestart=${(new Date(search_settings.startDate - 1)).toISOString().substring(0,10)}&dateend=${(new Date(search_settings.endDate - 1)).toISOString().substring(0,10)}&cloudmax=${search_settings.cloudCoverage}&offnadirmax=${max_abs(search_settings.offNadirAngle)}&overlapmin=${search_settings.aoiCoverage}&scenename=&satellites=${head_satellites_sel}&`
   const k17string = request_string.substring(request_string.indexOf('category=') + 9).toLowerCase()
 
-  // const head_search_url = head_base_url + "?req=d01-nl-xdebug-xstep-" + request_string + "&user=_" + crc32(k17string) + "&"
-  // const head_search_url = `${head_base_url}?req=d01-nl-xdebug-xstep-${request_string}&user=_${crc32(k17string)}&`
   const head_search_url = `${head_base_url}?req=d01-nl-${request_string}&user=_${crc32(k17string)}&`
 
   const res_text = await ky.get( head_search_url ).text()
