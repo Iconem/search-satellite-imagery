@@ -15,7 +15,7 @@ function CustomGridToolbar() {
     <GridToolbarContainer
         sx={ {
           '& .MuiButton-root': {
-            color: 'black',
+            // color: 'black',
             fontSize: 'small',
             fontWeight: 300,
             textTransform: 'none',

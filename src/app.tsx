@@ -227,7 +227,7 @@ export default function App(props) {
 }
 
 export function ThemedApp() {
-  const [themePaletteMode, setThemePaletteMode] = useLocalStorage('themePaletteMode', 'light');
+  const [themePaletteMode, setThemePaletteMode] = useLocalStorage('themePaletteMode', 'dark');
   const theme = createTheme(getDesignTokens(themePaletteMode));
   // const theme = React.useMemo(() => createTheme(a), [themePaletteMode]);
   return (
