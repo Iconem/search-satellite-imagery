@@ -16,7 +16,7 @@ const head_base_url = 'https://headfinder.head-aerospace.eu/satcat-db02/'
 // const head_satellites_sel = '$SuperView$EarthScanner-KF1$Jilin-GXA$Jilin-GF02A/B$GaoFen-2$NightVision/Video$DailyVision1m-JLGF3$'
 
 const unique = (value, index, self) => self.indexOf(value) === index
-const head_satellites_sel = 
+const _head_satellites_sel = 
   '$' + 
   providers_dict[Providers.HEADAEROSPACE].map(
     constellation => constellation_dict[constellation]
@@ -26,6 +26,8 @@ const head_satellites_sel =
   .filter(unique)
   .join('$')
   + '$'
+
+  const head_satellites_sel = '$SuperView-NEO$GFMM$SuperView$EarthScanner-KF1$Jilin-GXA$DailyVision1m-JLGF3$Jilin-GF02A/B$GaoFen-2$'
 
 // in https://headfinder.head-aerospace.eu/cat-01/_ML-lib-01.js?2021-12-27
 // in https://headfinder.head-aerospace.eu/cat-01/V-073.js?2022-05-11
@@ -43,27 +45,39 @@ const search_head = async (search_settings, apikey='', searchPolygon=null, sette
   const polygon_coords = (polygon_str.replaceAll('[', '(') as string).replaceAll(']', ')') as string
 
   // Setup request string for HEAD with hash in get url
-  const request_string = `&category=search-browser-01&browserfp=2230104508&session=875857144&searchcnt=3&mousemovecnt=2617&tilescnt=2545&sessionsecs=1379&catalogue=PU&catconfigid=HEAD-wc37&aoi=polygon${polygon_coords}&maxscenes=${head_limit}&datestart=${search_settings.startDate.toISOString().substring(0,10)}&dateend=${search_settings.endDate.toISOString().substring(0,10)}&cloudmax=${search_settings.cloudCoverage}&offnadirmax=${max_abs(search_settings.offNadirAngle)}&overlapmin=${search_settings.aoiCoverage}&scenename=&satellites=${head_satellites_sel}&`
+  // const request_string = `&category=search-browser-01&browserfp=2230104508&session=875857144&searchcnt=3&mousemovecnt=2617&tilescnt=2545&sessionsecs=1379&catalogue=PU&catconfigid=HEAD-wc37&aoi=polygon${polygon_coords}&maxscenes=${head_limit}&datestart=${search_settings.startDate.toISOString().substring(0,10)}&dateend=${search_settings.endDate.toISOString().substring(0,10)}&cloudmax=${search_settings.cloudCoverage}&offnadirmax=${max_abs(search_settings.offNadirAngle)}&overlapmin=${search_settings.aoiCoverage}&scenename=&satellites=${head_satellites_sel}&`
+  const request_string = `&category=search-browser-01&browserfp=605607837&session=489042521&searchcnt=1&mousemovecnt=357&tilescnt=905&sessionsecs=220&catalogue=PU&catconfigid=HEAD-wc37&aoi=polygon${polygon_coords}&maxscenes=${head_limit}&datestart=${search_settings.startDate.toISOString().substring(0,10)}&dateend=${search_settings.endDate.toISOString().substring(0,10)}&cloudmax=${search_settings.cloudCoverage}&offnadirmax=${max_abs(search_settings.offNadirAngle)}&overlapmin=${search_settings.aoiCoverage}&scenename=&satellites=${head_satellites_sel}&`
   const k17string = request_string.substring(request_string.indexOf('category=') + 9).toLowerCase()
 
   // const head_search_url = head_base_url + "?req=d01-nl-xdebug-xstep-" + request_string + "&user=_" + crc32(k17string) + "&"
-  const head_search_url = `${head_base_url}?req=d01-nl-xdebug-xstep-${request_string}&user=_${crc32(k17string)}&`
+  // const head_search_url = `${head_base_url}?req=d01-nl-xdebug-xstep-${request_string}&user=_${crc32(k17string)}&`
+  const head_search_url = `${head_base_url}?req=d01-nl-${request_string}&user=_${crc32(k17string)}&`
 
-  const res_text = await ky.get( head_search_url).text()  
-  const payload_str = res_text.substring(
-    res_text.indexOf('jsonscenelist=') + 14,
-    res_text.lastIndexOf(']') + 1
-  )
-  const search_results_raw = JSON.parse(payload_str).slice(1)
-  
-  if (search_results_raw) {
-    const search_results_json = format_head_results(search_results_raw, searchPolygon)
-    console.log('HEAD Search URL: \n', head_search_url, '\nRAW HEAD search results: \n', search_results_raw, '\nJSON HEAD search results: \n', search_results_json)
-    return { search_results_json, }
+  const res_text = await ky.get( head_search_url ).text()
+  if (!res_text.includes('ERROR: APP failed')) {
+    const payload_str = res_text.substring(
+      res_text.indexOf('jsonscenelist=') + 14,
+      res_text.lastIndexOf(']') + 1
+    )
+    const search_results_raw = JSON.parse(payload_str).slice(1)
+    
+    if (search_results_raw) {
+      const search_results_json = format_head_results(search_results_raw, searchPolygon)
+      console.log('HEAD Search URL: \n', head_search_url, '\nRAW HEAD search results: \n', search_results_raw, '\nJSON HEAD search results: \n', search_results_json)
+      return { search_results_json, }
+    }
   }
+  console.log('Probable failure in HEAD request, ', head_search_url, ' with res_text', res_text)
+  setters.setSnackbarOptions({
+    open: true, 
+    message: 'Probable failure in HEAD request resulted in error'
+  })
   return {
-    'features': [],
-    'type': 'FeatureCollection'
+    search_results_json: {
+      'features': [],
+      'type': 'FeatureCollection'
+    }, 
+    errorOnFetch: true
   }
 }
 
