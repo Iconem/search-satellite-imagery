@@ -2,7 +2,6 @@
 // based on visx
 
 import * as React from 'react';
-import { ThemeProvider } from '@mui/material/styles';
 
 import {GlyphCircle} from '@visx/glyph'
 import {

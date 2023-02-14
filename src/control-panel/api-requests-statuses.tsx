@@ -14,6 +14,10 @@ function APIRequestsStatuses(props) {
   // const [apiRequestsStatusesCollapsed, setApiRequestsStatusesCollapsed] = React.useState(false) 
   const [apiRequestsStatusesCollapsed, setApiRequestsStatusesCollapsed] = useLocalStorage('apiRequestsStatusesCollapsed', false);
 
+  const textColor = o => 
+    !o.searchFinished ? props.theme.palette.text.primary : 
+    o.errorOnFetch ? props.theme.palette.error.light : props.theme.palette.success.light
+
   return (
     <>
       {(props.searchPromises 
@@ -38,10 +42,10 @@ function APIRequestsStatuses(props) {
             {Object.values(props.searchPromises)
               .filter((o:any) => !o.searchFinishedForMoreThanDelay)
               .map((o:any, i) => (
-              <ListItem key={i} sx={{ color: o.searchFinished ? props.theme.palette.success.light : props.theme.palette.text.primary}}
+              <ListItem key={i} sx={{ color: textColor(o) }}
               >
                 <ListItemIcon
-                  sx={{ color: o.searchFinished ? props.theme.palette.success.light : props.theme.palette.text.primary}}
+                  sx={{ color: textColor(o) }}
                 >
                   {!o.searchFinished ? ( <Typography>...</Typography>) : (<FontAwesomeIcon icon={faCheck} /> )}
                 </ListItemIcon>
@@ -49,8 +53,11 @@ function APIRequestsStatuses(props) {
                   primary={
                     !o.searchFinished ?
                     `Searching ${o.provider}...` : 
-                    // `Results returned by ${o.provider} API!`
-                    `${props.searchResults?.output?.features?.filter(f => f.properties.provider?.toLowerCase().includes(o.provider?.toLowerCase())).length} results returned by ${o.provider}!`
+                    (
+                      o.errorOnFetch ? 
+                      `Error on Fetch for ${o.provider}` : 
+                      `${props.searchResults?.output?.features?.filter(f => f.properties.provider?.toLowerCase().includes(o.provider?.toLowerCase())).length} results returned by ${o.provider}!`
+                    )
                   }
                   secondary={null}
                 />

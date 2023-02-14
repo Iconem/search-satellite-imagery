@@ -223,8 +223,9 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
             provider, 
             searchFinished: false,
             searchFinishedForMoreThanDelay: false,
+            errorOnFetch: false,
             promise: new Promise(async resolve => {
-              const { search_results_json } = await filtered_providers_search[provider]
+              const { search_results_json, errorOnFetch } = await filtered_providers_search[provider]
                 (search_settings, apiKeys[provider], searchPolygon, setters)
 
               // Filter out results not matching resquest
@@ -238,6 +239,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
               update_search_results(search_results_json)
               resolve(search_results_json)
               search_promises[provider].searchFinished = true
+              search_promises[provider].errorOnFetch = errorOnFetch ?? false
               // setters.setSearchPromises(search_promises)
               setters.setSearchPromises({
                 ...search_promises,

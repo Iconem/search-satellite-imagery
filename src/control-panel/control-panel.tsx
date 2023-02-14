@@ -14,9 +14,6 @@ import * as React from 'react';
 // MUI Components: Inputs | Data Display | Feedback+Nav | Layout | Mui-X-datepicker | Components API | Colors
 import {Snackbar, Alert, Collapse, Box, Grid, Stack, Typography, Slider} from '@mui/material';
 
-// MUI Theming
-import { ThemeProvider, lighten, darken } from '@mui/material/styles';
-
 // Other imports
 import {useLocalStorage} from '../utilities';
 import { subDays } from 'date-fns'
