@@ -44,9 +44,9 @@ export default function App(props) {
   const [splitPanelSizesPercent, setSplitPanelSizesPercent] = useLocalStorage('splitPanelSizesPercent', [75, 25]);
   const [viewState, setViewState] = useLocalStorage('viewState', 
     {
-      longitude: 2.3484,
-      latitude: 48.84997,
-      zoom: 12,
+      longitude: 28.74,
+      latitude: 33.34,
+      zoom: 2.5,
     }, false
   );
 
@@ -127,6 +127,8 @@ export default function App(props) {
         mapboxAccessToken={MAPBOX_TOKEN}
         renderWorldCopies = {false}
         dragRotate= {false}
+        projection= {'naturalEarth'} // globe mercator naturalEarth equalEarth  // TODO: eventually make projection controllable
+
         // bounds= {[-180, -80, 180, 80]} // overrides longitude, latitude, zoom
         // fitBoundsOptions={{padding: 150}}
         // onStyleLoad={this.onMapLoad}
@@ -159,6 +161,7 @@ export default function App(props) {
         {/* Image Source and Layer can be placed on map via TMS or raster overlay if coordinates given in correct order */}
         <CustomImageSource feature={footprintFeatures} rasterOpacity={rasterOpacity}/>
 
+        {/* Layer ordering can be controlled via the beforeId prop set to point to empty layers, but would require some more logic here */}
       </Map>
 
       <div style={{
