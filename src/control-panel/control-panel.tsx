@@ -12,7 +12,7 @@ Tree view https://mui.com/material-ui/react-tree-view/#gmail-clone
 import * as React from 'react';
 
 // MUI Components: Inputs | Data Display | Feedback+Nav | Layout | Mui-X-datepicker | Components API | Colors
-import {Snackbar, Alert, Collapse, Box, Grid, Stack, Typography, Slider} from '@mui/material';
+import {Snackbar, Alert, Collapse, Box, Grid, Stack, Typography, Slider, Link} from '@mui/material';
 
 // Other imports
 import {useLocalStorage} from '../utilities';
@@ -21,8 +21,10 @@ import area from '@turf/area';
 // FontAwesome icons https://fontawesome.com/icons
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
-  faChevronDown, faChevronUp, faDownload, faDrawPolygon, faSliders, faCheck, faSatelliteDish
+  faChevronDown, faChevronUp, faDownload, faDrawPolygon, faSliders, faCheck, faSatelliteDish, faEarthEurope
 } from '@fortawesome/free-solid-svg-icons'
+import { faTwitter, faGithub } from '@fortawesome/free-brands-svg-icons'
+// import { solid, brands } from '@fortawesome/fontawesome-svg-core/import.macro'
 
 import {Providers} from '../archive-apis/search-utilities'
 
@@ -180,9 +182,23 @@ function ControlPanel(props) {
         }}
       >
         {/* TITLE */}
-        <Typography gutterBottom>
-          Retrieve Satellite Imagery
-        </Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={9}> 
+            <Typography gutterBottom>
+              Retrieve Satellite Imagery
+            </Typography>
+          </Grid> 
+          <Grid item xs={3}> 
+            <Typography fontSize={20} textAlign={'right'} color={props.theme.palette.text.primary} >
+              <Link href="http://iconem.com/" title={'By Iconem'} target="_blank" color={"inherit"}><FontAwesomeIcon icon={faEarthEurope} /></Link>
+              <Link href="https://mobile.twitter.com/jo_chemla/" title={'Twitter'} target="_blank" color={"inherit"} style={{margin: '8px'}}><FontAwesomeIcon icon={faTwitter} /></Link>
+              <Link href="https://github.com/Iconem/search-satellite-imagery/" title={'Github Repo'} target="_blank" color={"inherit"}><FontAwesomeIcon icon={faGithub} /></Link>
+          </Typography>
+          </Grid> 
+        </Grid> 
+
+        
+
         <Box sx={{ m: 1 }}/>
 
         {/* AOI and DateRange Components */}

@@ -286,7 +286,7 @@ function SearchResultsComponent(props) {
       </Typography>
 
       {/* height: 600, */}
-      <div style={{  width: '100%', flex: '1 1 auto' }}> 
+      <div style={{  width: '100%', flex: '1 1 auto', minHeight: '320px' }}> 
         <div style={{ display: 'flex', height: '100%' }}>
           <div style={{ flexGrow: 1 }}>
             <GlobalStyles
