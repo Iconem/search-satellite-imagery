@@ -1,5 +1,5 @@
 import { createTheme, lighten, darken } from '@mui/material/styles';
-import { blue, red, green } from '@mui/material/colors';
+import { blue, red, grey, blueGrey } from '@mui/material/colors';
 
 // A custom theme for this app
 const getDesignTokens = (themePaletteMode) => ({
@@ -10,6 +10,18 @@ const getDesignTokens = (themePaletteMode) => ({
       // main: red[500],
       main: blue.A400,
     },
+
+    ...(themePaletteMode === 'light'
+      ? { 
+        // No additional settings
+      }
+      : {
+        background: {
+          default: darken(blue[900], 0.8),
+          paper: darken(blue[900], 0.8),
+        }, 
+      }
+    )
     /*
     secondary: {
       main: '#19857b',
