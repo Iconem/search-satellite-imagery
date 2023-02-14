@@ -17,6 +17,9 @@ const perform_skywatch_search = (skywatch_apikey, searchId) =>
 const max_query_count = 8
 
 const search_skywatch = async (search_settings, skywatch_apikey, searchPolygon=null, setters=null) => {
+  if (skywatch_apikey === '') {
+    skywatch_apikey = process.env.SKYWATCH_APIKEY
+  }
   const resolution_array = [] // ['low', 'medium', 'high']
   if (search_settings.gsd.min <= 0.5) resolution_array.push('very_high')
   if (search_settings.gsd.min <= 1) resolution_array.push('high')

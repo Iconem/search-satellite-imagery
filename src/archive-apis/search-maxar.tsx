@@ -20,7 +20,9 @@ const maxar_search_url = 'https://api.discover.digitalglobe.com/v1/services/Imag
 
 // CORS needed to reach maxar api server
 const search_maxar = async (search_settings, maxar_apikey, searchPolygon=null, setters=null, maxar_bearer_json=null, maxar_next_links=null) => {
-  // await get_maxar_bearer(maxar_apikey)
+  if (maxar_apikey === '') {
+    maxar_apikey = process.env.MAXAR_DIGITALGLOBE_APIKEY
+  }
   const date_format = {month: '2-digit', day: '2-digit', year: 'numeric'}
   const maxar_payload = 
     `outFields=*` + 

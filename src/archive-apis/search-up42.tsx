@@ -48,6 +48,12 @@ returns a base64 image
 
 const UP42_SEARCH_URL = 'https://api.up42.com/catalog/stac/search'
 const get_up42_bearer = async (up42_apikey) => {
+    if (up42_apikey.projectId === '' || up42_apikey.projectApiKey === '') {
+      up42_apikey = {
+        projectId: process.env.UP42_PROJECT_ID,
+        projectApiKey: process.env.UP42_PROJECT_APIKEY
+      }
+    }
     const up42_projectApi = base64_encode(`${up42_apikey.projectId}:${up42_apikey.projectApiKey}`)
     const up42_oauth_json = await ky.post(
         `https://api.up42.com/oauth/token`, 

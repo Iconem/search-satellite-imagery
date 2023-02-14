@@ -92,13 +92,21 @@ function ControlPanel(props) {
 
   const [apiKeys, setApiKeys] = useLocalStorage('apiKeys', {
       [Providers.UP42]: {
-        projectId: process.env.UP42_PROJECT_ID,
-        projectApiKey: process.env.UP42_PROJECT_APIKEY,
+        projectId: '',
+        projectApiKey: '',
       }, 
-      [Providers.EOS]: process.env.EOS_APIKEY,
-      [Providers.SKYWATCH]: process.env.SKYWATCH_APIKEY,
-      [Providers.MAXAR_DIGITALGLOBE]: process.env.MAXAR_DIGITALGLOBE_APIKEY,
+      [Providers.EOS]: '',
+      [Providers.SKYWATCH]: '',
+      [Providers.MAXAR_DIGITALGLOBE]: '',
     });
+// [Providers.UP42]: {
+//   projectId: process.env.UP42_PROJECT_ID,
+//   projectApiKey: process.env.UP42_PROJECT_APIKEY,
+// }, 
+// [Providers.EOS]: process.env.EOS_APIKEY,
+// [Providers.SKYWATCH]: process.env.SKYWATCH_APIKEY,
+// [Providers.MAXAR_DIGITALGLOBE]: process.env.MAXAR_DIGITALGLOBE_APIKEY,
+
   
   const setStartDate = (newValue: Date | null) => setSearchSettings({
     ...searchSettings, 
@@ -198,7 +206,12 @@ function ControlPanel(props) {
             <FontAwesomeIcon icon={faChevronUp} />
           }
         </Typography>
-        <Collapse in={!settingsCollapsed} timeout="auto" unmountOnExit>
+        <Collapse in={!settingsCollapsed} timeout="auto" unmountOnExit 
+          style={{
+            overflowY: 'auto',
+            overflowX: 'hidden'
+          }}
+        >
           <Stack spacing={2} > 
             <SettingsComponent 
               searchSettings={searchSettings} setSearchSettings={setSearchSettings} 
