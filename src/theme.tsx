@@ -1,5 +1,6 @@
 import { createTheme, lighten, darken } from '@mui/material/styles';
 import { blue, red, grey, blueGrey } from '@mui/material/colors';
+import darkScrollbar from "@mui/material/darkScrollbar";
 
 // A custom theme for this app
 const getDesignTokens = (themePaletteMode) => ({
@@ -41,6 +42,25 @@ const getDesignTokens = (themePaletteMode) => ({
     ].join(','),
   },
   components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        html: {
+          ...darkScrollbar(
+            themePaletteMode === "light"
+              ? {
+                  track: grey[200],
+                  thumb: grey[400],
+                  active: grey[400]
+                }
+              : undefined
+          ),
+          //scrollbarWidth for Firefox
+          scrollbarWidth: "thin"
+        },
+      },
+    },
+
+
     MuiInputLabel: {
       defaultProps: {
         margin: 'dense',
