@@ -172,6 +172,7 @@ function MapControls(props) {
               // Imagery Opacity: 
               // color={'#000'}
               sx={{
+                filter: props.themePaletteMode === 'dark' ? 'invert(100%) brightness(100%) contrast(100%);' : '',
                 '& input[type="range"]': {
                   WebkitAppearance: 'slider-vertical',
                 },

@@ -111,6 +111,18 @@ export default function App(props) {
 
           `}
         </style>
+
+        {
+          props.themePaletteMode === 'dark' &&
+          <style>
+          {`
+          .mapboxgl-ctrl-top-left {
+            filter: invert(100%) brightness(100%) contrast(100%);
+          }
+          `}
+          </style>
+        }
+
       <Map
         // Either use this controlled state
         {...viewState}
