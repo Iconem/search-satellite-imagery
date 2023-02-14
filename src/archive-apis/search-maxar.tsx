@@ -32,7 +32,7 @@ const search_maxar = async (search_settings, maxar_apikey, searchPolygon=null, s
     `&where=${
       encodeURIComponent(
         `sun_elevation_avg >= ${search_settings.sunElevation[0]} ` +
-        ` AND image_band_name in('PAN','4-BANDS') ` +
+        ` AND image_band_name in('PAN','4-BANDS','8-BANDS') ` +
         ` AND collect_time_start >= '${search_settings.startDate.toLocaleDateString('us',date_format) } 00:00:00' ` +
         ` AND collect_time_start <= '${search_settings.endDate.toLocaleDateString('us',date_format)}  23:59:59' ` +
         ` AND off_nadir_max <= ${max_abs(search_settings.offNadirAngle)} ` +
