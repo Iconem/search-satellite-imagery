@@ -11,6 +11,7 @@ import search_maxar from '../archive-apis/search-maxar'
 import search_eos_highres from '../archive-apis/search-eos'
 import search_skywatch from '../archive-apis/search-skywatch'
 import search_skyfi from '../archive-apis/search-skyfi'
+import search_openaerialmap from '../archive-apis/search-openaerialmap'
 import {Providers} from '../archive-apis/search-utilities'
 import { GSD_steps, GSDFromIndex} from '../utilities'
 
@@ -70,6 +71,7 @@ const providers_search = {
   [Providers.EOS]: search_eos_highres,
   [Providers.SKYWATCH]: search_skywatch,
   [Providers.SKYFI]: search_skyfi,
+  [Providers.OAM]: search_openaerialmap,
 }
 
 const emptyFeatureCollection = {
@@ -233,7 +235,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
                 f => 
                   searchPolygon.properties.gsd_min <= f.properties.resolution
                   && f.properties.resolution <= searchPolygon.properties.gsd_max
-                  && f.properties.cloudCoverage <= searchPolygon.properties.cloudCoverage
+                  && (f.properties.cloudCoverage ?? 0) <= searchPolygon.properties.cloudCoverage
               )
               
               update_search_results(search_results_json)

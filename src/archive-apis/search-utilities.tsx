@@ -105,7 +105,8 @@ enum Constellation {
   SPOT = 'SPOT',
   NearSpace = 'NearSpace',
   CapellaSpace = 'CapellaSpace',
-  Skyfi = 'Skyfi'
+  Skyfi = 'Skyfi',
+  OAM = 'OpenAerialMap'
 }
 
 
@@ -116,6 +117,7 @@ enum Providers {
   EOS = 'EOS',
   SKYWATCH = 'SKYWATCH',
   SKYFI = 'SKYFI',
+  OAM = 'OAM'
 }
 
 
@@ -161,7 +163,10 @@ const providers_dict = {
     Constellation.Kompsat2
   ],
   [Providers.SKYFI]: [
-    Constellation.SKYFI
+    Constellation.DailyVision
+  ],
+  [Providers.OAM]: [
+    Constellation.OAM
   ],
   // 'SENTINELHUB': [Constellation.Pleiades,  Constellation.Worldview],
 }
@@ -278,6 +283,10 @@ const constellation_dict = {
   [Constellation.CapellaSpace]: {
     satellites: [Satellites.CapellaSpace],
     gsd: 0.5
+  },
+  [Constellation.OAM]: {
+    satellites: [],
+    gsd: 0.005
   },
 
 }
