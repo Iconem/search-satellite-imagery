@@ -2,12 +2,12 @@
 
 import * as React from 'react';
 import {Tooltip, Typography, GlobalStyles, Box} from '@mui/material';
-import { DataGrid, GridColumnMenu, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton, GridToolbarDensitySelector, GridRowHeightParams, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, GridColumnMenu, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton, GridToolbarDensitySelector, GridRowHeightParams, GridColDef, GridEventListener  } from '@mui/x-data-grid';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faCloudSun, faSquarePollHorizontal, faSatellite, faBolt, faVectorSquare, faDrawPolygon
 } from '@fortawesome/free-solid-svg-icons'
-
+import bbox from '@turf/bbox';
 
 /* SEARCH RESULTS COMPONENT */
 function CustomGridToolbar() {
@@ -274,6 +274,31 @@ const handleRowHover = (e, searchResults, setFootprintFeatures) => {
 };
 
 
+const handleRowClick = (
+  params, // GridRowParams
+  event, // MuiEvent<React.MouseEvent<HTMLElement>>
+  details, // GridCallbackDetails
+  mapRef,
+  searchResults,
+) => {
+  const feature_geom = searchResults['features'].find(
+    (el) => el.properties.id === params.id
+  )
+  console.log('rowClick params', params, feature_geom)
+  const bounds = bbox(feature_geom)
+  const [minLng, minLat, maxLng, maxLat] = bounds
+  mapRef?.current?.fitBounds(
+    [
+      [minLng, minLat], 
+      [maxLng, maxLat]
+    ],
+    {
+      padding: {top: 100, bottom: 100, left: 100, right: 100}
+    }
+  );
+};
+
+
 function SearchResultsComponent(props) {
   const searchResults = props.searchResults
   const rows = searchResults['features'].map(
@@ -332,6 +357,7 @@ function SearchResultsComponent(props) {
               rowsPerPageOptions={[]}
               columns={datagridColumns}
               rows={ rows }
+              onRowClick= { (p, e, d) => handleRowClick(p, e, d, props.mapRef, searchResults) }
               componentsProps={{
                 row: {
                   onMouseEnter: e => handleRowHover(e, searchResults, props.setFootprintFeatures),

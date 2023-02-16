@@ -274,7 +274,11 @@ function ControlPanel(props) {
 
         {
         props.searchResults?.output?.features?.length > 0 && 
-          <SearchResultsComponent searchResults={props.searchResults.output} setFootprintFeatures={props.setFootprintFeatures}/>
+          <SearchResultsComponent 
+            searchResults={props.searchResults.output} 
+            setFootprintFeatures={props.setFootprintFeatures}
+            mapRef={props.mapRef}
+          />
         }
 
       </div>

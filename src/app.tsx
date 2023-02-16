@@ -224,6 +224,7 @@ export default function App(props) {
           searchResults={searchResults} 
           setSearchResults={setSearchResults} 
           rasterOpacity={rasterOpacity} setRasterOpacity={setRasterOpacity}
+          mapRef={mapRef}
         />
       </Split>
       </div>
