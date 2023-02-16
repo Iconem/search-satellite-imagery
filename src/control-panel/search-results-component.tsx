@@ -96,7 +96,8 @@ const datagridColumns: GridColDef[] = [
   { 
     field: 'provider',
     headerName: 'provider',
-    width: 160,
+    minWidth: 160,
+    flex: 1,
     // valueGetter: (params) => params.row?.provider,
     renderHeader: () => (<strong>Provider</strong>),
     renderCell: (params) => {

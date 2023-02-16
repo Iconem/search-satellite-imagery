@@ -37,7 +37,7 @@ function APIRequestsStatuses(props) {
               <FontAwesomeIcon icon={faChevronUp} />
             }
           </Typography>
-          <Collapse in={!apiRequestsStatusesCollapsed} timeout="auto" unmountOnExit>
+          <Collapse in={!apiRequestsStatusesCollapsed} timeout="auto" unmountOnExit style={{minHeight: 'auto'}}>
           <List dense={true}>
             {Object.values(props.searchPromises)
               .filter((o:any) => !o.searchFinishedForMoreThanDelay)
