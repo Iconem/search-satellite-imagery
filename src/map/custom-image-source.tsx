@@ -13,7 +13,8 @@ function CustomImageSource(props) {
   // console.log('CustomImageSource', props.feature)
   const use_tms_source = [
     Providers.HEADAEROSPACE, 
-    Providers.SKYFI
+    Providers.SKYFI,
+    Providers.OAM,
   ].includes(props.feature?.properties?.providerPlatform)
 
   // BUG DURING TREE SHAKING WITH other conditional if with same div types and different ids

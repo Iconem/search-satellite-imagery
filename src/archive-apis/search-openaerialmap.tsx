@@ -48,7 +48,7 @@ const format_oam_results = (oam_results_raw, searchPolygon=null) => {
           },
           'properties': {
             'providerPlatform': `${Providers.OAM}`, 
-            'provider': `${Providers.OAM}/${r.provider}/${r.platform}/${r.properties?.sensor ?? ''}`,
+            'provider': `${Providers.OAM}/${r.provider}/${r.platform}/${r.properties?.sensor ?? ''}/${r.title}`,
             'id': r.uuid, 
             'acquisitionDate': r.acquisition_end, 
             'resolution': r.gsd,
@@ -60,15 +60,13 @@ const format_oam_results = (oam_results_raw, searchPolygon=null) => {
             'providerProperties': {
               'preview_uri_tiles': {
                 'url': r.properties.tms,
-                'minzoom' : 0,
-                'maxzoom' : 20,
               }
             }
           },
           'type': 'Feature'
         }
       )
-      feat.geometry
+      feat.properties.shapeIntersection = shapeIntersection(feat.geometry, searchPolygon)
       return feat
     }),
     'type': 'FeatureCollection'

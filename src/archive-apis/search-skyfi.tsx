@@ -1,7 +1,7 @@
 // Code for searching UP42 STAC API
 
 import ky from 'ky';
-import {Providers} from './search-utilities'
+import {Providers, shapeIntersection} from './search-utilities'
 import { v4 as uuidv4 } from 'uuid';
 
 /* -------------- */
@@ -105,41 +105,45 @@ const format_skyfi_results = (skyfi_results_raw, searchPolygon) => {
   // meta':{'limit':1,'page':1,'found':15},
   return {
     'features': skyfi_results_raw.archives
-      .map(feature => (
-      {
-        'geometry': wkt_parse(feature.footprint),
-        // "footprint": "POLYGON ((-77.2127 39.0983,-76.9662 39.0562,-77.0204 38.8647,-77.2663 38.9068,-77.2127 39.0983))",
-        // "sw": { "lat": 38.8647, "lon": -77.2663 }, "ne": { "lat": 39.0983, "lon": -76.9662},
-        'properties': {
-          // ...feature.properties,
-          id: feature.archiveId ?? uuidv4(),
-          'sceneId': feature.archiveId ?? uuidv4(),
-          'providerPlatform': `${Providers.SKYFI}`, 
-          'provider': `${Providers.SKYFI}/${feature.provider}-${feature.name}`, 
-          'resolution': feature.platformResolution / 100,
-          'acquisitionDate': (new Date(feature.date)).toISOString(), // "2022-11-26T14:49:32+00:00"
-          'cloudCoverage': feature.cloudCoveragePercent,
-          'price': feature.totalPrice,
-          'providerProperties': {
-            'azimuthAngle': feature.offNadirAngle,
-            'preview_uri_tiles': {
-              'url': feature.previewUrl,
-              // 'scheme': 'tms',
-              // minzoom : 0,
-              // maxzoom : 20,
-              'sensor_day_night_ms': feature.sensor,
-            }
-          },
-          'preview_uri': Object.values(feature?.thumbnailUrls)?.at(-1) || null, // feature.previewUrl, // feature.thumbnailBase64,
-          'thumbnail_uri':  Object.values(feature?.thumbnailUrls)?.at(-1) || null, // "thumbnailUrls": { "300x300": 'url'}
-
-          'constellation': `${feature.provider}/${feature.name}`,
-          'providerName': feature.providerName,
-          // 'shapeIntersection': shapeIntersection(feature, searchPolygon),
-        },
-        'type': 'Feature'
-      }
-    )),
+      .map(feature => {
+        const feat = (
+          {
+            'geometry': wkt_parse(feature.footprint),
+            // "footprint": "POLYGON ((-77.2127 39.0983,-76.9662 39.0562,-77.0204 38.8647,-77.2663 38.9068,-77.2127 39.0983))",
+            // "sw": { "lat": 38.8647, "lon": -77.2663 }, "ne": { "lat": 39.0983, "lon": -76.9662},
+            'properties': {
+              // ...feature.properties,
+              id: feature.archiveId ?? uuidv4(),
+              'sceneId': feature.archiveId ?? uuidv4(),
+              'providerPlatform': `${Providers.SKYFI}`, 
+              'provider': `${Providers.SKYFI}/${feature.provider}-${feature.name}`, 
+              'resolution': feature.platformResolution / 100,
+              'acquisitionDate': (new Date(feature.date)).toISOString(), // "2022-11-26T14:49:32+00:00"
+              'cloudCoverage': feature.cloudCoveragePercent,
+              'price': feature.totalPrice,
+              'providerProperties': {
+                'azimuthAngle': feature.offNadirAngle,
+                'preview_uri_tiles': {
+                  'url': feature.previewUrl,
+                  // 'scheme': 'tms',
+                  // minzoom : 0,
+                  // maxzoom : 20,
+                  'sensor_day_night_ms': feature.sensor,
+                }
+              },
+              'preview_uri': Object.values(feature?.thumbnailUrls)?.at(-1) || null, // feature.previewUrl, // feature.thumbnailBase64,
+              'thumbnail_uri':  Object.values(feature?.thumbnailUrls)?.at(-1) || null, // "thumbnailUrls": { "300x300": 'url'}
+    
+              'constellation': `${feature.provider}/${feature.name}`,
+              'providerName': feature.providerName,
+              'shapeIntersection': null, // shapeIntersection(feature, searchPolygon),
+            },
+            'type': 'Feature'
+          }
+        )
+        feat.properties.shapeIntersection = shapeIntersection(feat.geometry, searchPolygon)
+        return feat
+      }),
     'type': 'FeatureCollection'
   }
 }
