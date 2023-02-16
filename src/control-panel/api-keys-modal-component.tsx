@@ -38,7 +38,28 @@ function ApiKeysModalComponent(props) {
             <Typography variant="h5" component="h2">
               API Keys for satellite archive retrieval
             </Typography>
+            
             <List>
+              <ListItem sx={{ display: 'list-item' }}>
+                <Typography>No API keys needed for the following APIs:</Typography>
+              </ListItem>
+              <ListItem sx={{ display: 'list-item' }}>
+                <Typography variant="h6"> <Link href="https://map.openaerialmap.org/" target="_blank">Open Aerial Map</Link> </Typography>
+              </ListItem>
+              <ListItem sx={{ display: 'list-item' }}>
+                <Typography variant="h6"> <Link href="https://headfinder.head-aerospace.eu/sales" target="_blank">Head Aerospace Finder</Link> </Typography>
+              </ListItem>
+              <ListItem sx={{ display: 'list-item' }}>
+                <Typography variant="h6"> <Link href="https://app.skyfi.com/explore" target="_blank">SkyFi App</Link> </Typography>
+              </ListItem>
+            </List>
+            
+            <Divider variant="middle" />
+
+            <List>
+              <ListItem sx={{ display: 'list-item' }}>
+                <Typography>API keys needed for the following APIs:</Typography>
+              </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
               <Link href="https://console.up42.com/catalog/" target="_blank"> <Typography variant="h6"> UP42 Console </Typography></Link>
               </ListItem>
@@ -118,26 +139,15 @@ function ApiKeysModalComponent(props) {
                 sx={{ width: '50%' }}
               />
               </ListItem>
-              <ListItem sx={{ display: 'list-item' }}>
-                <Typography variant="h6"> <Link href="https://headfinder.head-aerospace.eu/sales" target="_blank">Head Aerospace Finder</Link> </Typography>
-              </ListItem>
-              <ListItem sx={{ display: 'list-item' }}>
-              <Typography>No API key needed for HEAD Aerospace API Search</Typography>
-              </ListItem>
-              <ListItem sx={{ display: 'list-item' }}>
-                <Typography variant="h6"> <Link href="https://app.skyfi.com/explore" target="_blank">SkyFi</Link> </Typography>
-              </ListItem>
-              <ListItem sx={{ display: 'list-item' }}>
-              <Typography>No API key needed for SkyFi Explore at the moment</Typography>
-              </ListItem>
             </List>
+
+            
 
             <Divider variant="middle" />
               {/* <List sx={{listStyleType: 'disc' }}> */}
               <List >
                 <ListItem sx={{ display: 'list-item'}}>
-                UP42: Project ID and Project API Key can be found in the Developers section on the <Link href="https://console.up42.com/" target="_blank">console</Link>, in the form of 
-                <Box bgcolor="text.disabled" sx={{p:2, borderRadius: '3px', width: 'fit-content', backgroundColor: '#DDD'}} >https://console.up42.com/projects/UUID-xxxx/developers</Box>
+                UP42: Project ID and Project API Key can be found in the Developers section of the selected project, on the <Link href="https://console.up42.com/" target="_blank">console</Link>
                 </ListItem>
                 <ListItem sx={{ display: 'list-item' }}>
                 EOS api key can be found on your <Link href="https://api-connect.eos.com/user-dashboard/" target="_blank">user dashboard</Link>. See the <Link href="https://doc.eos.com/api/#authorization-api" target="_blank">API section of the docs</Link>
