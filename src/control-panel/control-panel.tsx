@@ -277,6 +277,7 @@ function ControlPanel(props) {
           <SearchResultsComponent 
             searchResults={props.searchResults.output} 
             setFootprintFeatures={props.setFootprintFeatures}
+            footprintFeatures={props.footprintFeatures} 
             mapRef={props.mapRef}
           />
         }

@@ -117,7 +117,7 @@ enum Providers {
   EOS = 'EOS',
   SKYWATCH = 'SKYWATCH',
   SKYFI = 'SKYFI',
-  OAM = 'OAM'
+  OAM = 'OpenAerialMap'
 }
 
 

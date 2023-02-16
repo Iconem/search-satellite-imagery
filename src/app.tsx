@@ -220,6 +220,7 @@ export default function App(props) {
           theme={props.theme}
           polygons={Object.values(drawFeatures)} 
           setFootprintFeatures={setFootprintFeatures} 
+          footprintFeatures={footprintFeatures} 
           // setSelectedFeature={setSelectedFeature} 
           searchResults={searchResults} 
           setSearchResults={setSearchResults} 

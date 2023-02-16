@@ -293,7 +293,8 @@ const handleRowClick = (
       [maxLng, maxLat]
     ],
     {
-      padding: {top: 100, bottom: 100, left: 100, right: 100}
+      padding: {top: 100, bottom: 100, left: 100, right: 100}, 
+      bearing: 0,
     }
   );
 };
@@ -323,8 +324,26 @@ function SearchResultsComponent(props) {
               }}
             />
             <DataGrid
+              selectionModel={ [props.footprintFeatures?.properties?.id || null] }
+              // Fired when selction changed from datagrid
+              // onSelectionModelChange={(newSelectionModel) => {
+              //   console.log('newSelectionModel', newSelectionModel)
+              //   const rowId = newSelectionModel[0]
+              //   console.log('rowId', rowId)
+              //   const row = searchResults['features'].find(
+              //     (el) => el.properties.id === rowId
+              //   );
+              //   // setFootprintFeatures(row?.geometry)
+              //   // props.setFootprintFeatures(row)
+
+              //   if (rowId) {
+              //     handleRowClick ({id: rowId}, null, null, props.mapRef, searchResults)
+              //   }
+              // }}
+
               density="compact"
               autoPageSize={true}
+              sortingOrder={['desc', 'asc']}
               // autoHeight
               components={{
                 Toolbar: CustomGridToolbar,
@@ -339,7 +358,6 @@ function SearchResultsComponent(props) {
               // If wanted to show image only in expanded detailed view
               // getDetailPanelContent={({ row }) => <div>Row ID: {row.id}</div>}
               checkboxSelection={false}
-              // selectionModel={selectionModel}
               getRowHeight={({ id, densityFactor }: GridRowHeightParams) => {
                 switch (densityFactor) {
                   case 0.7: 
