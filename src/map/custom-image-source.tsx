@@ -22,20 +22,24 @@ function CustomImageSource(props) {
   let footprint_bbox = [-180, -90, 180, 90]
   if (props.feature?.geometry?.coordinates?.length == 1) {
     coordinates = props.feature.geometry?.coordinates[0]
-    if (!Array.isArray(coordinates)) {
-      return <></>
+
+    // Depending on the providers, we will not use the same coordinates for the raster overlay. Arlula, we can pass directly the footprint coordinates
+    if (props.feature.providerPlatform !== Providers.ARLULA) {
+      if (!Array.isArray(coordinates)) {
+        return <></>
+      }
+      
+      let footprintPolygon = turf.polygon(props.feature.geometry?.coordinates)
+      // footprintPolygon = simplify(footprintPolygon, {tolerance: 0.01, highQuality: false});
+      // footprintPolygon = rewind(footprintPolygon);
+      const footprint_bbox = turf.bbox(footprintPolygon)
+      footprintPolygon = turf.bboxPolygon(footprint_bbox);
+      // BBOX is the easiest way to get the aoi footprint cooordinates sorted in the right order (needs from NW, clockwise)
+      // Can also simplify the footprint to get a 4-coords polygon rather than 20-ish
+      coordinates = turf.getCoords(footprintPolygon)[0].slice(0,4).reverse()
+      // coordinates = footprintPolygon.geometry.coordinates[0].slice(0,4).reverse()
+      // console.log('coordinates', coordinates, props.feature.properties.preview_uri, use_tms_source)
     }
-    
-    let footprintPolygon = turf.polygon(props.feature.geometry?.coordinates)
-    // footprintPolygon = simplify(footprintPolygon, {tolerance: 0.01, highQuality: false});
-    // footprintPolygon = rewind(footprintPolygon);
-    const footprint_bbox = turf.bbox(footprintPolygon)
-    footprintPolygon = turf.bboxPolygon(footprint_bbox);
-    // BBOX is the easiest way to get the aoi footprint cooordinates sorted in the right order (needs from NW, clockwise)
-    // Can also simplify the footprint to get a 4-coords polygon rather than 20-ish
-    coordinates = turf.getCoords(footprintPolygon)[0].slice(0,4).reverse()
-    // coordinates = footprintPolygon.geometry.coordinates[0].slice(0,4).reverse()
-    // console.log('coordinates', coordinates, props.feature.properties.preview_uri, use_tms_source)
   } else {
     coordinates = [[0,0],[0,0],[0,0],[0,0]]
   }
@@ -63,7 +67,7 @@ function CustomImageSource(props) {
             id="map-source-raster"
             type="image"
             url={(use_tms_source ? '' : props.feature.properties.preview_uri) || ''}
-            coordinates={coordinates}
+            coordinates={coordinates.slice(0,4)}
             key={props.feature?.properties?.id}
             // url={''}
             // coordinates={[[0,0],[0,0],[0,0],[0,0]]}

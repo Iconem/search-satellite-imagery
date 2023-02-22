@@ -1,7 +1,7 @@
 // Code for searching Head Aerospace API reverse engineered
 
 import ky from 'ky';
-import {shapeIntersection, get_imagery_price, head_constellation_dict, constellation_dict, Providers, head_search_names, providers_dict} from './search-utilities'
+import {shapeIntersection, get_imagery_price, head_constellation_dict, constellation_dict, Providers, head_search_names, providers_dict, max_abs} from './search-utilities'
 import {fitBounds, WebMercatorViewport} from '@math.gl/web-mercator';
 import bbox from '@turf/bbox';
 
@@ -38,7 +38,6 @@ function crc32(r) {
 function get_head_price(feature) {
   return get_imagery_price(feature, feature.properties.sensor, head_constellation_dict)
 }
-const max_abs = (x) => Math.max(...x.map(Math.abs))
 
 const search_head = async (search_settings, apikey='', searchPolygon=null, setters=null) => {
   const polygon_str = JSON.stringify(search_settings.coordinates.map(c => c.slice(0, -1).map(xy => [xy[1], xy[0]])))

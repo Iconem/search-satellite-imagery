@@ -2,7 +2,8 @@
 
 import ky from 'ky';
 import {encode as base64_encode} from 'base-64';
-import {Providers} from './search-utilities'
+import {Providers, max_abs} from './search-utilities'
+import {parseJwt} from '../utilities'
 import { v4 as uuidv4 } from 'uuid';
 import bbox from '@turf/bbox';
 
@@ -20,7 +21,6 @@ const get_arlula_auth = (arlula_apikey) => {
   return `Basic ${base64_encode(`${arlula_apikey.apiKey}:${arlula_apikey.apiSecurity}`)}`
 }
 
-const max_abs = (x) => Math.max(...x.map(Math.abs))
 const search_arlula = async (search_settings, arlula_apikey, searchPolygon=null, setters=null, arlula_bearer_json=null, next_url='') => {
   // /api/archive/search?start=2019-01-03&end=2019-04-13&res=low&lat=-33.8523&long=151.2108
   // polygon	JSON array or WKT polygon string
@@ -56,16 +56,19 @@ const search_arlula = async (search_settings, arlula_apikey, searchPolygon=null,
 
 const format_arlula_results = (arlula_results_raw) => {
   return {
-    'features': arlula_results_raw.results.map(r => (
-      {
+    'features': arlula_results_raw.results.map(r => {
+      // const parsedJwt = parseJwt(r.orderingID)
+      return {
         'geometry': {
           coordinates: r.bounding, // r.overlap.polygon, 
+          // coordinates: parsedJwt.polygon, // r.overlap.polygon, 
           type: 'Polygon',
         },
         'properties': {
           id: r.sceneID ?? uuidv4(), // or orderingID
           // constellation: arlula_constellation_dict[r.properties.constellation]?.constellation || r.properties.constellation,
-          'price': r.bundles?.length > 0 && r.bundles[0].price / 100,
+          'price': r.bundles?.length > 0 && Math.min(...r.bundles.map(o => o.price / 100))[0],
+          // 'price': parsedJwt.ordering?.length > 0 && Math.min(...parsedJwt.ordering.map(o => o.price / 100)),
           'providerPlatform': `${Providers.ARLULA}`, 
           'provider': `${Providers.ARLULA}/${r.supplier}-${r.platform}`, 
           'providerName': r.supplier,
@@ -83,7 +86,7 @@ const format_arlula_results = (arlula_results_raw) => {
         },
         'type': 'Feature'
       }
-    )),
+    }),
     'type': 'FeatureCollection'
   }
 }
