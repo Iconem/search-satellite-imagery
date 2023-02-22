@@ -13,6 +13,7 @@ import search_skywatch from '../archive-apis/search-skywatch'
 import search_skyfi from '../archive-apis/search-skyfi'
 import search_openaerialmap from '../archive-apis/search-openaerialmap'
 import search_arlula from '../archive-apis/search-arlula'
+import search_apollo from '../archive-apis/search-apollo'
 import {Providers} from '../archive-apis/search-utilities'
 import { GSD_steps, GSDFromIndex} from '../utilities'
 
@@ -74,6 +75,7 @@ const providers_search = {
   [Providers.SKYFI]: search_skyfi,
   [Providers.OAM]: search_openaerialmap,
   [Providers.ARLULA]: search_arlula,
+  [Providers.APOLLO]: search_apollo,
 }
 
 const emptyFeatureCollection = {

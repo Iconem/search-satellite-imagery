@@ -118,7 +118,8 @@ enum Providers {
   SKYWATCH = 'SKYWATCH',
   SKYFI = 'SKYFI',
   OAM = 'OpenAerialMap',
-  ARLULA = 'ARLULA'
+  ARLULA = 'ARLULA',
+  APOLLO = 'APOLLO MAPPING',
 }
 
 
@@ -178,7 +179,12 @@ const providers_dict = {
     Constellation.Kompsat3, 
     Constellation.Kompsat2,
     Constellation.TripleSat, 
-    // LatConnect 60
+    // TODO LatConnect 60
+  ],
+  [Providers.APOLLO]: [
+    Constellation.Pleiades, 
+    Constellation.PleiadesNeo, 
+    // TODO COMPLETE
   ],
   // 'SENTINELHUB': [Constellation.Pleiades,  Constellation.Worldview],
 }

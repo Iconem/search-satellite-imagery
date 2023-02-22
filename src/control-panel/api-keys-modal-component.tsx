@@ -52,6 +52,9 @@ function ApiKeysModalComponent(props) {
               <ListItem sx={{ display: 'list-item' }}>
                 <Typography variant="h6"> <Link href="https://app.skyfi.com/explore" target="_blank">SkyFi App</Link> </Typography>
               </ListItem>
+              <ListItem sx={{ display: 'list-item' }}>
+                <Typography variant="h6"> <Link href="https://imagehunter.apollomapping.com/" target="_blank">Apollo Mapping Image Hunter</Link> </Typography>
+              </ListItem>
             </List>
             
             <Divider variant="middle" />
