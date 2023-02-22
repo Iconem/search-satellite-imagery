@@ -56,7 +56,7 @@ function APIRequestsStatuses(props) {
                     (
                       o.errorOnFetch ? 
                       `Error on Fetch for ${o.provider}` : 
-                      `${props.searchResults?.output?.features?.filter(f => f.properties.provider?.toLowerCase().includes(o.provider?.toLowerCase())).length} results returned by ${o.provider}!`
+                      `${props.searchResults?.output?.features?.filter(f => f.properties.provider?.toLowerCase().startsWith(o.provider?.toLowerCase())).length} results returned by ${o.provider}!`
                     )
                   }
                   secondary={null}

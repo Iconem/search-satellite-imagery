@@ -1,11 +1,16 @@
 # search-satellite-imagery
 Search satellite Imagery Archive on aggregators via their respective APIs (official or not), like:
- - [UP42](https://console.up42.com/catalog)
- - [SKYWATCH EarthCache](https://console.earthcache.com/search-archive)
- - [EOS Landviewer](https://eos.com/landviewer)
- - [HEAD Aerospace](https://headfinder.head-aerospace.eu/sales)
- - [MAXAR](https://discover.maxar.com) 
- - [SKYFI](https://app.skyfi.com/explore)
+
+ - Agregators: 
+   - [UP42](https://console.up42.com/catalog)
+   - [SKYWATCH EarthCache](https://console.earthcache.com/search-archive)
+   - [EOS Landviewer](https://eos.com/landviewer)
+   - [SKYFI](https://app.skyfi.com/explore)
+   - [ARLULA Catalog](https://api.arlula.com/catalog)
+  
+ - Constellation/Providers: 
+   - [MAXAR](https://discover.maxar.com) 
+   - [HEAD Aerospace](https://headfinder.head-aerospace.eu/sales)
 
 ![Screenshot](screenshot.jpg)
 
@@ -22,15 +27,21 @@ Search satellite Imagery Archive on aggregators via their respective APIs (offic
 
 ## Possible todos: 
 ### Short Term
+#### New agregations: 
+ - Add APIs search for [GeoCento](https://imagery.geocento.com/), [Apollo Mapping](https://imagehunter.apollomapping.com/)
+ - Integrate already aggregated constellations directly if authorized to do so, like [Planet](https://developers.planet.com/docs/apis/data/reference/#tag/Item-Search/operation/ListSearches) or [Airbus OneAtlas Pleiades directly](https://api.oneatlas.airbus.com/guides/oneatlas-data/g-search/) (would then indicate unknown price since often under NDA),[Vexcel API](https://vexcel.atlassian.net/wiki/spaces/APIDOCS/pages/2131886750/FindImagesInPolygon+Service+-+v1.4),
+ - Integrate other satellite imagery providers in the list: [AxelGlobe](https://axelglobe.com/) (Hard. possible via graphql request to get tiles spatial-identifiers covering polygon and then count tiles overlapping a region from spatial id and time range, or use upcoming stac search endpoint if apikey gated access allows it), Not yet publicly available and access requested: [Satellogic Aleph](https://aleph.satellogic.com/) (early access to platform seem closed now), [Albedo](https://albedo.com/product-specs) 10cm visible will have a STAC endpoint delivering COGs, Pixxel [Early adopters program](https://www.pixxel.space/early-adopter-program) 5m hyperspectral 300bands, Umbra space SAR [Canopy](https://canopy.umbra.space/). Or these EarthCache X list: BlackSky,  [SentinelHub](https://www.sentinel-hub.com/develop/api/) (requires paid account for high-res search and api) [SH EO browser](https://apps.sentinel-hub.com/eo-browser)
+
+#### New Features/Fixes
  - Search any new STAC catalog (UP42 is one): Give it the STAC URL, parse results and columns to display in datagrid. Could use existing STAC tooling, but there does not seem to be any JS search client library - only full-fledged apps like [stac-server](https://github.com/stac-utils/stac-server) or [leaflet layer](https://github.com/stac-utils/stac-layer) and [stac-search](https://github.com/radiantearth/stac-browser/) (to deploy a stac, these are the go-to resource: [stac-fastapi](https://github.com/stac-utils/stac-fastapi) and pystac)
  - Cleanup: search-utilities, make each search extends a search object class, polygon aoi be a single feature search param, each geojson feature be a real geojson feature (search input, results)
- - Not easy: add react state feature to drawcontrol that can be edited (so polygon imported from kml or localstorage can be edited)
- - Integrate other satellite imagery providers like this Skyfi list: [AxelGlobe](https://axelglobe.com/) (Hard. possible via graphql request to get tiles spatial-identifiers covering polygon and then count tiles overlapping a region from spatial id and time range), Not yet publicly available and access requested: [Satellogic Aleph](https://aleph.satellogic.com/), [Albedo](albedo.com) 10cm visible, Pixxel [Early adopters program](https://www.pixxel.space/early-adopter-program), Umbra space SAR [Canopy](https://canopy.umbra.space/). Or these EarthCache X list: BlackSky, Satellogic or Vexcel 
+ - Put API search in its own ts module, eventually yield results the way loaders.gl does it
+ - Remove polygon when new one is drawn. Aditionnally, Not easy: add react state feature to drawcontrol that can be edited (so polygon imported from kml or localstorage can be edited)
 ### Long Term
- - Helps order making (no deep-links for any platform unfortunately): make selection, export requests email with scene IDs
+ - Helps order making (no deep-links for any platform when checked unfortunately): make selection, export requests email with scene IDs
  - Order archive imagery via API (no tasking)
- - Not really useful: Sync datagrid focus on feature when hovered from timeline
- - Not really useful: Offer ability to Cancel ongoing request/promise. Hard to do, promise resolve will always execute after ky get/post request finally resolves
+ - Not really useful: Offer ability to Cancel ongoing request/promise. Promise resolve will always execute after ky get/post request finally resolves
+ - Not really useful: intro-js or react-joyride guided steps walkthrough
 
 ## Development
 ```bash

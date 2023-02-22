@@ -97,6 +97,10 @@ function ControlPanel(props) {
       [Providers.EOS]: '',
       [Providers.SKYWATCH]: '',
       [Providers.MAXAR_DIGITALGLOBE]: '',
+      [Providers.ARLULA]: {
+        apiKey: '',
+        apiSecurity: '',
+      }, 
     });
 // [Providers.UP42]: {
 //   projectId: process.env.UP42_PROJECT_ID,

@@ -139,6 +139,39 @@ function ApiKeysModalComponent(props) {
                 sx={{ width: '50%' }}
               />
               </ListItem>
+              <ListItem sx={{ display: 'list-item' }}>
+              <Link href="https://api.arlula.com/" target="_blank"> <Typography variant="h6"> ARLULA </Typography></Link>
+              </ListItem>
+              <ListItem sx={{ display: 'list-item' }}>
+                <TextField 
+                  value={props.apiKeys[Providers.ARLULA]['apiKey']} 
+                  onChange={(event) => props.setApiKeys({
+                    ...props.apiKeys, 
+                    [Providers.ARLULA]: {
+                      ...props.apiKeys[Providers.ARLULA], 
+                      apiKey: event.target.value,
+                    }
+                  })} 
+                  label="ARLULA API Key" 
+                  type="search" 
+                  sx={{ width: '50%' }}
+                  />
+              </ListItem>
+              <ListItem sx={{ display: 'list-item' }}>
+                <TextField 
+                  value={props.apiKeys[Providers.ARLULA]['apiSecurity']} 
+                  onChange={(event) => props.setApiKeys({
+                    ...props.apiKeys, 
+                    [Providers.ARLULA]: {
+                      ...props.apiKeys[Providers.ARLULA], 
+                      apiSecurity: event.target.value,
+                    }
+                  })} 
+                  label="ARLULA API Security key" 
+                  type="search" 
+                  sx={{ width: '50%' }}
+                  />
+              </ListItem>
             </List>
 
             

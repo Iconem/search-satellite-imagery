@@ -117,7 +117,8 @@ enum Providers {
   EOS = 'EOS',
   SKYWATCH = 'SKYWATCH',
   SKYFI = 'SKYFI',
-  OAM = 'OpenAerialMap'
+  OAM = 'OpenAerialMap',
+  ARLULA = 'ARLULA'
 }
 
 
@@ -167,6 +168,17 @@ const providers_dict = {
   ],
   [Providers.OAM]: [
     Constellation.OAM
+  ],
+  [Providers.ARLULA]: [
+    Constellation.GeoEye, 
+    Constellation.WorldView_1_2, 
+    Constellation.WorldView_3_4, 
+    Constellation.QuickBird2, 
+    Constellation.Ikonos1,
+    Constellation.Kompsat3, 
+    Constellation.Kompsat2,
+    Constellation.TripleSat, 
+    // LatConnect 60
   ],
   // 'SENTINELHUB': [Constellation.Pleiades,  Constellation.Worldview],
 }
