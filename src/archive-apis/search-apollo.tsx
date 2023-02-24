@@ -7,8 +7,8 @@ import bboxPolygon from '@turf/bbox-polygon';
 
 // https://imagehunter.apollomapping.com/
 
-const APOLLO_SEARCH_URL = 'https://imagehunter-api.apollomapping.com/ajax/search'
-const apollo_domain = 'https://imagehunter.apollomapping.com'
+const APOLLO_API_URL = 'https://imagehunter-api.apollomapping.com'
+const APOLLO_DOMAIN = 'https://imagehunter.apollomapping.com'
 
 const search_apollo = async (search_settings, apollo_apikey, searchPolygon=null, setters=null) => {
   const apollo_payload = {
@@ -41,9 +41,9 @@ const search_apollo = async (search_settings, apollo_apikey, searchPolygon=null,
   // Returns 401 Unauthorized probably because request is actually sent to http non-sll server url because dev server has no tls and origin and referer are overwritten by browser to localhost
   // Tried using a CORS proxy, with no luck like [cors-anywhere](https://github.com/Rob--W/cors-anywhere/#documentation) public one or [allorigins](https://allorigins.win/) or any recent one listed [here](https://nordicapis.com/10-free-to-use-cors-proxies/)
 
-  // const requestOptions = {headers: { 'Host': apollo_domain,  'Origin': apollo_domain,  'Referer': apollo_domain, }, method: 'POST'};
+  // const requestOptions = {headers: { 'Host': APOLLO_DOMAIN,  'Origin': APOLLO_DOMAIN,  'Referer': APOLLO_DOMAIN, }, method: 'POST'};
   // let apolloRequest = new Request(APOLLO_SEARCH_URL, requestOptions);
-  let apolloRequest = APOLLO_SEARCH_URL
+  let apolloRequest = `${APOLLO_API_URL}/ajax/search`
   // let apolloRequest = 'https://api.allorigins.win/get?url=https%3A%2F%2Freqres.in%2Fapi%2Fusers'
   // let apolloRequest = 'https://test.cors.workers.dev/?https%3A%2F%2Freqres.in%2Fapi%2Fusers'
   // apolloRequest = 'http://localhost:8010/proxy/ajax/search'
@@ -55,11 +55,11 @@ const search_apollo = async (search_settings, apollo_apikey, searchPolygon=null,
 
   const apollo_results_raw = await ky.post(
     apolloRequest,
-    { 
+    {
       headers: {  
-        'Host': apollo_domain, 
-        'Origin': apollo_domain, 
-        'Referer': apollo_domain, 
+        'Host': APOLLO_DOMAIN, 
+        'Origin': APOLLO_DOMAIN, 
+        'Referer': APOLLO_DOMAIN, 
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
         'Content-Length': `${apollo_payload_body.length}`
         // 'Content-Length': '867'
@@ -70,6 +70,22 @@ const search_apollo = async (search_settings, apollo_apikey, searchPolygon=null,
 
   const search_results_json = format_apollo_results(apollo_results_raw)
   console.log('apollo PAYLOAD: \n', apollo_payload.toString(), '\nRAW apollo search results: \n', apollo_results_raw, '\nJSON apollo search results: \n', search_results_json)
+  
+  // CAUTION This is heavy on request as it does one per image to preview
+  // A better way could be to add a callback on hover in datagrid if preview does not exist to retrieve its url
+  // Initiate search for previews/thumbnails
+  get_apollo_previews_async(search_results_json).then(
+    (results) => {
+      if (setters) {
+        const searchResults = {
+          'input': searchPolygon,
+          'output': results,
+        }
+        // console.log('APOLLO search previews have been retrieved, setting react state')
+        // setters.setSearchResults(searchResults)
+      }
+    }
+  )
 
   return {
     search_results_json,
@@ -78,9 +94,7 @@ const search_apollo = async (search_settings, apollo_apikey, searchPolygon=null,
 
 const format_apollo_results = (apollo_results_raw) => {
   return {
-    'features': apollo_results_raw.results.map(r => {
-      console.log('time', r.js_date, r.collection_date, r.acq_time)
-      console.log( (r.js_date || r.collection_date) + ' ' + ((!r.acq_time  || r.acq_time.includes('None')) ? '' : r.acq_time))
+    'features': apollo_results_raw.results.slice(900, 1100).map(r => { // 
       return {
         'geometry': bboxPolygon([r.bottomright.x, r.bottomright.y, r.topleft.x, r.topleft.y ]).geometry,
         'properties': {
@@ -88,7 +102,6 @@ const format_apollo_results = (apollo_results_raw) => {
           'price': null,
           'providerPlatform': `${Providers.APOLLO}`, 
           'provider': `${Providers.APOLLO}/${r.collection_vehicle_short}`, 
-          'providerName': r.supplier,
 
           'resolution': r.js_resolution, // or interpret resolution : "2.0 m"
           
@@ -96,13 +109,14 @@ const format_apollo_results = (apollo_results_raw) => {
           'cloudCoverage': r.cloud_cover_percent,
           'shapeIntersection': null, // TODO
           'providerProperties': {
+            'satelliteShortName': r.collection_vehicle_short,
             'azimuthAngle': r.azimuth_angle, // and target_az
             'incidenceAngle': r.offnadir, 
             'illuminationAzimuthAngle': r.sun_az, 
             'illuminationElevationAngle': r.sun_elev, 
           },
-          'preview_uri': r.preview_url,
-          'thumbnail_uri': r.preview_url, 
+          'preview_uri': null, // r.preview_url,
+          'thumbnail_uri': null, // r.preview_url, 
         },
         'type': 'Feature'
       }
@@ -111,10 +125,45 @@ const format_apollo_results = (apollo_results_raw) => {
   }
 }
 
-// catid: 20221111_140557_ssc7_u0001
-// satellite: scene
-// satelliteShortName: SKYC
-// isRefresh: false
-// forceHighestQuality: false
+const timer = ms => new Promise(res => setTimeout(res, ms))
+
+const get_apollo_previews_async = async (apollo_results) => {
+  const chunkSize = 10;
+  for (let i = 0; i < apollo_results.features.length; i += chunkSize) {
+      const chunk = apollo_results.features.slice(i, i + chunkSize);
+      chunk.forEach(async feature => {
+        const preview_payload = {
+          catid: feature.properties.id,
+          satellite: 'scene',
+          satelliteShortName: feature.properties.providerProperties.satelliteShortName,
+          isRefresh: false,
+          forceHighestQuality: false, // Todo: test true
+        }
+        const preview_payload_body = new URLSearchParams(preview_payload as any).toString();
+        try {
+          const preview_url_object = await ky.post(
+            `${APOLLO_API_URL}/ajax/get_preview_image`, 
+            { 
+              headers: {
+                'Host': APOLLO_DOMAIN, 
+                'Origin': APOLLO_DOMAIN, 
+                'Referer': APOLLO_DOMAIN, 
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'Content-Length': `${preview_payload_body.length}`
+              },
+              body: preview_payload_body
+            }
+          ).json();
+          feature.properties.thumbnail_uri = APOLLO_API_URL + (preview_url_object as any).path;
+          feature.properties.preview_uri = feature.properties.thumbnail_uri;
+          // console.log('REQUESTING APOLLO PREVIEW', preview_payload.catid, preview_payload, preview_url_object, feature.properties.thumbnail_uri)
+        } catch {
+    
+        }
+      })
+      await timer(3000)
+  }
+}
+
 
 export default search_apollo 
