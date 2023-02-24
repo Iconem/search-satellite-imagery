@@ -1,12 +1,9 @@
 // Code for searching APOLLO MAPPING API
 
 import ky from 'ky';
-import {encode as base64_encode} from 'base-64';
 import {Providers, max_abs} from './search-utilities'
-import {parseJwt} from '../utilities'
 import { v4 as uuidv4 } from 'uuid';
-import bbox from '@turf/bbox';
-
+import bboxPolygon from '@turf/bbox-polygon';
 
 // https://imagehunter.apollomapping.com/
 
@@ -17,7 +14,7 @@ const search_apollo = async (search_settings, apollo_apikey, searchPolygon=null,
   const apollo_payload = {
     startDate: search_settings.startDate.toISOString().substring(0,19), // '1970-01-01T12:00:00',
     endDate: search_settings.endDate.toISOString().substring(0,19),
-    coords: JSON.stringify(searchPolygon.geometry.coordinates), // [[2.3299598693847656,48.8607622103356],[2.35107421875,48.867763659652354],[2.366352081298828,48.851500724507346],[2.3411178588867188,48.844384028766385],[2.322235107421875,48.8539856815748],[2.322235107421875,48.8539856815748]],
+    coords: JSON.stringify(searchPolygon.geometry.coordinates[0]), // [[2.3299598693847656,48.8607622103356],[2.35107421875,48.867763659652354],[2.366352081298828,48.851500724507346],[2.3411178588867188,48.844384028766385],[2.322235107421875,48.8539856815748],[2.322235107421875,48.8539856815748]],
 
     cloudcover_max: search_settings.cloudCoverage,
     offnadir_max: max_abs(search_settings.offNadirAngle),
@@ -25,28 +22,36 @@ const search_apollo = async (search_settings, apollo_apikey, searchPolygon=null,
     resolution_max: search_settings.gsd.max,
 
     lazyLoad: false,
-    satellites: ["HEX","EB","FS2","FS5","GS2","GF1H","GF2","GE1","BSG","IK","J14","J15","J1V","K2","K3","K3A",,"KZ1","OVS1","OVS23","PNEO","P1","QB","SP6","SKYC","SV1","TeL","TS","WV1","WV2","WV3","WV4"],
+    satellites: JSON.stringify(["HEX","EB","FS2","FS5","GS2","GF1H","GF2","GE1","BSG","IK","J14","J15","J1V","K2","K3","K3A",,"KZ1","OVS1","OVS23","PNEO","P1","QB","SP6","SKYC","SV1","TeL","TS","WV1","WV2","WV3","WV4"]),
     dem: false,
     stereo: false,
     seasonal: false,
   }; 
+  const apollo_payload_body = new URLSearchParams(apollo_payload as any).toString();
   // Better have a look at maxar payload construction
 
-  // cloudcover_max=100&offnadir_max=60&resolution_min=0&resolution_max=2&dem=false&coords=%5B%5B2.3299598693847656%2C48.8607622103356%5D%2C%5B2.35107421875%2C48.867763659652354%5D%2C%5B2.366352081298828%2C48.851500724507346%5D%2C%5B2.3411178588867188%2C48.844384028766385%5D%2C%5B2.322235107421875%2C48.8539856815748%5D%2C%5B2.322235107421875%2C48.8539856815748%5D%5D&seasonal=false&stereo=false&lazyLoad=false&startDate=2023-01-01T12%3A00%3A00&endDate=2023-02-23T08%3A19%3A10&satellites=%5B%22HEX%22%2C%22EB%22%2C%22FS2%22%2C%22FS5%22%2C%22GS2%22%2C%22GF1H%22%2C%22GF2%22%2C%22GE1%22%2C%22BSG%22%2C%22IK%22%2C%22J14%22%2C%22J15%22%2C%22J1V%22%2C%22K2%22%2C%22K3%22%2C%22K3A%22%2C%22KZ1%22%2C%22OVS1%22%2C%22OVS23%22%2C%22PNEO%22%2C%22P1%22%2C%22QB%22%2C%22SP6%22%2C%22SKYC%22%2C%22SV1%22%2C%22TeL%22%2C%22TS%22%2C%22WV1%22%2C%22WV2%22%2C%22WV3%22%2C%22WV4%22%5D
-
-  console.log('apollo_payload', apollo_payload)
-
   // WIP, returns 401 unauthorized because origin and referer headers are overwritten on post
-  return {
-    'features': [], 
-    type: 'FeatureCollection'
-  }
+  // return {
+  //   search_results_json: {
+  //     'features': [], 
+  //     type: 'FeatureCollection'
+  //   }
+  // }
 
   // Returns 401 Unauthorized probably because request is actually sent to http non-sll server url because dev server has no tls and origin and referer are overwritten by browser to localhost
+  // Tried using a CORS proxy, with no luck like [cors-anywhere](https://github.com/Rob--W/cors-anywhere/#documentation) public one or [allorigins](https://allorigins.win/) or any recent one listed [here](https://nordicapis.com/10-free-to-use-cors-proxies/)
 
   // const requestOptions = {headers: { 'Host': apollo_domain,  'Origin': apollo_domain,  'Referer': apollo_domain, }, method: 'POST'};
   // let apolloRequest = new Request(APOLLO_SEARCH_URL, requestOptions);
   let apolloRequest = APOLLO_SEARCH_URL
+  // let apolloRequest = 'https://api.allorigins.win/get?url=https%3A%2F%2Freqres.in%2Fapi%2Fusers'
+  // let apolloRequest = 'https://test.cors.workers.dev/?https%3A%2F%2Freqres.in%2Fapi%2Fusers'
+  // apolloRequest = 'http://localhost:8010/proxy/ajax/search'
+  // let apolloRequest = `https://api.allorigins.win/post?url=${encodeURIComponent(APOLLO_SEARCH_URL)}`
+  const test_payload = {
+    "name": "morpheudezetterz",
+    "job": "letrezterzder"
+  }
 
   const apollo_results_raw = await ky.post(
     apolloRequest,
@@ -56,12 +61,13 @@ const search_apollo = async (search_settings, apollo_apikey, searchPolygon=null,
         'Origin': apollo_domain, 
         'Referer': apollo_domain, 
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'Content-Length': `${JSON.stringify(apollo_payload).length}`
+        'Content-Length': `${apollo_payload_body.length}`
+        // 'Content-Length': '867'
       },
-      json: apollo_payload,
+      body: apollo_payload_body, // test_payload, apollo_payload, fake_payload
     }
   ).json();
-  console.log('apollo_results_raw', apollo_results_raw)
+
   const search_results_json = format_apollo_results(apollo_results_raw)
   console.log('apollo PAYLOAD: \n', apollo_payload.toString(), '\nRAW apollo search results: \n', apollo_results_raw, '\nJSON apollo search results: \n', search_results_json)
 
@@ -73,32 +79,30 @@ const search_apollo = async (search_settings, apollo_apikey, searchPolygon=null,
 const format_apollo_results = (apollo_results_raw) => {
   return {
     'features': apollo_results_raw.results.map(r => {
-      // const parsedJwt = parseJwt(r.orderingID)
+      console.log('time', r.js_date, r.collection_date, r.acq_time)
+      console.log( (r.js_date || r.collection_date) + ' ' + ((!r.acq_time  || r.acq_time.includes('None')) ? '' : r.acq_time))
       return {
-        'geometry': {
-          coordinates: r.bounding, // r.overlap.polygon, 
-          // coordinates: parsedJwt.polygon, // r.overlap.polygon, 
-          type: 'Polygon',
-        },
+        'geometry': bboxPolygon([r.bottomright.x, r.bottomright.y, r.topleft.x, r.topleft.y ]).geometry,
         'properties': {
-          id: r.sceneID ?? uuidv4(), // or orderingID
-          // constellation: apollo_constellation_dict[r.properties.constellation]?.constellation || r.properties.constellation,
-          'price': r.bundles?.length > 0 && Math.min(...r.bundles.map(o => o.price / 100))[0],
-          // 'price': parsedJwt.ordering?.length > 0 && Math.min(...parsedJwt.ordering.map(o => o.price / 100)),
+          id: r.objectid ?? uuidv4(), // or orderingID
+          'price': null,
           'providerPlatform': `${Providers.APOLLO}`, 
-          'provider': `${Providers.APOLLO}/${r.supplier}-${r.platform}`, 
+          'provider': `${Providers.APOLLO}/${r.collection_vehicle_short}`, 
           'providerName': r.supplier,
 
-          'resolution': r.gsd,
-          'acquisitionDate': r.date, 
-          'cloudCoverage': r.cloud,
-          'shapeIntersection': r.overlap.percent.scene,
+          'resolution': r.js_resolution, // or interpret resolution : "2.0 m"
+          
+          'acquisitionDate': new Date((r.js_date || r.collection_date) + ' ' + ((!r.acq_time || r.acq_time.includes('None')) ? '' : r.acq_time)).toISOString(), // "10-16-2021" or js_date "October 16, 2021"/"10-16-2021"     acq_time : "21:36:00 UTC"
+          'cloudCoverage': r.cloud_cover_percent,
+          'shapeIntersection': null, // TODO
           'providerProperties': {
-            'azimuthAngle': r.offNadir // or incidenceAngle
+            'azimuthAngle': r.azimuth_angle, // and target_az
+            'incidenceAngle': r.offnadir, 
+            'illuminationAzimuthAngle': r.sun_az, 
+            'illuminationElevationAngle': r.sun_elev, 
           },
-          'preview_uri': r.thumbnail,
-          'thumbnail_uri': r.thumbnail, 
-
+          'preview_uri': r.preview_url,
+          'thumbnail_uri': r.preview_url, 
         },
         'type': 'Feature'
       }
@@ -106,5 +110,11 @@ const format_apollo_results = (apollo_results_raw) => {
     'type': 'FeatureCollection'
   }
 }
+
+// catid: 20221111_140557_ssc7_u0001
+// satellite: scene
+// satelliteShortName: SKYC
+// isRefresh: false
+// forceHighestQuality: false
 
 export default search_apollo 

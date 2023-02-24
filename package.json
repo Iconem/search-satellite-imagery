@@ -27,6 +27,7 @@
     "@tmcw/togeojson": "^5.6.0",
     "@turf/area": "^6.5.0",
     "@turf/bbox": "^6.5.0",
+    "@turf/bbox-polygon": "^6.5.0",
     "@turf/boolean-clockwise": "^6.5.0",
     "@turf/helpers": "^6.5.0",
     "@turf/intersect": "^6.5.0",
