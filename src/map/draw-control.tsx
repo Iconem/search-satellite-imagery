@@ -38,13 +38,30 @@ modes['draw_rectangle'] = DrawRectangle;
 // modes['draw_line_string'] = 'draw_polygon' // MapboxDraw.DrawModes.DRAW_POLYGON;
 // .mapbox-gl-draw_line { background-image: url(''); }
 
-export default function DrawControl(props: DrawControlProps) {
+
+interface CustomDrawControlProps extends DrawControlProps {
+  setDrawFeatures: any
+}
+
+export default function DrawControl(props: CustomDrawControlProps) {
   // console.log('\n\n' + props.modes + '\n\n')
   // props.modes = {'draw_polygon_la': MapboxDraw.modes.DRAW_POLYGON}
 
   useControl<MapboxDraw>(
     ({map}: {map: MapRef}) => {
-      map.on('draw.create', props.onCreate);
+      map.on('draw.create', (e) => {
+        const all = draw.getAll().features
+        draw.delete(all.slice(0, all.length-1).map(f => f.id as string))
+        if (props.setDrawFeatures) {
+          // console.log('draw.getAll().features', draw.getAll().features, draw.getAll().features.length)
+          props.setDrawFeatures(
+            Object.fromEntries(
+              draw.getAll().features.map(f => [f.id, f])
+            )
+          )
+        }
+        props.onCreate(e)
+      });
       map.on('draw.update', props.onUpdate);
       map.on('draw.delete', props.onDelete);
       const draw = new MapboxDraw({

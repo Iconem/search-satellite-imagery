@@ -78,28 +78,20 @@ function KML_input(props) {
 
 function MapControls(props) {
   const onDrawCreate = useCallback(e => {
-    // console.log('this', this)
-    // console.log('this', this.addFeatures)
     props.setDrawFeatures(currFeatures => {
       const newFeatures = {...currFeatures};
-      // console.log(newFeatures, e.features)
       for (const f of e.features) {
         newFeatures[f.id] = f;
-        // console.log('draw f', f)
       }
-      // console.log('draw newFeatures', newFeatures)
       return newFeatures;
     });
   }, []);
   const onDrawUpdate = useCallback(e => {
     props.setDrawFeatures(currFeatures => {
       const newFeatures = {...currFeatures};
-      // console.log(newFeatures, e.features)
       for (const f of e.features) {
         newFeatures[f.id] = f;
-        // console.log('draw f', f)
       }
-      // console.log('draw newFeatures', newFeatures)
       return newFeatures;
     });
   }, []);
@@ -137,6 +129,7 @@ function MapControls(props) {
         onUpdate={onDrawUpdate}
         onDelete={onDrawDelete}
         styles= {draw_polygon_styles(props.theme)}
+        setDrawFeatures={props.setDrawFeatures}
       />
       <CustomOverlay position="top-left" style={{ pointerEvents: "all" }} >
         <KML_input setDrawFeatures={props.setDrawFeatures} mapRef={props.mapRef}/>
