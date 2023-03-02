@@ -9,7 +9,12 @@ import {Providers} from './search-utilities'
 // Skywatch: https://dashboard.skywatch.co/account/profile
 
 const skywatch_search_url = 'https://api.skywatch.co/earthcache/archive/search'
+const skywatch_search_url_jwt = 'https://api.skywatch.co/auth0-jwt/earthcache/archive/search'
 const perform_skywatch_search = (skywatch_apikey, searchId) => 
+  skywatch_apikey.includes('Bearer') ? 
+  ky.get( `${skywatch_search_url_jwt}/${searchId['data'].id}/search_results`, {
+    headers: { 'authorization': skywatch_apikey } 
+  }) : 
   ky.get( `${skywatch_search_url}/${searchId['data'].id}/search_results`, {
     headers: { 'x-api-key': skywatch_apikey },
   })
@@ -35,16 +40,26 @@ const search_skywatch = async (search_settings, skywatch_apikey, searchPolygon=n
     'end_date': search_settings.endDate.toISOString().substring(0,10),
     'resolution': resolution_array,
     'coverage': search_settings.aoiCoverage,
+    'cloud_cover_percentage': search_settings.cloudCoverage,
     'interval_length': 0,
     'order_by': ['resolution', 'date', 'cost'],
     // "cloudCoverage": search_settings.cloudCoverage // not working
   }
   // console.log('SKYWATCH PAYLOAD: \n', skywatch_payload, '\n')
 
-  const searchId = await ky.post(skywatch_search_url, {
-    headers: {'x-api-key': skywatch_apikey},
-    json: skywatch_payload, 
-  }).json();
+  const searchId = 
+    skywatch_apikey.includes('Bearer') ? 
+    await ky.post(skywatch_search_url_jwt, {
+      headers: {
+        'authorization': skywatch_apikey,
+        'content-length': `${JSON.stringify(skywatch_payload).length}`
+      },
+      json: skywatch_payload, 
+    }).json() : 
+    await ky.post(skywatch_search_url, {
+      headers: {'x-api-key': skywatch_apikey},
+      json: skywatch_payload, 
+    }).json();;
   console.log('SKYWATCH searchId: \n', searchId, '\n')
 
   let search_results_raw
