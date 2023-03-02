@@ -3,6 +3,15 @@
 import area from '@turf/area';
 import intersect from '@turf/intersect';
 
+function filter_features_with_search_params (f, searchPolygon) { 
+  return true 
+    && searchPolygon.properties.gsd_min <= f.properties.resolution
+    && f.properties.resolution <= searchPolygon.properties.gsd_max
+    && (f.properties.cloudCoverage ?? 0) <= searchPolygon.properties.cloudCoverage
+    && new Date(f.properties.acquisitionDate) >= new Date(searchPolygon.properties.startDate)
+    && new Date(f.properties.acquisitionDate) <= new Date(searchPolygon.properties.endDate)
+}
+
 // Shape intersection expressed as number in [0,100] of overlap of feature_1 over feature_2
 const shapeIntersection = (feature_1, feature_2) => {
   return Math.round(area(intersect(feature_1, feature_2)) / area(feature_2) * 100) 
@@ -513,6 +522,7 @@ const maxar_constellation_dict =
 
 export {
   // Methods
+  filter_features_with_search_params,
   shapeIntersection, 
   get_imagery_price, 
   max_abs,

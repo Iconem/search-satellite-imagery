@@ -1,7 +1,7 @@
 // Code for searching APOLLO MAPPING API
 
 import ky from 'ky';
-import {Providers, max_abs} from './search-utilities'
+import {Providers, max_abs, filter_features_with_search_params} from './search-utilities'
 import { v4 as uuidv4 } from 'uuid';
 import bboxPolygon from '@turf/bbox-polygon';
 
@@ -71,6 +71,11 @@ const search_apollo = async (search_settings, apollo_apikey, searchPolygon=null,
   const search_results_json = format_apollo_results(apollo_results_raw)
   console.log('apollo PAYLOAD: \n', apollo_payload.toString(), '\nRAW apollo search results: \n', apollo_results_raw, '\nJSON apollo search results: \n', search_results_json)
   
+  // Filter out unwanted features before searching previews
+  search_results_json.features = search_results_json.features.filter(
+    f => filter_features_with_search_params(f, searchPolygon)
+  )
+  
   // CAUTION This is heavy on request as it does one per image to preview
   // A better way could be to add a callback on hover in datagrid if preview does not exist to retrieve its url
   // Initiate search for previews/thumbnails
@@ -94,7 +99,7 @@ const search_apollo = async (search_settings, apollo_apikey, searchPolygon=null,
 
 const format_apollo_results = (apollo_results_raw) => {
   return {
-    'features': apollo_results_raw.results.slice(900, 1100).map(r => { // 
+    'features': apollo_results_raw.results.map(r => { // slice(900, 1100)
       return {
         'geometry': bboxPolygon([r.bottomright.x, r.bottomright.y, r.topleft.x, r.topleft.y ]).geometry,
         'properties': {
@@ -140,7 +145,6 @@ const get_apollo_previews_async = async (apollo_results) => {
           forceHighestQuality: false, // Todo: test true
         }
         const preview_payload_body = new URLSearchParams(preview_payload as any).toString();
-        try {
           const preview_url_object = await ky.post(
             `${APOLLO_API_URL}/ajax/get_preview_image`, 
             { 
@@ -157,9 +161,6 @@ const get_apollo_previews_async = async (apollo_results) => {
           feature.properties.thumbnail_uri = APOLLO_API_URL + (preview_url_object as any).path;
           feature.properties.preview_uri = feature.properties.thumbnail_uri;
           // console.log('REQUESTING APOLLO PREVIEW', preview_payload.catid, preview_payload, preview_url_object, feature.properties.thumbnail_uri)
-        } catch {
-    
-        }
       })
       await timer(3000)
   }
