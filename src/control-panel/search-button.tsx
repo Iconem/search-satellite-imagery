@@ -14,7 +14,7 @@ import search_skyfi from '../archive-apis/search-skyfi'
 import search_openaerialmap from '../archive-apis/search-openaerialmap'
 import search_arlula from '../archive-apis/search-arlula'
 import search_apollo from '../archive-apis/search-apollo'
-import {Providers} from '../archive-apis/search-utilities'
+import {Providers, filter_features_with_search_params} from '../archive-apis/search-utilities'
 import { GSD_steps, GSDFromIndex} from '../utilities'
 
 
@@ -82,7 +82,7 @@ const emptyFeatureCollection = {
   features: [],
   type: "FeatureCollection"
 }
-const hideSearchDelay = 5000
+const hideSearchDelay = 10000
 const search_imagery = async (polygons, searchSettings, apiKeys, setters, providersTreeviewDataSelection) => {
   setters.setLoadingResults(true);
   const searchResultsOutput = JSON.parse(JSON.stringify(emptyFeatureCollection)) // Deep Copy
@@ -231,21 +231,39 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
             searchFinishedForMoreThanDelay: false,
             errorOnFetch: false,
             promise: new Promise(async resolve => {
-              const { search_results_json, errorOnFetch } = await filtered_providers_search[provider]
+              let search_results_json, errorOnFetch;
+              // const { search_results_json, errorOnFetch } = await filtered_providers_search[provider]
+              //   (search_settings, apiKeys[provider], searchPolygon, setters)
+              await filtered_providers_search[provider]
                 (search_settings, apiKeys[provider], searchPolygon, setters)
+              .then(search_result_obj => {
+                if (!search_result_obj || search_result_obj.errorOnFetch || !search_result_obj.search_results_json) {
+                  throw new Error('Search had an error or led to not well formatted search_results object');
+                }
+                ({ search_results_json, errorOnFetch } = search_result_obj)
+                search_promises[provider].errorOnFetch = errorOnFetch ?? false
 
-              // Filter out results not matching resquest
-              search_results_json.features = search_results_json.features.filter(
-                f => 
-                  searchPolygon.properties.gsd_min <= f.properties.resolution
-                  && f.properties.resolution <= searchPolygon.properties.gsd_max
-                  && (f.properties.cloudCoverage ?? 0) <= searchPolygon.properties.cloudCoverage
-              )
-              
+                // Filter out results not matching resquest
+                search_results_json.features = search_results_json.features.filter(
+                  f => filter_features_with_search_params(f, searchPolygon)
+                )
+              }).catch((error) => {
+                console.error('Error during search', error);
+                search_promises[provider].errorOnFetch = true
+                setters.setSnackbarOptions({
+                  open: true, 
+                  message: `Failure during search with ${provider}, request resulted in error - requires Allow-CORS plugin, cors-proxy or requestly to edit header origin, host or referer`
+                })
+                search_results_json =  {
+                    'features': [],
+                    'type': 'FeatureCollection'
+                  }
+              });
+
+              // Once search promise await ok, resolve promise, modify state, and edit timeout
               update_search_results(search_results_json)
               resolve(search_results_json)
               search_promises[provider].searchFinished = true
-              search_promises[provider].errorOnFetch = errorOnFetch ?? false
               // setters.setSearchPromises(search_promises)
               setters.setSearchPromises({
                 ...search_promises,
@@ -254,8 +272,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
                   searchFinished: true
                 }
               })
-              // console.log('PROMISES ARRAY AFTER PROVIDER', provider, search_promises)
-
+              
               setTimeout(() => {
                 search_promises[provider].searchFinishedForMoreThanDelay = true
                 // setters.setSearchPromises(search_promises)

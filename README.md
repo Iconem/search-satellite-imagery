@@ -8,6 +8,7 @@ Search satellite Imagery Archive on aggregators via their respective APIs (offic
    - [SKYWATCH EarthCache](https://console.earthcache.com/search-archive)
    - [SKYFI](https://app.skyfi.com/explore)
    - [ARLULA Catalog](https://api.arlula.com/catalog)
+   - [ApolloMapping ImageHunter](http://imagehunter.apollomapping.com/)
   
  - Constellation/Providers: 
    - [MAXAR](https://discover.maxar.com) 
@@ -28,9 +29,8 @@ Search satellite Imagery Archive on aggregators via their respective APIs (offic
 ## Possible todos: 
 ### Short Term
 #### New agregations: 
- - Add APIs search for [GeoCento](https://imagery.geocento.com/), [Apollo Mapping](https://imagehunter.apollomapping.com/)
  - Integrate already aggregated constellations directly if authorized to do so, like [Planet](https://developers.planet.com/docs/apis/data/reference/#tag/Item-Search/operation/ListSearches) or [Airbus OneAtlas Pleiades directly](https://api.oneatlas.airbus.com/guides/oneatlas-data/g-search/) (would then indicate unknown price since often under NDA),[Vexcel API](https://vexcel.atlassian.net/wiki/spaces/APIDOCS/pages/2131886750/FindImagesInPolygon+Service+-+v1.4),
- - Integrate other satellite imagery providers in the list: [AxelGlobe](https://axelglobe.com/) (Hard. possible via graphql request to get tiles spatial-identifiers covering polygon and then count tiles overlapping a region from spatial id and time range, or use upcoming stac search endpoint if apikey gated access allows it), Not yet publicly available and access requested: [Satellogic Aleph](https://aleph.satellogic.com/) (early access to platform seem closed now), [Albedo](https://albedo.com/product-specs) 10cm visible will have a STAC endpoint delivering COGs, Pixxel [Early adopters program](https://www.pixxel.space/early-adopter-program) 5m hyperspectral 300bands, Umbra space SAR [Canopy](https://canopy.umbra.space/). Or these EarthCache X list: BlackSky,  [SentinelHub](https://www.sentinel-hub.com/develop/api/) (requires paid account for high-res search and api) [SH EO browser](https://apps.sentinel-hub.com/eo-browser)
+ - Integrate other satellite imagery providers in the list: [SH EO browser](https://apps.sentinel-hub.com/eo-browser)  / [SentinelHub](https://www.sentinel-hub.com/develop/api/) (requires paid account for high-res search and api), [AxelGlobe](https://axelglobe.com/) (Hard. use upcoming stac search endpoint if apikey gated access allows it (on selected aoi) or hader, possible via graphql request to get tiles spatial-identifiers covering polygon and then count tiles overlapping a region from spatial id and time range), Not yet publicly available and access requested: [Satellogic Aleph](https://aleph.satellogic.com/) (early access to platform seem closed now), [Albedo](https://albedo.com/product-specs) 10cm visible will have a STAC endpoint delivering COGs, Pixxel [Early adopters program](https://www.pixxel.space/early-adopter-program) 5m hyperspectral 300bands, Umbra space SAR [Canopy](https://canopy.umbra.space/). BlackSky requires NDA for API access, [GeoCento](https://imagery.geocento.com/) uses GWT RPC internally, also offers API access
 
 #### New Features/Fixes
  - Search any new STAC catalog (UP42 is one): Give it the STAC URL, parse results and columns to display in datagrid. Could use existing STAC tooling, but there does not seem to be any JS search client library - only full-fledged apps like [stac-server](https://github.com/stac-utils/stac-server) or [leaflet layer](https://github.com/stac-utils/stac-layer) and [stac-search](https://github.com/radiantearth/stac-browser/) (to deploy a stac, these are the go-to resource: [stac-fastapi](https://github.com/stac-utils/stac-fastapi) and pystac)
