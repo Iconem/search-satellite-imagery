@@ -250,6 +250,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
               }).catch((error) => {
                 console.error('Error during search', error);
                 search_promises[provider].errorOnFetch = true
+                // TODO: could use notistack provider to handle multiple snackbar messages at once
                 setters.setSnackbarOptions({
                   open: true, 
                   message: `Failure during search with ${provider}, request resulted in error - requires Allow-CORS plugin, cors-proxy or requestly to edit header origin, host or referer`

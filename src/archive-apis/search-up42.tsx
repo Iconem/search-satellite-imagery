@@ -115,7 +115,17 @@ async function search_for_next_page(up42_results_raw, search_settings, up42_apik
 // const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, setSnackbarOptions=null, up42_bearer_json=null, up42_next_links=null) => {
 const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, setters=null, up42_bearer_json=null, next_url='') => {
   if (!up42_bearer_json) {
-    up42_bearer_json = await get_up42_bearer(up42_apikey)
+    try {
+      up42_bearer_json = await get_up42_bearer(up42_apikey)
+    } catch (error) {
+      const error_str = 'Could not get UP42 Auth token, probably because you did not use the Allow-CORS plugin ' 
+      setTimeout(() => setters.setSnackbarOptions({
+        open: true, 
+        message: error_str
+      }), 5000)
+      console.log('Use this Allow-CORS plugins for example, \nChrome: https://chrome.google.com/webstore/detail/allow-cors-access-control/lhobafahddgcelffkeicbaginigeejlf \nFirefox: https://addons.mozilla.org/en-US/firefox/addon/access-control-allow-origin/')
+      throw new Error(error_str)
+    }
   }
 
   // Up42 hosts listing
