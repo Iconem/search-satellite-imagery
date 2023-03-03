@@ -53,7 +53,7 @@ const format_oam_results = (oam_results_raw, searchPolygon=null) => {
             'acquisitionDate': r.acquisition_end, 
             'resolution': r.gsd,
             'price': 0,
-            'shapeIntersection': 100, // shapeIntersection(r.geojson, searchPolygon),
+            'shapeIntersection': null, // shapeIntersection(r.geojson, searchPolygon),
             
             'preview_uri': r.properties.thumbnail,
             'thumbnail_uri': r.properties.thumbnail,
@@ -67,7 +67,6 @@ const format_oam_results = (oam_results_raw, searchPolygon=null) => {
           'type': 'Feature'
         }
       )
-      feat.properties.shapeIntersection = shapeIntersection(feat.geometry, searchPolygon)
       return feat
     }),
     'type': 'FeatureCollection'

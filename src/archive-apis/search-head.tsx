@@ -129,7 +129,6 @@ const format_head_results = (head_results_raw, searchPolygon=null) => {
   
           // Other interesting properties on EOS results
           'shapeIntersection': null,
-          // 'shapeIntersection': shapeIntersection(feature, searchPolygon),
           'price': null,
           'preview_uri': null,
           'thumbnail_uri': null,
@@ -144,7 +143,6 @@ const format_head_results = (head_results_raw, searchPolygon=null) => {
         },
         'type': 'Feature'
       }
-      feature.properties.shapeIntersection = shapeIntersection(feature.geometry, searchPolygon)
       feature.properties.price = get_head_price(feature)
       
       // Set preview uri by tapping into the TMS tiles (no other way, pretty bad)

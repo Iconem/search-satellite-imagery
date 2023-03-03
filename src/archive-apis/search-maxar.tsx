@@ -97,7 +97,7 @@ const format_maxar_results = (maxar_results_raw, searchPolygon) => {
           'constellation': get_constellation_name(f.attributes.vehicle_name, maxar_constellation_dict), // maxar_constellation_dict[f.attributes.vehicle_name]?.constellation || f.attributes.vehicle_name,
           'acquisitionDate': (new Date(f.attributes.collect_time_start || f.attributes.start_time || 0)).toISOString(), // or end_time '2019-03-23T10:24:03.000Z',
           'price': null,
-          'shapeIntersection': null, // shapeIntersection(f, searchPolygon),
+          'shapeIntersection': null, 
 
           'id': f.attributes.image_identifier || uuidv4(), 
           'provider': `${Providers.MAXAR_DIGITALGLOBE}/${f.attributes.vehicle_name}`,
@@ -118,7 +118,6 @@ const format_maxar_results = (maxar_results_raw, searchPolygon) => {
         'type': 'Feature'
       }
       feature.properties.price = get_maxar_price(feature)
-      feature.properties.shapeIntersection = shapeIntersection(feature, searchPolygon)
       return feature
     }),
     'type': 'FeatureCollection'

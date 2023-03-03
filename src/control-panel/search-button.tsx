@@ -3,6 +3,7 @@ import * as React from 'react';
 import {Box, Button, CircularProgress} from '@mui/material';
 import area from '@turf/area';
 import { v4 as uuidv4 } from 'uuid';
+import { shapeIntersection } from '../archive-apis/search-utilities'
 
 // import {search_up42, search_eos_highres, search_skywatch, search_head, search_maxar} from './search-apis'
 import search_up42 from '../archive-apis/search-up42'
@@ -242,6 +243,12 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
                 }
                 ({ search_results_json, errorOnFetch } = search_result_obj)
                 search_promises[provider].errorOnFetch = errorOnFetch ?? false
+
+                // Compute AOI shape intersection / coverage percent
+                search_results_json.features.forEach(f => {
+                  f.properties.shapeIntersection = shapeIntersection(f.geometry, searchPolygon)
+                  console.log('f.properties.shapeIntersection', f.properties.shapeIntersection,  searchPolygon.properties.shapeIntersection,  (f.properties.shapeIntersection ?? 100) >= searchPolygon.properties.shapeIntersection)
+                })
 
                 // Filter out results not matching resquest
                 search_results_json.features = search_results_json.features.filter(

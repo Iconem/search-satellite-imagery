@@ -287,7 +287,7 @@ const format_up42_results = (up42_results_raw, searchPolygon) => {
           id: feature.properties.sceneId ?? uuidv4(),
           constellation: up42_constellation_dict[feature.properties.constellation]?.constellation || feature.properties.constellation,
           'price': get_up42_price(feature),
-          'shapeIntersection': shapeIntersection(feature, searchPolygon),
+          'shapeIntersection': null, 
           'providerPlatform': `${Providers.UP42}`, 
           'provider': `${Providers.UP42}/${feature.properties.producer}-${feature.properties.constellation}`, // /${feature.properties.providerName}
           // 

@@ -8,6 +8,7 @@ function filter_features_with_search_params (f, searchPolygon) {
     && searchPolygon.properties.gsd_min <= f.properties.resolution
     && f.properties.resolution <= searchPolygon.properties.gsd_max
     && (f.properties.cloudCoverage ?? 0) <= searchPolygon.properties.cloudCoverage
+    && (f.properties.shapeIntersection ?? 100) >= searchPolygon.properties.aoiCoverage
     && new Date(f.properties.acquisitionDate) >= new Date(searchPolygon.properties.startDate)
     && new Date(f.properties.acquisitionDate) <= new Date(searchPolygon.properties.endDate)
 }
