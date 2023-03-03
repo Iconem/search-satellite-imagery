@@ -1,7 +1,10 @@
 # search-satellite-imagery
 Search satellite Imagery Archive on aggregators via their respective APIs (official or not), like:
 
- - Agregators: 
+ - Open-data: 
+   - [OpenAerialMap](https://map.openaerialmap.org/) 
+
+ - Commercial Agregators: 
    - [UP42](https://console.up42.com/catalog)
    - [EOS Landviewer](https://eos.com/landviewer)
    - [HEAD Aerospace](https://headfinder.head-aerospace.eu/sales)

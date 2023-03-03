@@ -195,7 +195,7 @@ function ControlPanel(props) {
           <Grid item xs={3}> 
             <Typography fontSize={20} textAlign={'right'} color={props.theme.palette.text.primary} >
               <Link href="http://iconem.com/" title={'By Iconem'} target="_blank" color={"inherit"}><FontAwesomeIcon icon={faEarthEurope} /></Link>
-              <Link href="https://mobile.twitter.com/jo_chemla/" title={'Twitter'} target="_blank" color={"inherit"} style={{margin: '8px'}}><FontAwesomeIcon icon={faTwitter} /></Link>
+              <Link href="https://twitter.com/iconem/" title={'Twitter'} target="_blank" color={"inherit"} style={{margin: '8px'}}><FontAwesomeIcon icon={faTwitter} /></Link>
               <Link href="https://github.com/Iconem/search-satellite-imagery/" title={'Github Repo'} target="_blank" color={"inherit"}><FontAwesomeIcon icon={faGithub} /></Link>
           </Typography>
           </Grid> 
