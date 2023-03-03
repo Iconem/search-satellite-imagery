@@ -24,28 +24,28 @@ const search_maxar = async (search_settings, maxar_apikey, searchPolygon=null, s
     maxar_apikey = process.env.MAXAR_DIGITALGLOBE_APIKEY
   }
   const date_format = {month: '2-digit', day: '2-digit', year: 'numeric'}
-  const maxar_payload = 
-    `outFields=*` + 
-    `&inSR=4326` +
-    `&outSR=4326` +
-    `&spatialRel=esriSpatialRelIntersects` +
-    `&where=${
-      encodeURIComponent(
+  const maxar_payload = decodeURIComponent(new URLSearchParams({
+    'outFields':'*',  
+    'inSR':'4326', 
+    'outSR':'4326', 
+    'spatialRel':'esriSpatialRelIntersects', 
+    'where': `${
         `sun_elevation_avg >= ${search_settings.sunElevation[0]} ` +
         ` AND image_band_name in('PAN','4-BANDS','8-BANDS') ` +
         ` AND collect_time_start >= '${search_settings.startDate.toLocaleDateString('us',date_format) } 00:00:00' ` +
         ` AND collect_time_start <= '${search_settings.endDate.toLocaleDateString('us',date_format)}  23:59:59' ` +
         ` AND off_nadir_max <= ${max_abs(search_settings.offNadirAngle)} ` +
         ` AND pan_resolution_max <= ${search_settings.gsd.max}`
-      )
-    }` + 
-    `&returnCountOnly=false` + 
-    `&f=json` + 
-    `&geometryBasedFilters=${encodeURIComponent(`area_cloud_cover_percentage <= ${search_settings.cloudCoverage}`)}` + 
-    `&geometryType=esriGeometryPolygon` + 
-    `&geometry=${encodeURIComponent(`{"rings" : ${JSON.stringify(search_settings.coordinates)}, "spatialReference" : {"wkid" : 4326}}`)}` + 
-    `&resultRecordCount=${maxar_limit}`
+    }`,
+    'returnCountOnly':false,  
+    'f':'json',  
+    'geometryBasedFilters': `area_cloud_cover_percentage <= ${search_settings.cloudCoverage}`,  
+    'geometryType':'esriGeometryPolygon',  
+    'geometry':`${`{"rings" : ${JSON.stringify(search_settings.coordinates)}, "spatialReference" : {"wkid" : 4326}}`}`,  
+    'resultRecordCount': `${maxar_limit}`,
+  } as any).toString())
   // .replaceAll('\n', '')// .replaceAll('    &', '&').replaceAll('        AND', ' AND')
+
 
   const headers = {
     'x-api-key': maxar_apikey, 
