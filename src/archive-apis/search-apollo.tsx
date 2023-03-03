@@ -135,9 +135,12 @@ const timer = ms => new Promise(res => setTimeout(res, ms))
 
 const get_apollo_previews_async = async (apollo_results) => {
   const chunkSize = 10;
+  // Send batches of chunkSize POST requests to ApolloMapping API server
   for (let i = 0; i < apollo_results.features.length; i += chunkSize) {
       const chunk = apollo_results.features.slice(i, i + chunkSize);
-      chunk.forEach(async feature => {
+      const errors = []
+      // Await all promises of chunk fetching
+      await Promise.all(chunk.map(async (feature) => {
         const preview_payload = {
           catid: feature.properties.id,
           satellite: 'scene',
@@ -146,26 +149,40 @@ const get_apollo_previews_async = async (apollo_results) => {
           forceHighestQuality: false, // Todo: test true
         }
         const preview_payload_body = new URLSearchParams(preview_payload as any).toString();
-          const preview_url_object = await ky.post(
-            `${APOLLO_API_URL}/ajax/get_preview_image`, 
-            { 
-              headers: {
-                'Host': APOLLO_DOMAIN, 
-                'Origin': APOLLO_DOMAIN, 
-                'Referer': APOLLO_DOMAIN, 
-                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                'Content-Length': `${preview_payload_body.length}`
-              },
-              body: preview_payload_body
-            }
-          ).json();
+        // console.log('Fetching preview via ky.post for ', feature.properties.id)
+        // console.log('REQUESTING APOLLO PREVIEW', preview_payload.catid, preview_payload, preview_url_object, feature.properties.thumbnail_uri)
+        await ky.post(
+          `${APOLLO_API_URL}/ajax/get_preview_image`, 
+          { 
+            headers: {
+              'Host': APOLLO_DOMAIN, 
+              'Origin': APOLLO_DOMAIN, 
+              'Referer': APOLLO_DOMAIN, 
+              'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+              'Content-Length': `${preview_payload_body.length}`
+            },
+            body: preview_payload_body,
+            timeout: 30000
+          }
+        ).json()
+        .then(preview_url_object => {
+          // console.log('ApolloMapping, found preview ', preview_url_object)
           feature.properties.thumbnail_uri = APOLLO_API_URL + (preview_url_object as any).path;
           feature.properties.preview_uri = feature.properties.thumbnail_uri;
-          // console.log('REQUESTING APOLLO PREVIEW', preview_payload.catid, preview_payload, preview_url_object, feature.properties.thumbnail_uri)
-      })
+        })
+        .catch ((error) => {
+          errors.push('Error during ky post request to get Apollo preview image')
+        });
+      }));
+
+      if (errors.length > 0) {
+        console.log(`ApolloMapping Previews fetch - Catched error during chunk previews fetch for loop ${i}, so break master loop by return`)
+        throw new Error(`ApolloMapping Previews fetch - Catched error during chunk previews fetch for loop ${i}, so break master loop by return`);
+        // throw new Error(errors.join());
+        // return
+      }
       await timer(3000)
   }
 }
-
 
 export default search_apollo 
