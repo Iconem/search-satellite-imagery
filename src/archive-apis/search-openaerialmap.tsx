@@ -2,10 +2,7 @@
 
 import ky from 'ky';
 import bbox from '@turf/bbox';
-import {
-  Providers,
-  shapeIntersection,
-} from './search-utilities'
+import { Providers } from './search-utilities'
 
 // https://api.openaerialmap.org/meta?order_by=acquisition_end&sort=desc&limit=100
 const oam_limit = 1000

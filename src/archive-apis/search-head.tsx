@@ -1,8 +1,8 @@
 // Code for searching Head Aerospace API reverse engineered
 
 import ky from 'ky';
-import {shapeIntersection, get_imagery_price, head_constellation_dict, constellation_dict, Providers, head_search_names, providers_dict, max_abs} from './search-utilities'
-import {fitBounds, WebMercatorViewport} from '@math.gl/web-mercator';
+import {get_imagery_price, head_constellation_dict, constellation_dict, Providers, head_search_names, providers_dict, max_abs} from './search-utilities'
+import {fitBounds} from '@math.gl/web-mercator';
 import bbox from '@turf/bbox';
 
 /* ------------------- */

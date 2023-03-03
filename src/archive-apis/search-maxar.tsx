@@ -1,8 +1,7 @@
 // Search Maxar DigitalGlobe APIs 
 
 import ky from 'ky';
-import {encode as base64_encode} from 'base-64';
-import {shapeIntersection, max_abs, get_maxar_price, get_constellation_name, maxar_constellation_dict, Providers} from './search-utilities'
+import {max_abs, get_maxar_price, get_constellation_name, maxar_constellation_dict, Providers} from './search-utilities'
 import { v4 as uuidv4 } from 'uuid';
 
 /* ---------------------------- */

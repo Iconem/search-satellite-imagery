@@ -1,7 +1,7 @@
 // Code for searching UP42 STAC API
 
 import ky from 'ky';
-import {Providers, shapeIntersection} from './search-utilities'
+import {Providers} from './search-utilities'
 import { v4 as uuidv4 } from 'uuid';
 
 /* -------------- */

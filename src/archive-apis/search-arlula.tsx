@@ -3,9 +3,7 @@
 import ky from 'ky';
 import {encode as base64_encode} from 'base-64';
 import {Providers, max_abs} from './search-utilities'
-import {parseJwt} from '../utilities'
 import { v4 as uuidv4 } from 'uuid';
-import bbox from '@turf/bbox';
 
 
 // https://www.arlula.com/documentation
@@ -24,7 +22,6 @@ const get_arlula_auth = (arlula_apikey) => {
 const search_arlula = async (search_settings, arlula_apikey, searchPolygon=null, setters=null, arlula_bearer_json=null, next_url='') => {
   // /api/archive/search?start=2019-01-03&end=2019-04-13&res=low&lat=-33.8523&long=151.2108
   // polygon	JSON array or WKT polygon string
-  const bounds = bbox(searchPolygon)
 
   const arlula_url = new URL(ARLULA_SEARCH_URL);
   arlula_url.search = new URLSearchParams({
