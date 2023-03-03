@@ -10,6 +10,7 @@ import bbox from '@turf/bbox';
 /* ------------------- */
 // https://headfinder.head-aerospace.eu/sales
 // https://catalyst.earth/catalyst-system-files/help/references/gdb_r/gdb2N127.html
+// Note: Head only allow for public retrieve of their catalog past 3 months
 
 const head_limit = 300
 const head_base_url = 'https://headfinder.head-aerospace.eu/satcat-db02/'
@@ -39,14 +40,41 @@ function get_head_price(feature) {
   return get_imagery_price(feature, feature.properties.sensor, head_constellation_dict)
 }
 
+const default_HEAD_search_params = {
+    // 'category': `search-browser-01`,
+    'browserfp': `605607837`,
+    'session': `812167136`,
+    'searchcnt': `2`,
+    'mousemovecnt': `818`,
+    'tilescnt': `861`,
+    'sessionsecs': `118`,
+    'catalogue': `PU`,
+    'catconfigid': `HEAD-wc37`,
+}
 const search_head = async (search_settings, apikey='', searchPolygon=null, setters=null) => {
   const polygon_str = JSON.stringify(search_settings.coordinates.map(c => c.slice(0, -1).map(xy => [xy[1], xy[0]])))
   const polygon_coords = (polygon_str.replaceAll('[', '(') as string).replaceAll(']', ')') as string
-  // Setup request string for HEAD with hash in get url
-  const request_string = `&category=search-browser-01&browserfp=605607837&session=812167136&searchcnt=2&mousemovecnt=818&tilescnt=861&sessionsecs=118&catalogue=PU&catconfigid=HEAD-wc37&aoi=polygon${polygon_coords}&maxscenes=${head_limit}&datestart=${(new Date(search_settings.startDate - 1)).toISOString().substring(0,10)}&dateend=${(new Date(search_settings.endDate - 1)).toISOString().substring(0,10)}&cloudmax=${search_settings.cloudCoverage}&offnadirmax=${max_abs(search_settings.offNadirAngle)}&overlapmin=${search_settings.aoiCoverage}&scenename=&satellites=${head_satellites_sel}&`
-  const k17string = request_string.substring(request_string.indexOf('category=') + 9).toLowerCase()
 
-  const head_search_url = `${head_base_url}?req=d01-nl-${request_string}&user=_${crc32(k17string)}&`
+  // Setup request string for HEAD with hash in get url
+  // const request_string = `&category=search-browser-01&browserfp=605607837&session=812167136&searchcnt=2&mousemovecnt=818&tilescnt=861&sessionsecs=118&catalogue=PU&catconfigid=HEAD-wc37&aoi=polygon${polygon_coords}&maxscenes=${head_limit}&datestart=${(new Date(search_settings.startDate - 1)).toISOString().substring(0,10)}&dateend=${(new Date(search_settings.endDate - 1)).toISOString().substring(0,10)}&cloudmax=${search_settings.cloudCoverage}&offnadirmax=${max_abs(search_settings.offNadirAngle)}&overlapmin=${search_settings.aoiCoverage}&scenename=&satellites=${head_satellites_sel}&`
+  // const k17string = request_string.substring(request_string.indexOf('category=') + 9).toLowerCase()
+  // const head_search_url_old = `${head_base_url}?req=d01-nl-${request_string}&user=_${crc32(k17string)}&`
+
+  const search_params = 'search-browser-01&' + decodeURIComponent(new URLSearchParams({
+    ...default_HEAD_search_params,
+    'aoi': `polygon${polygon_coords}`,
+    'maxscenes': `${head_limit}`,
+    'datestart': `${(new Date(search_settings.startDate - 1)).toISOString().substring(0,10)}`,
+    'dateend': `${(new Date(search_settings.endDate - 1)).toISOString().substring(0,10)}`,
+    'cloudmax': `${search_settings.cloudCoverage}`,
+    'offnadirmax': `${max_abs(search_settings.offNadirAngle)}`,
+    'overlapmin': `${search_settings.aoiCoverage}`,
+    'scenename': ``,
+    'satellites': `${head_satellites_sel}&`,
+  }).toString()); 
+  const head_search_url = `${head_base_url}?req=d01-nl-&category=${search_params}&user=_${crc32(search_params.toLowerCase())}&`
+  // console.log('\n\nHEAD SEARCH URL COMPARISON\n', head_search_url, '\n', head_search_url_old, '\n\n')
+   
 
   const res_text = await ky.get( head_search_url ).text()
   if (!res_text.includes('ERROR: APP failed')) {
@@ -62,10 +90,10 @@ const search_head = async (search_settings, apikey='', searchPolygon=null, sette
       return { search_results_json, }
     }
   }
-  console.log('Probable failure in HEAD request, ', head_search_url, ' with res_text', res_text)
+  console.log('Probable failure in HEAD request, ', head_search_url, ' with res_text', res_text, 'probably because search was beyond their 3 most recent months public limitation')
   setters.setSnackbarOptions({
     open: true, 
-    message: 'Probable failure in HEAD request resulted in error'
+    message: 'Probable failure in HEAD request resulted in error, probably because search was beyond their 3 most recent months public limitation'
   })
   return {
     search_results_json: {
