@@ -137,6 +137,7 @@ const format_skyfi_results = (skyfi_results_raw, searchPolygon) => {
               'constellation': `${feature.provider}/${feature.name}`,
               'providerName': feature.providerName,
               'shapeIntersection': null, // shapeIntersection(feature, searchPolygon),
+              'raw_result_properties': feature,
             },
             'type': 'Feature'
           }

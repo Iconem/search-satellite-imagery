@@ -61,7 +61,8 @@ const format_oam_results = (oam_results_raw, searchPolygon=null) => {
               'preview_uri_tiles': {
                 'url': r.properties.tms,
               }
-            }
+            },
+            'raw_result_properties': {...r},
           },
           'type': 'Feature'
         }

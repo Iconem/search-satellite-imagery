@@ -113,6 +113,7 @@ const format_maxar_results = (maxar_results_raw, searchPolygon) => {
             'azimuthAngle': f.attributes.off_nadir_avg, // area_avg_off_nadir_angle,
             'illuminationAzimuthAngle': f.attributes.sun_azimuth_avg,
           },
+          'raw_result_properties': f,
         },
         'type': 'Feature'
       }

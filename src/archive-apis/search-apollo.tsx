@@ -120,6 +120,7 @@ const format_apollo_results = (apollo_results_raw) => {
             'illuminationAzimuthAngle': r.sun_az, 
             'illuminationElevationAngle': r.sun_elev, 
           },
+          'raw_result_properties': r,
           'preview_uri': null, // r.preview_url,
           'thumbnail_uri': null, // r.preview_url, 
         },

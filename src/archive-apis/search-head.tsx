@@ -140,6 +140,7 @@ const format_head_results = (head_results_raw, searchPolygon=null) => {
             'azimuthAngle': null,
             'illuminationAzimuthAngle': null,
           },
+          'raw_result_properties': r,
         },
         'type': 'Feature'
       }

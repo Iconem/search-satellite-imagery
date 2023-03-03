@@ -291,12 +291,14 @@ const format_up42_results = (up42_results_raw, searchPolygon) => {
           'providerPlatform': `${Providers.UP42}`, 
           'provider': `${Providers.UP42}/${feature.properties.producer}-${feature.properties.constellation}`, // /${feature.properties.providerName}
           // 
-          'providerProperties': feature.properties.providerProperties,
           'providerName': feature.properties.providerName,
           'sceneId': feature.properties.sceneId ?? uuidv4(),
           'cloudCoverage': feature.properties.cloudCoverage,
           'acquisitionDate': feature.properties.acquisitionDate,
           'resolution': feature.properties.resolution,
+          // 
+          'providerProperties': feature.properties.providerProperties,
+          'raw_result_properties': feature.properties,
         },
         'type': 'Feature'
       }

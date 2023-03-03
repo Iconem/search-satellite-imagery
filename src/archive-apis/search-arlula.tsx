@@ -80,6 +80,7 @@ const format_arlula_results = (arlula_results_raw) => {
           'providerProperties': {
             'azimuthAngle': r.offNadir // or incidenceAngle
           },
+          'raw_result_properties': r,
           'preview_uri': r.thumbnail,
           'thumbnail_uri': r.thumbnail, 
 
