@@ -5,8 +5,8 @@ import intersect from '@turf/intersect';
 
 function filter_features_with_search_params (f, searchPolygon) { 
   return true 
-    && searchPolygon.properties.gsd_min <= f.properties.resolution
-    && f.properties.resolution <= searchPolygon.properties.gsd_max
+    && searchPolygon.properties.gsd_min <= (f.properties.resolution || 0)
+    && (f.properties.resolution || 0) <= searchPolygon.properties.gsd_max
     && (f.properties.cloudCoverage ?? 0) <= searchPolygon.properties.cloudCoverage
     && (f.properties.shapeIntersection ?? 100) >= searchPolygon.properties.aoiCoverage
     && new Date(f.properties.acquisitionDate) >= new Date(searchPolygon.properties.startDate)
@@ -116,7 +116,8 @@ enum Constellation {
   NearSpace = 'NearSpace',
   CapellaSpace = 'CapellaSpace',
   Skyfi = 'Skyfi',
-  OAM = 'OpenAerialMap'
+  OAM = 'OpenAerialMap',
+  STAC = 'STAC'
 }
 
 
@@ -130,6 +131,7 @@ enum Providers {
   OAM = 'OpenAerialMap',
   ARLULA = 'ARLULA',
   APOLLO = 'APOLLO MAPPING',
+  STAC = 'STAC',
 }
 
 
@@ -195,6 +197,9 @@ const providers_dict = {
     Constellation.Pleiades, 
     Constellation.PleiadesNeo, 
     // TODO COMPLETE
+  ],
+  [Providers.STAC]: [
+    Constellation.STAC
   ],
   // 'SENTINELHUB': [Constellation.Pleiades,  Constellation.Worldview],
 }
@@ -313,6 +318,10 @@ const constellation_dict = {
     gsd: 0.5
   },
   [Constellation.OAM]: {
+    satellites: [],
+    gsd: 0.005
+  },
+  [Constellation.STAC]: {
     satellites: [],
     gsd: 0.005
   },

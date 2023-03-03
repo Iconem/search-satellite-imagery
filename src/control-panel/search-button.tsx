@@ -18,6 +18,7 @@ import search_apollo from '../archive-apis/search-apollo'
 import {Providers, filter_features_with_search_params} from '../archive-apis/search-utilities'
 import { GSD_steps, GSDFromIndex} from '../utilities'
 
+import search_stac from '../archive-apis/search-stac'
 
 const productionMode = !process.env.NODE_ENV || process.env.NODE_ENV === 'production'
 
@@ -77,6 +78,8 @@ const providers_search = {
   [Providers.OAM]: search_openaerialmap,
   [Providers.ARLULA]: search_arlula,
   [Providers.APOLLO]: search_apollo,
+
+  [Providers.STAC]: search_stac,
 }
 
 const emptyFeatureCollection = {
@@ -245,15 +248,18 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
                 search_promises[provider].errorOnFetch = errorOnFetch ?? false
 
                 // Compute AOI shape intersection / coverage percent
-                search_results_json.features.forEach(f => {
-                  f.properties.shapeIntersection = shapeIntersection(f.geometry, searchPolygon)
-                  console.log('f.properties.shapeIntersection', f.properties.shapeIntersection,  searchPolygon.properties.shapeIntersection,  (f.properties.shapeIntersection ?? 100) >= searchPolygon.properties.shapeIntersection)
+                search_results_json.features
+                  .filter(f => !f.properties.shapeIntersection)
+                  .forEach(f => {
+                    console.log('recompute shapeIntersection for ', f)
+                    f.properties.shapeIntersection = shapeIntersection(f.geometry, searchPolygon)
+                    console.log('f.properties.shapeIntersection', f.properties.shapeIntersection,  searchPolygon.properties.shapeIntersection,  (f.properties.shapeIntersection ?? 100) >= searchPolygon.properties.shapeIntersection)
                 })
 
                 // Filter out results not matching resquest
-                search_results_json.features = search_results_json.features.filter(
-                  f => filter_features_with_search_params(f, searchPolygon)
-                )
+                // search_results_json.features = search_results_json.features.filter(
+                //   f => filter_features_with_search_params(f, searchPolygon)
+                // )
               }).catch((error) => {
                 console.error('Error during search', error);
                 search_promises[provider].errorOnFetch = true
