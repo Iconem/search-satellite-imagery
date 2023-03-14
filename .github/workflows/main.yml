@@ -34,5 +34,4 @@ jobs:
         dry-run: false
         log-level: verbose
         protocol: ftps
-        port: 22
-        
+        port: 21
