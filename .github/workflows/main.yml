@@ -32,3 +32,4 @@ jobs:
         server-dir: '/_dev/search-satellite-imagery/test/'
         local-dir: './dist/'
         dry-run: false
+        log-level: verbose
