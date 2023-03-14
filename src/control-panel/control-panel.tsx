@@ -16,7 +16,6 @@ import {Snackbar, Alert, Collapse, Box, Grid, Stack, Typography, Slider, Link} f
 
 // Other imports
 import {useLocalStorage} from '../utilities';
-import { subDays } from 'date-fns'
 import area from '@turf/area';
 // FontAwesome icons https://fontawesome.com/icons
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -66,13 +65,14 @@ function AOIComponent(props) {
 //   ...searchSettings, 
 //   [state_property]: newValue
 // })
+const millisecondsPerDay = 24*60*60*1000
 function ControlPanel(props) {
   const polygons = props.polygons
   // Fit all search settings in a single react state object
   const today = new Date()
   const [searchSettings, setSearchSettings] = useLocalStorage('searchSettings', {
     // polygon: null,
-    startDate: subDays(today, 1200), // 30
+    startDate: new Date(today.getTime() - 1200*millisecondsPerDay), // 30
     endDate: today, 
     gsdIndex: [0, 4], 
     cloudCoverage: 20, 

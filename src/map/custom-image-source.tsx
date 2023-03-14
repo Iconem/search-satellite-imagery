@@ -7,7 +7,11 @@ import { Providers } from '../archive-apis/search-utilities';
 // import rewind from '@turf/rewind';
 // import simplify from '@turf/simplify';
 // import {polygon} from '@turf/helpers';
-import * as turf from "@turf/turf";
+// import * as turf from "@turf/turf";
+import bbox from '@turf/bbox';
+import bboxPolygon from '@turf/bbox-polygon';
+import {getCoords} from '@turf/invariant';
+import {polygon} from '@turf/helpers';
 
 function CustomImageSource(props) {
   // console.log('CustomImageSource', props.feature)
@@ -29,14 +33,14 @@ function CustomImageSource(props) {
         return <></>
       }
       
-      let footprintPolygon = turf.polygon(props.feature.geometry?.coordinates)
+      let footprintPolygon = polygon(props.feature.geometry?.coordinates)
       // footprintPolygon = simplify(footprintPolygon, {tolerance: 0.01, highQuality: false});
       // footprintPolygon = rewind(footprintPolygon);
-      const footprint_bbox = turf.bbox(footprintPolygon)
-      footprintPolygon = turf.bboxPolygon(footprint_bbox);
+      const footprint_bbox = bbox(footprintPolygon)
+      footprintPolygon = bboxPolygon(footprint_bbox);
       // BBOX is the easiest way to get the aoi footprint cooordinates sorted in the right order (needs from NW, clockwise)
       // Can also simplify the footprint to get a 4-coords polygon rather than 20-ish
-      coordinates = turf.getCoords(footprintPolygon)[0].slice(0,4).reverse()
+      coordinates = getCoords(footprintPolygon)[0].slice(0,4).reverse()
       // coordinates = footprintPolygon.geometry.coordinates[0].slice(0,4).reverse()
       // console.log('coordinates', coordinates, props.feature.properties.preview_uri, use_tms_source)
     }
