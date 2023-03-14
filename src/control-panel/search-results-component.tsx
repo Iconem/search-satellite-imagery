@@ -50,10 +50,11 @@ const no_image_fallback_url = 'https://via.placeholder.com/300x300.webp/FFFFFF/0
 const datagridColumns: GridColDef[] = [
   { 
     field: 'acquisitionDate', 
-    valueGetter: (params) => params.row.acquisitionDate.substring(0, 16).replace('T', ' '),
+    // valueGetter: (params) => params.row.acquisitionDate.substring(0, 16).replace('T', ' '),
+    valueGetter: (params) => new Date(params.row.acquisitionDate),
     renderCell: (params) => {
       const dateStr = params.value
-      return (<Tooltip title={dateStr} disableInteractive ><p>{dateStr.substring(0, 10)}</p></Tooltip>) 
+      return (<Tooltip title={dateStr.toISOString().substring(0, 16).replace('T', ' ')} disableInteractive ><p>{dateStr.toISOString().substring(0, 10)}</p></Tooltip>) 
     },
     width: 90, // 120 to see datetime, 100 to see only date
     type: 'dateTime',

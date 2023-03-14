@@ -18,8 +18,7 @@ jobs:
       env: 
         ENV_FILE_CONTENT: ${{ secrets.ENV_FILE_CONTENT }}
       run: |
-        echo "$ENV_FILE_CONTENT"
-        echo "${{ secrets.ENV_FILE_CONTENT }}"
+        echo "Copying Github Secret to .env file"
         echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
         npm install
         npm run build
@@ -30,6 +29,6 @@ jobs:
         server: ${{ secrets.ftp_server }}
         username: ${{ secrets.ftp_username }}
         password: ${{ secrets.ftp_password }}
-        server-dir: 'public_html/www/'
-        local-dir: './dist'
+        server-dir: '/_dev//search-satellite-imagery/test/'
+        local-dir: './dist/'
         dry-run: true

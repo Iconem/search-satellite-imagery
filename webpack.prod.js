@@ -10,7 +10,6 @@ const smp = new SpeedMeasurePlugin();
 
 const config = smp.wrap(merge(common, {
   mode: 'production',
-
 }));
 
 // Enables bundling against src in this repo rather than the installed version

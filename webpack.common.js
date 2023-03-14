@@ -22,6 +22,10 @@ const BundleAnalyzerPlugin =
 //   return prev;
 // }, {});
 
+// console.log('\n\n\nenv', env)
+const bundleAnalyzerMode = true ? 'static' : 'server'
+console.log('bundleAnalyzerMode', bundleAnalyzerMode)
+
 const config = smp.wrap({
 
   entry: {
@@ -74,19 +78,13 @@ const config = smp.wrap({
   // https://webpack.js.org/plugins/environment-plugin/
   plugins: [
     new BundleAnalyzerPlugin({
-      analyzerMode: 'static'
+      analyzerMode: bundleAnalyzerMode
     }),
     new Dotenv({
       path: './.env', // Path to .env file (this is the default)
       safe: true,     // load .env.example (defaults to "false" which does not use dotenv-safe)
     })
-    // Other methods for env variables read
-    // new webpack.EnvironmentPlugin({
-    //   MapboxAccessToken: '12345',
-    //   MAPBOX_TOKEN: JSON.stringify(process.env.MAPBOX_TOKEN),
-    // }), 
-    // new webpack.DefinePlugin(envKeys), 
-  ]
+  ],
 });
 
 // Enables bundling against src in this repo rather than the installed version
