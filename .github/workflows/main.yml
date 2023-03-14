@@ -31,5 +31,5 @@ jobs:
         username: ${{ secrets.ftp_username }}
         password: ${{ secrets.ftp_password }}
         server-dir: 'public_html/www/'
-        local-dir: './dist'
+        local-dir: './dist/'
         dry-run: true
