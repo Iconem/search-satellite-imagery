@@ -33,3 +33,6 @@ jobs:
         local-dir: './dist/'
         dry-run: false
         log-level: verbose
+        protocol: ftps
+        port: 22
+        
