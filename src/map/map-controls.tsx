@@ -20,7 +20,7 @@ import { v4 as uuidv4 } from 'uuid';
 import bbox from '@turf/bbox';
 import { kml } from "@tmcw/togeojson";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {  faUpload, faSun, faMoon } from '@fortawesome/free-solid-svg-icons'
+import { faUpload, faSun, faMoon } from '@fortawesome/free-solid-svg-icons'
 import {Slider} from '@mui/material';
 
 

@@ -3,7 +3,7 @@ import * as React from 'react';
 
 import {Button, Box, Tooltip} from '@mui/material';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faDownload,} from '@fortawesome/free-solid-svg-icons'
+import { faDownload, } from '@fortawesome/free-solid-svg-icons'
 
 /* Export Button has GeoJSON logic */
 function ExportButton(props) {

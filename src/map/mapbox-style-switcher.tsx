@@ -4,9 +4,7 @@ import * as React from 'react';
 import {useMap, } from 'react-map-gl';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { 
-  faMap, faLayerGroup, 
-} from '@fortawesome/free-solid-svg-icons'
+import { faMap } from '@fortawesome/free-solid-svg-icons'
 import { Button, ImageList, ImageListItem } from '@mui/material';
 import ClickAwayListener from '@mui/base/ClickAwayListener';
 

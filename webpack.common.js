@@ -8,6 +8,7 @@ const smp = new SpeedMeasurePlugin();
 const BundleAnalyzerPlugin =
   require("webpack-bundle-analyzer").BundleAnalyzerPlugin
 
+const CompressionPlugin = require("compression-webpack-plugin");
 
 // For env variables passing to the frontend code (webpack replaces occurences of process.env.var by their respective value)
 // Can more simply use Dotenv plugin with .env filepath and safe: true param
@@ -83,7 +84,8 @@ const config = smp.wrap({
     new Dotenv({
       path: './.env', // Path to .env file (this is the default)
       safe: true,     // load .env.example (defaults to "false" which does not use dotenv-safe)
-    })
+    }),
+    new CompressionPlugin(),
   ],
 });
 

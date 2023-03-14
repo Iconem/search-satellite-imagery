@@ -19,9 +19,7 @@ import {useLocalStorage} from '../utilities';
 import area from '@turf/area';
 // FontAwesome icons https://fontawesome.com/icons
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { 
-  faChevronDown, faChevronUp, faDownload, faDrawPolygon, faSliders, faCheck, faSatelliteDish, faEarthEurope
-} from '@fortawesome/free-solid-svg-icons'
+import { faChevronDown, faChevronUp, faDrawPolygon, faSliders, faEarthEurope, } from '@fortawesome/free-solid-svg-icons'
 import { faTwitter, faGithub } from '@fortawesome/free-brands-svg-icons'
 // import { solid, brands } from '@fortawesome/fontawesome-svg-core/import.macro'
 
@@ -36,6 +34,9 @@ import ExportButton from './export-button'
 import APIRequestsStatuses from './api-requests-statuses'
 import { GSD_steps } from '../utilities'
 import {sourcesTreeviewInitialSelection} from "./satellite-imagery-sources-treeview";
+
+// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+// import { solid, regular, brands, icon } from '@fortawesome/fontawesome-svg-core/import.macro' // <-- import styles to be used
 
 /* Display COMPONENTS */
 /* AOI area COMPONENT */
@@ -197,6 +198,7 @@ function ControlPanel(props) {
               <Link href="http://iconem.com/" title={'By Iconem'} target="_blank" color={"inherit"}><FontAwesomeIcon icon={faEarthEurope} /></Link>
               <Link href="https://twitter.com/iconem/" title={'Twitter'} target="_blank" color={"inherit"} style={{margin: '8px'}}><FontAwesomeIcon icon={faTwitter} /></Link>
               <Link href="https://github.com/Iconem/search-satellite-imagery/" title={'Github Repo'} target="_blank" color={"inherit"}><FontAwesomeIcon icon={faGithub} /></Link>
+              {/* <Link href="https://github.com/Iconem/search-satellite-imagery/" title={'Github Repo'} target="_blank" color={"inherit"}><FontAwesomeIcon icon={brands('twitter')} /></Link> */}
           </Typography>
           </Grid> 
         </Grid> 

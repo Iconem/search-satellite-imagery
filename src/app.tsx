@@ -38,6 +38,40 @@ const defaultViewStateMercator = {
   zoom: 2.5,
 }
 
+
+// Font-awesome when tree-shaking not working
+// import { 
+//   faTwitter, faGithub,  
+// } from '@fortawesome/free-brands-svg-icons'
+// import {  
+//   faChevronDown, faChevronUp, faCheck, faSatelliteDish,
+//   faDownload, faDrawPolygon, faSliders, faEarthEurope,
+//   faCalendarDay, 
+//   faChevronRight, faSatellite,
+//   faCloudSun, faSquarePollHorizontal, faBolt, faVectorSquare,
+//   faCropSimple, faGear, faTableCellsLarge, 
+//   faUpload, faSun, faMoon, 
+//   faMap, faLayerGroup, 
+//  } from '@fortawesome/free-solid-svg-icons'
+
+// import { library } from '@fortawesome/fontawesome-svg-core'
+// // import { fas } from '@fortawesome/free-solid-svg-icons'
+
+// library.add(
+//   faTwitter, faGithub,  
+
+//   faChevronDown, faChevronUp, faCheck, faSatelliteDish,
+//   faDownload, faDrawPolygon, faSliders, faEarthEurope,
+//   faCalendarDay, 
+//   faChevronRight, faSatellite,
+//   faCloudSun, faSquarePollHorizontal, faBolt, faVectorSquare,
+//   faCropSimple, faGear, faTableCellsLarge, 
+//   faUpload, faSun, faMoon, 
+//   faMap, faLayerGroup
+// )
+
+
+
 export default function App(props) {
   const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN; 
   const mapRef = React.useRef<MapRef>();

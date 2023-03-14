@@ -5,9 +5,7 @@ import {Collapse, List, ListItem, ListItemText, ListItemIcon, Typography} from '
 
 import {useLocalStorage} from '../utilities';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { 
-  faChevronDown, faChevronUp, faCheck, faSatelliteDish
-} from '@fortawesome/free-solid-svg-icons'
+import { faChevronDown, faChevronUp, faCheck, faSatelliteDish, } from '@fortawesome/free-solid-svg-icons'
 
 /* API Request Status */
 function APIRequestsStatuses(props) {

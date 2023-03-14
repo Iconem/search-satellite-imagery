@@ -4,9 +4,7 @@ import * as React from 'react';
 import {Tooltip, Typography, GlobalStyles, Box} from '@mui/material';
 import { DataGrid, GridColumnMenu, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton, GridToolbarDensitySelector, GridRowHeightParams, GridColDef, GridEventListener  } from '@mui/x-data-grid';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { 
-  faCloudSun, faSquarePollHorizontal, faSatellite, faBolt, faVectorSquare, faDrawPolygon
-} from '@fortawesome/free-solid-svg-icons'
+import { faCloudSun, faSquarePollHorizontal, faSatellite, faBolt, faVectorSquare } from '@fortawesome/free-solid-svg-icons'
 import bbox from '@turf/bbox';
 
 /* SEARCH RESULTS COMPONENT */

@@ -7,9 +7,7 @@ import {TreeView, TreeItem} from "@mui/lab";
 import { TextField, Typography, } from '@mui/material';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {Collapse, Checkbox, FormControlLabel} from '@mui/material';
-import { 
-  faChevronDown, faChevronUp, faChevronRight, faSatellite,
-} from '@fortawesome/free-solid-svg-icons'
+import { faChevronDown, faChevronUp, faChevronRight, faSatellite, } from '@fortawesome/free-solid-svg-icons'
 import {useLocalStorage} from '../utilities';
 
 import {
