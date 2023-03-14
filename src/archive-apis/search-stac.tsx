@@ -64,7 +64,7 @@ const search_stac = async (search_settings, stac_apikey, searchPolygon=null, set
   }
 }
 
-const get_resolution(assets) {
+function get_resolution(assets) {
   const min_assets_gsd = Math.min(...Object.values(assets).map((a:any) => a.gsd).filter(gsd => !isNaN(gsd) as any))
   return min_assets_gsd
 }
