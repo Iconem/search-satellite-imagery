@@ -33,5 +33,5 @@ jobs:
         local-dir: './dist/'
         dry-run: false
         log-level: verbose
-        protocol: ftps
+        protocol: ftp
         port: 21
