@@ -45,4 +45,4 @@ jobs:
     # - name: 📄 Upload File
     #   run: lftp -e "put -O /destination/ ./README.md" ${{ secrets.FTP_HOSTNAME }}
     - name: 📁 Upload Folder
-      run: lftp --dry-run --user ${{ secrets.ftp_username }} --password ${{ secrets.ftp_password }} -e "mirror --parallel=100 -R ./dist/ /_dev/search-satellite-imagery/test/" ${{ secrets.ftp_server }}
+      run: lftp --script=- --user ${{ secrets.ftp_username }} --password ${{ secrets.ftp_password }} -e "mirror --parallel=100 -R ./dist/ /_dev/search-satellite-imagery/test/" ${{ secrets.ftp_server }}
