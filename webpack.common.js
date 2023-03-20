@@ -106,8 +106,9 @@ const config = smp.wrap({
     new AddAssetHtmlPlugin({ filepath: require.resolve('./favicon.svg') }),
     new HtmlWebpackPlugin({
       template: './index.html', 
+      inject: false,
       favicon: './favicon.svg', 
-      title: 'Search EO imagery',
+      title: 'Search EO imagery - Iconem',
     })
   ],
 });
