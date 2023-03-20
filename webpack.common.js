@@ -1,6 +1,8 @@
 const resolve = require('path').resolve;
 const webpack = require('webpack');
 const Dotenv = require('dotenv-webpack');
+const AddAssetHtmlPlugin = require('add-asset-html-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const SpeedMeasurePlugin = require("speed-measure-webpack-plugin");
 const smp = new SpeedMeasurePlugin();
@@ -34,7 +36,9 @@ const config = smp.wrap({
   },
 
   output: {
-    library: 'App'
+    library: 'App', 
+    
+    clean: true,
   },
 
   resolve: {
@@ -71,7 +75,17 @@ const config = smp.wrap({
             },
           }
         ]
-      }
+      }, 
+
+
+      // {
+      //   test: /\.html/,
+      //   type: 'asset/resource'
+      // },
+      // {
+      //   test: /favicon\.svg/,
+      //   type: 'asset/resource'
+      // }
     ]
   },
 
@@ -86,7 +100,15 @@ const config = smp.wrap({
       safe: true,     // load .env.example (defaults to "false" which does not use dotenv-safe)
       systemvars: true, //Set to true if you would rather load all system variables as well (useful for CI purposes)
     }),
-    new CompressionPlugin(),
+    // new CompressionPlugin(),
+    // Other way to add index.html to dist
+    // new AddAssetHtmlPlugin({ filepath: require.resolve('./index.html') }),
+    new AddAssetHtmlPlugin({ filepath: require.resolve('./favicon.svg') }),
+    new HtmlWebpackPlugin({
+      template: './index.html', 
+      favicon: './favicon.svg', 
+      title: 'Search EO imagery',
+    })
   ],
 });
 
