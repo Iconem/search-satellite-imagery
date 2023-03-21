@@ -100,10 +100,14 @@ export default function App(props) {
         (window.innerWidth) * (splitPanelSizesPercent[1] - prevSplitPanelSizesPercent[1]) / 100 
         : 0
       const currentBounds = mapRef.current?.getBounds()
+      const boundsCenter = currentBounds.getCenter()
       // console.log('SPLIT MOVED, width', window.innerWidth, prevSplitPanelSizesPercent, splitPanelSizesPercent, 'ratio', moveRatio, 'currentBounds', currentBounds)
       mapRef?.current?.fitBounds(
         currentBounds, 
-        {padding: {top: 0, bottom:0, left: 0, right: moveRatio}}
+        {
+          padding: {top: 0, bottom:0, left: 0, right: moveRatio}, 
+          center: [boundsCenter.lng, boundsCenter.lat]
+        }
       );
     } else {
       // console.log('Split did not move')

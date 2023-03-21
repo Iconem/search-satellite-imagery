@@ -47,7 +47,11 @@ function KML_input(props) {
           [minLng, minLat],
           [maxLng, maxLat]
         ],
-        {padding: 150, duration: 1000}
+        {
+          padding: 150, 
+          duration: 1000, 
+          center: [0.5 * (minLng+maxLng), 0.5 * (minLat+maxLat)]
+        }
       );
 
       // Can be imported but not edited because not added to the draw features component
