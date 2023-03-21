@@ -1,14 +1,14 @@
 // Component for presenting search results on a mui-x datagrid
 
-import * as React from 'react';
-import { Tooltip, Typography, GlobalStyles, Box } from '@mui/material';
-import { DataGrid, GridColumnMenu, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton, GridToolbarDensitySelector, type GridRowHeightParams, type GridColDef, GridEventListener } from '@mui/x-data-grid';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCloudSun, faSquarePollHorizontal, faSatellite, faBolt, faVectorSquare } from '@fortawesome/free-solid-svg-icons';
-import bbox from '@turf/bbox';
+import * as React from 'react'
+import { Tooltip, Typography, GlobalStyles, Box } from '@mui/material'
+import { DataGrid, GridColumnMenu, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton, GridToolbarDensitySelector, type GridRowHeightParams, type GridColDef } from '@mui/x-data-grid'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCloudSun, faSquarePollHorizontal, faSatellite, faBolt, faVectorSquare } from '@fortawesome/free-solid-svg-icons'
+import bbox from '@turf/bbox'
 
 /* SEARCH RESULTS COMPONENT */
-function CustomGridToolbar() {
+function CustomGridToolbar(): React.ReactElement {
   return (
     <GridToolbarContainer
       sx={{
@@ -24,20 +24,20 @@ function CustomGridToolbar() {
       <GridToolbarColumnsButton />
       <GridToolbarDensitySelector />
     </GridToolbarContainer>
-  );
+  )
 }
 
-function CustomColumnMenuComponent(props) {
-  const { hideMenu, currentColumn, color, ...other } = props;
+// function CustomColumnMenuComponent(props: any): React.ReactElement {
+//   const { hideMenu, currentColumn, color, ...other } = props
 
-  return <GridColumnMenu hideMenu={hideMenu} currentColumn={currentColumn} ownerState={{ color }} {...other} />;
+//   return <GridColumnMenu hideMenu={hideMenu} currentColumn={currentColumn} ownerState={{ color }} {...other} />
+// }
+
+function checkUnknown(x: number, suffix: string): string {
+  return x || x === 0 ? `${Math.round(x)}${suffix}` : '-'
 }
 
-function check_unknown(x, suffix) {
-  return x || x === 0 ? `${Math.round(x)}${suffix}` : '-';
-}
-
-const no_image_fallback_url = 'https://via.placeholder.com/300x300.webp/FFFFFF/000000?text=No+Preview+Available'; // './no_image_fallback.jpg'
+const NO_IMAGE_FALLBACK_URL = 'https://via.placeholder.com/300x300.webp/FFFFFF/000000?text=No+Preview+Available' // './no_image_fallback.jpg'
 
 const datagridColumns: GridColDef[] = [
   {
@@ -45,12 +45,12 @@ const datagridColumns: GridColDef[] = [
     // valueGetter: (params) => params.row.acquisitionDate.substring(0, 16).replace('T', ' '),
     valueGetter: (params) => new Date(params.row.acquisitionDate),
     renderCell: (params) => {
-      const dateStr = params.value;
+      const dateStr = params.value
       return (
         <Tooltip title={dateStr.toISOString().substring(0, 16).replace('T', ' ')} disableInteractive>
           <p>{dateStr.toISOString().substring(0, 10)}</p>
         </Tooltip>
-      );
+      )
     },
     width: 90, // 120 to see datetime, 100 to see only date
     type: 'dateTime',
@@ -64,7 +64,7 @@ const datagridColumns: GridColDef[] = [
     description: 'Resolution (m/px)',
     width: 60,
     renderCell: (params) => {
-      return <p>{`${Math.floor(params.value * 100) / 100 || '?'}m`}</p>;
+      return <p>{`${Math.floor(params.value * 100) / 100 || '?'}m`}</p>
     },
     renderHeader: () => (
       <Tooltip title={'Resolution (m/px)'}>
@@ -78,7 +78,7 @@ const datagridColumns: GridColDef[] = [
     width: 80,
     valueGetter: (params) => parseFloat(params.row?.price),
     renderCell: (params) => {
-      return <p>{`${check_unknown(params.value, ' $')}`}</p>; // USD EURO
+      return <p>{`${checkUnknown(params.value, ' $')}`}</p> // USD EURO
     },
     renderHeader: () => <strong>Price</strong>,
   },
@@ -102,14 +102,14 @@ const datagridColumns: GridColDef[] = [
         <Tooltip title={params.value} disableInteractive>
           <p>{params.value}</p>
         </Tooltip>
-      );
+      )
     },
   },
   {
     field: 'cloudCoverage',
     type: 'number',
     renderCell: (params) => {
-      return <p>{`${check_unknown(params.value, '%')}`}</p>;
+      return <p>{`${checkUnknown(params.value, '%')}`}</p>
     },
     valueGetter: (params) => params.row?.cloudCoverage,
     description: 'Cloud Coverage',
@@ -127,7 +127,7 @@ const datagridColumns: GridColDef[] = [
     field: 'shapeIntersection',
     type: 'number',
     renderCell: (params) => {
-      return <p>{`${check_unknown(params.value, '%')}`}</p>;
+      return <p>{`${checkUnknown(params.value, '%')}`}</p>
     },
     width: 55,
     valueGetter: (params) => params.row?.shapeIntersection,
@@ -145,7 +145,7 @@ const datagridColumns: GridColDef[] = [
     field: 'Azimuth',
     type: 'number',
     renderCell: (params) => {
-      return <p>{`${check_unknown(params.value, '°')}`}</p>;
+      return <p>{`${checkUnknown(params.value, '°')}`}</p>
     },
     valueGetter: (params) => params.row?.providerProperties?.azimuthAngle,
     renderHeader: () => (
@@ -164,7 +164,7 @@ const datagridColumns: GridColDef[] = [
     field: 'Sun Azimuth',
     type: 'number',
     renderCell: (params) => {
-      return <p>{`${check_unknown(params.value, '°')}`}</p>;
+      return <p>{`${checkUnknown(params.value, '°')}`}</p>
     },
     valueGetter: (params) => params.row?.providerProperties?.illuminationAzimuthAngle,
     renderHeader: () => (
@@ -183,7 +183,7 @@ const datagridColumns: GridColDef[] = [
     field: 'Sun Elevation',
     type: 'number',
     renderCell: (params) => {
-      return <p>{`${check_unknown(params.value, '°')}`}</p>;
+      return <p>{`${checkUnknown(params.value, '°')}`}</p>
     },
     valueGetter: (params) => params.row?.providerProperties?.illuminationElevationAngle,
     hide: true,
@@ -192,7 +192,7 @@ const datagridColumns: GridColDef[] = [
     field: 'Incidence',
     type: 'number',
     renderCell: (params) => {
-      return <p>{`${check_unknown(params.value, '°')}`}</p>;
+      return <p>{`${checkUnknown(params.value, '°')}`}</p>
     },
     valueGetter: (params) => params.row?.providerProperties?.incidenceAngle,
     hide: true,
@@ -230,7 +230,7 @@ const datagridColumns: GridColDef[] = [
         }}
         // onError={e => {
         //    // or e.target.className = fallback_className
-        //   (e.target as any).src = no_image_fallback_url;
+        //   (e.target as any).src = NO_IMAGE_FALLBACK_URL;
         // }}
         title={'No Preview available'}
       />
@@ -261,7 +261,7 @@ const datagridColumns: GridColDef[] = [
         <Tooltip title={params.value}>
           <p>{params.value}</p>
         </Tooltip>
-      );
+      )
     },
     valueGetter: (params) => params.row?.id,
     hide: false,
@@ -271,16 +271,16 @@ const datagridColumns: GridColDef[] = [
       </Tooltip>
     ),
   },
-];
+]
 
 // displays id ok for up42 (properties.id), head (r.identifier), maxar (f.attributes.image_identifier), skywatch (r.product_name) and eos (r.sceneID)
 
-const handleRowHover = (e, searchResults, setFootprintFeatures) => {
-  const rowId = e.target.parentElement.dataset.id;
-  const row = searchResults.features.find((el) => el.properties.id === rowId);
+const handleRowHover = (e, searchResults, setFootprintFeatures): void => {
+  const rowId = e.target.parentElement.dataset.id
+  const row = searchResults.features.find((el) => el.properties.id === rowId)
   // setFootprintFeatures(row?.geometry)
-  setFootprintFeatures(row);
-};
+  setFootprintFeatures(row)
+}
 
 const handleRowClick = (
   params, // GridRowParams
@@ -288,11 +288,11 @@ const handleRowClick = (
   details, // GridCallbackDetails
   mapRef,
   searchResults
-) => {
-  const feature_geom = searchResults.features.find((el) => el.properties.id === params.id);
-  console.log('rowClick params', params, feature_geom);
-  const bounds = bbox(feature_geom);
-  const [minLng, minLat, maxLng, maxLat] = bounds;
+): void => {
+  const featureGeom = searchResults.features.find((el) => el.properties.id === params.id)
+  console.log('rowClick params', params, featureGeom)
+  const bounds = bbox(featureGeom)
+  const [minLng, minLat, maxLng, maxLat] = bounds
   mapRef?.current?.fitBounds(
     [
       [minLng, minLat],
@@ -303,12 +303,12 @@ const handleRowClick = (
       bearing: 0,
       center: [0.5 * (minLng + maxLng), 0.5 * (minLat + maxLat)],
     }
-  );
-};
+  )
+}
 
-function SearchResultsComponent(props) {
-  const searchResults = props.searchResults;
-  const rows = searchResults.features.map((feature) => feature.properties);
+function SearchResultsComponent(props): React.ReactElement {
+  const searchResults = props.searchResults
+  const rows = searchResults.features.map((feature) => feature.properties)
   return (
     <>
       <Typography variant="subtitle1">
@@ -365,11 +365,11 @@ function SearchResultsComponent(props) {
               getRowHeight={({ id, densityFactor }: GridRowHeightParams) => {
                 switch (densityFactor) {
                   case 0.7:
-                    return null;
+                    return null
                   case 1:
-                    return 100;
+                    return 100
                   case 1.3:
-                    return 200;
+                    return 200
                 }
                 // return 100 * densityFactor; // 70/100/130
                 // return null;
@@ -379,10 +379,14 @@ function SearchResultsComponent(props) {
               rowsPerPageOptions={[]}
               columns={datagridColumns}
               rows={rows}
-              onRowClick={(p, e, d) => { handleRowClick(p, e, d, props.mapRef, searchResults); }}
+              onRowClick={(p, e, d) => {
+                handleRowClick(p, e, d, props.mapRef, searchResults)
+              }}
               componentsProps={{
                 row: {
-                  onMouseEnter: (e) => { handleRowHover(e, searchResults, props.setFootprintFeatures); },
+                  onMouseEnter: (e) => {
+                    handleRowHover(e, searchResults, props.setFootprintFeatures)
+                  },
                   // onMouseLeave: e => props.setFootprintFeatures({
                   //   coordinates: [],
                   //   type: 'Polygon'
@@ -406,7 +410,7 @@ function SearchResultsComponent(props) {
         </div>
       </div>
     </>
-  );
+  )
 }
 
-export default React.memo(SearchResultsComponent);
+export default React.memo(SearchResultsComponent)

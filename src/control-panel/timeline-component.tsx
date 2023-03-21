@@ -1,35 +1,35 @@
 // Timeline Component
 // based on visx
 
-import * as React from 'react';
+import * as React from 'react'
 
-import { GlyphCircle } from '@visx/glyph';
-import { XYChart, GlyphSeries, Axis, Grid, Annotation, AnnotationCircleSubject, AnnotationLabel, BarSeries, AnnotationConnector, AnnotationLineSubject, Tooltip } from '@visx/xychart';
-import { Group } from '@visx/group';
+import { GlyphCircle } from '@visx/glyph'
+import { XYChart, GlyphSeries, Axis, Grid, Annotation, AnnotationCircleSubject, AnnotationLabel, BarSeries, AnnotationConnector, AnnotationLineSubject, Tooltip } from '@visx/xychart'
+import { Group } from '@visx/group'
 // import { RenderTooltipParams } from "@visx/xychart/lib/components/Tooltip";
 
 const accessors = {
   xAccessor: (d) => (d?.properties?.acquisitionDate && new Date(d?.properties?.acquisitionDate)) || null,
   yAccessor: (d) => 0, // d.y,
-};
+}
 
-const handleRowHover = (e, searchResults, setFootprintFeatures) => {
-  const rowIdx = parseInt(e.target.getAttribute('id'));
-  const row = searchResults.output.features[rowIdx];
+const handleRowHover = (e, searchResults, setFootprintFeatures): void => {
+  const rowIdx = parseInt(e.target.getAttribute('id'))
+  const row = searchResults.output.features[rowIdx]
   // const rowId = e.target.parentElement.dataset.id;
   // const row = searchResults.output['features'].find(
   //   (el) => el.properties.id === rowId
   // );
-  setFootprintFeatures(row);
-};
+  setFootprintFeatures(row)
+}
 
 // const getToolTipsDatum = (event: RenderTooltipParams<any>) => ({
 //   datum: event?.tooltipData?.nearestDatum?.datum,
 //   distance: event?.tooltipData?.nearestDatum?.distance
 // });
 
-function TimelineComponent(props) {
-  const theme = props.theme;
+function TimelineComponent(props): React.ReactElement {
+  const theme = props.theme
   return (
     <>
       <div
@@ -85,7 +85,9 @@ function TimelineComponent(props) {
                       strokeWidth={2}
                       // For handling Mouse Hover
                       id={key}
-                      onMouseEnter={(e) => { handleRowHover(e, props.searchResults, props.setFootprintFeatures); }}
+                      onMouseEnter={(e) => {
+                        handleRowHover(e, props.searchResults, props.setFootprintFeatures)
+                      }}
                       // onMouseLeave= {e => props.setFootprintFeatures({ coordinates: [],  type: 'Polygon' }) }
                     />
                   )}
@@ -163,7 +165,7 @@ function TimelineComponent(props) {
         </div>
       </div>
     </>
-  );
+  )
 }
 
-export default React.memo(TimelineComponent);
+export default React.memo(TimelineComponent)

@@ -2,7 +2,7 @@
 // Just removed pin on search result
 
 import { useState } from 'react'
-import { useControl, type MarkerProps, type ControlPosition, type MapRef } from 'react-map-gl'
+import { useControl, type MarkerProps, type ControlPosition } from 'react-map-gl'
 import type * as React from 'react'
 
 import MapboxGeocoder, { type GeocoderOptions } from '@mapbox/mapbox-gl-geocoder'
@@ -11,7 +11,7 @@ import PropTypes from 'prop-types'
 type GeocoderControlProps = Omit<GeocoderOptions, 'accessToken' | 'mapboxgl' | 'marker'> & {
   mapboxAccessToken: string
   marker?: boolean | Omit<MarkerProps, 'longitude' | 'latitude'>
-
+  mapRef: any
   position: ControlPosition
 
   onLoading?: (e: object) => void
@@ -20,14 +20,14 @@ type GeocoderControlProps = Omit<GeocoderOptions, 'accessToken' | 'mapboxgl' | '
   onError?: (e: object) => void
 }
 
-GeocoderControl.propTypes = {
-  onError: PropTypes.func,
-  onResult: PropTypes.func,
-  mapRef: PropTypes.any,
-}
+// GeocoderControl.propTypes = {
+//   onError: PropTypes.func,
+//   onResult: PropTypes.func,
+//   mapRef: PropTypes.any,
+// }
 
-export default function GeocoderControl(props): React.ReactComponent {
-  // export default function GeocoderControl(props: GeocoderControlProps): React.ReactComponent {
+// export default function GeocoderControl(props): React.ReactComponent {
+export default function GeocoderControl(props: GeocoderControlProps): React.ReactElement {
   const [marker, setMarker] = useState(null)
 
   const geocoder = useControl<MapboxGeocoder>(
@@ -48,8 +48,8 @@ export default function GeocoderControl(props): React.ReactComponent {
           center: evt?.result?.center,
         })
 
-        const { result } = evt
-        const location = result && (result.center || (result.geometry?.type === 'Point' && result.geometry.coordinates))
+        // const { result } = evt
+        // const location = result && (result.center || (result.geometry?.type === 'Point' && result.geometry.coordinates))
         // if (location && props.marker) {
         //   setMarker(<Marker {...props.marker} longitude={location[0]} latitude={location[1]} />)
         // } else {

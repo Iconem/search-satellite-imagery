@@ -1,17 +1,23 @@
-import * as React from 'react';
+import * as React from 'react'
 
-import { Collapse, List, ListItem, ListItemText, ListItemIcon, Typography } from '@mui/material';
+import { Collapse, List, ListItem, ListItemText, ListItemIcon, Typography } from '@mui/material'
 
-import { useLocalStorage } from '../utilities';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faChevronUp, faCheck, faSatelliteDish } from '@fortawesome/free-solid-svg-icons';
+import { useLocalStorage } from '../utilities'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faChevronDown, faChevronUp, faCheck, faSatelliteDish } from '@fortawesome/free-solid-svg-icons'
+import PropTypes from 'prop-types'
 
 /* API Request Status */
-function APIRequestsStatuses(props) {
+APIRequestsStatuses.propTypes = {
+  searchPromises: PropTypes.any,
+  theme: PropTypes.func,
+  searchResults: PropTypes.any,
+}
+function APIRequestsStatuses(props): React.ReactElement {
   // const [apiRequestsStatusesCollapsed, setApiRequestsStatusesCollapsed] = React.useState(false)
-  const [apiRequestsStatusesCollapsed, setApiRequestsStatusesCollapsed] = useLocalStorage('apiRequestsStatusesCollapsed', false);
+  const [apiRequestsStatusesCollapsed, setApiRequestsStatusesCollapsed] = useLocalStorage('apiRequestsStatusesCollapsed', false)
 
-  const textColor = (o) => (!o.searchFinished ? props.theme.palette.text.primary : o.errorOnFetch ? props.theme.palette.error.light : props.theme.palette.success.light);
+  const textColor = (o) => (!o.searchFinished ? props.theme.palette.text.primary : o.errorOnFetch ? props.theme.palette.error.light : props.theme.palette.success.light)
 
   return (
     <>
@@ -29,7 +35,7 @@ function APIRequestsStatuses(props) {
                 .map((o: any, i) => (
                   <ListItem key={i} sx={{ color: textColor(o) }}>
                     <ListItemIcon sx={{ color: textColor(o) }}>{!o.searchFinished ? <Typography>...</Typography> : <FontAwesomeIcon icon={faCheck} />}</ListItemIcon>
-                    <ListItemText primary={!o.searchFinished ? `Searching ${o.provider}...` : o.errorOnFetch ? `Error on Fetch for ${o.provider}` : `${props.searchResults?.output?.features?.filter((f) => f.properties.provider?.toLowerCase().startsWith(o.provider?.toLowerCase())).length} results returned by ${o.provider}!`} secondary={null} />
+                    <ListItemText primary={!o.searchFinished ? `Searching ${o.provider as string}...` : o.errorOnFetch ? `Error on Fetch for ${o.provider as string}` : `${props.searchResults?.output?.features?.filter((f) => f.properties.provider?.toLowerCase().startsWith(o.provider?.toLowerCase())).length as number} results returned by ${o.provider as string}!`} secondary={null} />
                   </ListItem>
                 ))}
             </List>
@@ -37,7 +43,7 @@ function APIRequestsStatuses(props) {
         </>
       )}
     </>
-  );
+  )
 }
 
-export default APIRequestsStatuses;
+export default APIRequestsStatuses

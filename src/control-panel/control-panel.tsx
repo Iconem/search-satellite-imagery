@@ -9,41 +9,42 @@ https://mui.com/material-ui/react-switch/#label
 Tree view https://mui.com/material-ui/react-tree-view/#gmail-clone
 */
 
-import * as React from 'react';
+import * as React from 'react'
 
 // MUI Components: Inputs | Data Display | Feedback+Nav | Layout | Mui-X-datepicker | Components API | Colors
-import { Snackbar, Alert, Collapse, Box, Grid, Stack, Typography, Slider, Link } from '@mui/material';
+import { Snackbar, Alert, Collapse, Box, Grid, Stack, Typography, Slider, Link } from '@mui/material'
 
 // Other imports
-import { useLocalStorage } from '../utilities';
-import area from '@turf/area';
+import { useLocalStorage } from '../utilities'
+import area from '@turf/area'
 // FontAwesome icons https://fontawesome.com/icons
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faChevronUp, faDrawPolygon, faSliders, faEarthEurope } from '@fortawesome/free-solid-svg-icons';
-import { faTwitter, faGithub } from '@fortawesome/free-brands-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faChevronDown, faChevronUp, faDrawPolygon, faSliders, faEarthEurope } from '@fortawesome/free-solid-svg-icons'
+import { faTwitter, faGithub } from '@fortawesome/free-brands-svg-icons'
 // import { solid, brands } from '@fortawesome/fontawesome-svg-core/import.macro'
 
-import { Providers } from '../archive-apis/search-utilities';
+import { Providers } from '../archive-apis/search-utilities'
+import PropTypes from 'prop-types'
 
-import DateRangeComponent from './date-range-component';
-import SettingsComponent from './settings-component';
-import SearchResultsComponent from './search-results-component';
-import ApiKeysModalComponent from './api-keys-modal-component';
-import SearchButton from './search-button';
-import ExportButton from './export-button';
-import APIRequestsStatuses from './api-requests-statuses';
-import { GSD_steps } from '../utilities';
-import { sourcesTreeviewInitialSelection } from './satellite-imagery-sources-treeview';
+import DateRangeComponent from './date-range-component'
+import SettingsComponent from './settings-component'
+import SearchResultsComponent from './search-results-component'
+import ApiKeysModalComponent from './api-keys-modal-component'
+import SearchButton from './search-button'
+import ExportButton from './export-button'
+import APIRequestsStatuses from './api-requests-statuses'
+import { GSD_STEPS } from '../utilities'
+import { sourcesTreeviewInitialSelection } from './satellite-imagery-sources-treeview'
 
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 // import { solid, regular, brands, icon } from '@fortawesome/fontawesome-svg-core/import.macro' // <-- import styles to be used
 
 /* Display COMPONENTS */
 /* AOI area COMPONENT */
-function AOIComponent(props) {
-  let polygonArea = 0;
+function AOIComponent(props): React.ReactElement {
+  let polygonArea = 0
   for (const polygon of props.polygons) {
-    polygonArea += area(polygon);
+    polygonArea += area(polygon)
   }
 
   return (
@@ -65,7 +66,7 @@ function AOIComponent(props) {
         </Grid>
       </Grid>
     </>
-  );
+  )
 }
 
 /* COMPONENTS DEFINITION */
@@ -76,11 +77,11 @@ function AOIComponent(props) {
 //   ...searchSettings,
 //   [state_property]: newValue
 // })
-const millisecondsPerDay = 24 * 60 * 60 * 1000;
-function ControlPanel(props) {
-  const polygons = props.polygons;
+const millisecondsPerDay = 24 * 60 * 60 * 1000
+function ControlPanel(props): React.ReactElement {
+  const polygons = props.polygons
   // Fit all search settings in a single react state object
-  const today = new Date();
+  const today = new Date()
   const [searchSettings, setSearchSettings] = useLocalStorage('searchSettings', {
     // polygon: null,
     startDate: new Date(today.getTime() - 1200 * millisecondsPerDay), // 30
@@ -91,13 +92,13 @@ function ControlPanel(props) {
     sunElevation: [50, 90],
     offNadirAngle: [-60, 60],
     sensorsSelection: null,
-  });
+  })
   if (typeof searchSettings.startDate === 'string' || searchSettings.startDate instanceof String) {
     setSearchSettings({
       ...searchSettings,
       startDate: new Date(searchSettings.startDate),
       endDate: new Date(searchSettings.endDate),
-    });
+    })
   }
 
   const [apiKeys, setApiKeys] = useLocalStorage('apiKeys', {
@@ -112,7 +113,7 @@ function ControlPanel(props) {
       apiKey: '',
       apiSecurity: '',
     },
-  });
+  })
   // [Providers.UP42]: {
   //   projectId: process.env.UP42_PROJECT_ID,
   //   projectApiKey: process.env.UP42_PROJECT_APIKEY,
@@ -125,31 +126,31 @@ function ControlPanel(props) {
     setSearchSettings({
       ...searchSettings,
       startDate: newValue,
-    });
+    })
   const setEndDate = (newValue: Date | null) =>
     setSearchSettings({
       ...searchSettings,
       endDate: newValue,
-    });
+    })
 
-  const [loadingResults, setLoadingResults] = React.useState(false);
-  const [searchPromises, setSearchPromises] = React.useState([]);
+  const [loadingResults, setLoadingResults] = React.useState(false)
+  const [searchPromises, setSearchPromises] = React.useState([])
 
   // const [settingsCollapsed, setSettingsCollapsed] = React.useState(false);
-  const [settingsCollapsed, setSettingsCollapsed] = useLocalStorage('settingsCollapsed', false);
+  const [settingsCollapsed, setSettingsCollapsed] = useLocalStorage('settingsCollapsed', false)
   const [snackbarOptions, setSnackbarOptions] = React.useState({
     open: false,
     message: '',
-  });
+  })
   const handleSnackbarClose = (event, reason) => {
     if (reason === 'clickaway') {
-      return;
+      return
     }
     setSnackbarOptions({
       open: false,
       message: '',
-    });
-  };
+    })
+  }
 
   const setters = {
     setSearchResults: props.setSearchResults,
@@ -157,10 +158,10 @@ function ControlPanel(props) {
     setLoadingResults,
     setSettingsCollapsed,
     setSnackbarOptions,
-  };
+  }
 
-  const [providersTreeviewDataSelection, setProvidersTreeviewDataSelection] = useLocalStorage('providersTreeviewDataSelection', sourcesTreeviewInitialSelection());
-  const theme = props.theme;
+  const [providersTreeviewDataSelection, setProvidersTreeviewDataSelection] = useLocalStorage('providersTreeviewDataSelection', sourcesTreeviewInitialSelection())
+  const theme = props.theme
 
   return (
     <>
@@ -240,7 +241,7 @@ function ControlPanel(props) {
             }}
           >
             <Stack spacing={2}>
-              <SettingsComponent searchSettings={searchSettings} setSearchSettings={setSearchSettings} GSD_steps={GSD_steps} setProvidersTreeviewDataSelection={setProvidersTreeviewDataSelection} providersTreeviewDataSelection={providersTreeviewDataSelection} />
+              <SettingsComponent searchSettings={searchSettings} setSearchSettings={setSearchSettings} GSD_STEPS={GSD_STEPS} setProvidersTreeviewDataSelection={setProvidersTreeviewDataSelection} providersTreeviewDataSelection={providersTreeviewDataSelection} />
 
               <ApiKeysModalComponent apiKeys={apiKeys} setApiKeys={setApiKeys} />
             </Stack>
@@ -271,7 +272,7 @@ function ControlPanel(props) {
         </div>
       </div>
     </>
-  );
+  )
 }
 
-export default React.memo(ControlPanel);
+export default React.memo(ControlPanel)

@@ -47,7 +47,7 @@ class OverlayControl implements IControl {
  */
 CustomOverlay.propTypes = {
   position: PropTypes.string,
-  children: React.ReactElement,
+  // children: React.ReactElement,
 }
 function CustomOverlay(props): React.ReactElement {
   const [, setVersion] = useState(0)

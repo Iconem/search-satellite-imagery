@@ -1,28 +1,33 @@
-import * as React from 'react';
+import * as React from 'react'
 
-import { Button, Box, Tooltip } from '@mui/material';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDownload } from '@fortawesome/free-solid-svg-icons';
+import { Button, Box, Tooltip } from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faDownload } from '@fortawesome/free-solid-svg-icons'
+import PropTypes from 'prop-types'
+
+ExportButton.propTypes = {
+  searchResults: PropTypes.any,
+}
 
 /* Export Button has GeoJSON logic */
-function ExportButton(props) {
-  function handleExportButtonClick() {
-    const geojson_obj = JSON.parse(JSON.stringify(props.searchResults.output)); // deep copy
-    geojson_obj.features.forEach((f) => {
-      f.properties['fill-opacity'] = 0;
-      f.properties['stroke-width'] = 1;
-    });
+function ExportButton(props): React.ReactElement {
+  function handleExportButtonClick(): void {
+    const geojsonObj = JSON.parse(JSON.stringify(props.searchResults.output)) // deep copy
+    geojsonObj.features.forEach((f) => {
+      f.properties['fill-opacity'] = 0
+      f.properties['stroke-width'] = 1
+    })
 
-    geojson_obj.features.unshift(props.searchResults.input);
+    geojsonObj.features.unshift(props.searchResults.input)
 
-    const fileData = JSON.stringify(geojson_obj);
-    const blob = new Blob([fileData], { type: 'text/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.click();
-    link.download = 'search-results.geojson';
-    link.href = url;
-    link.click();
+    const fileData = JSON.stringify(geojsonObj)
+    const blob = new Blob([fileData], { type: 'text/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.click()
+    link.download = 'search-results.geojson'
+    link.href = url
+    link.click()
 
     // Could define these styles for each geojson feature properties, and use QGIS/Fill-Color/Data-Defined-Overrides/Field-type:string
   }
@@ -40,7 +45,7 @@ function ExportButton(props) {
         </Button>
       </Box>
     </Box>
-  );
+  )
 }
 
-export default ExportButton;
+export default ExportButton

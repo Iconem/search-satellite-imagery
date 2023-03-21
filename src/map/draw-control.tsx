@@ -11,7 +11,6 @@ import DrawRectangle from 'mapbox-gl-draw-rectangle-mode'
 import { useControl } from 'react-map-gl'
 import type { MapRef, ControlPosition } from 'react-map-gl'
 // import CustomDrawRectangle from './CustomDrawRectangle'
-import PropTypes from 'prop-types'
 
 import { LotsOfPointsMode } from './draw-control-test'
 

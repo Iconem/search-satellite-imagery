@@ -1,13 +1,14 @@
 // DateRange component based on simple mui datepickers since the daterange requires an muix-pro subscription
 
-import * as React from 'react';
-import { styled } from '@mui/system';
-import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import * as React from 'react'
+import { styled } from '@mui/system'
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers'
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 
-import { TextField, Typography, Grid } from '@mui/material';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendarDay } from '@fortawesome/free-solid-svg-icons';
+import { TextField, Typography, Grid } from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCalendarDay } from '@fortawesome/free-solid-svg-icons'
+import PropTypes from 'prop-types'
 
 /* DATE RANGE COMPONENT */
 const MyDatePicker = styled(DatePicker)({
@@ -22,9 +23,15 @@ const MyDatePicker = styled(DatePicker)({
   '.MuiOutlinedInput-input ': {
     padding: '6px',
   },
-});
-function DateRangeComponent(props) {
-  const startDate_lte_endDate = props.startDate <= props.endDate;
+})
+DateRangeComponent.propTypes = {
+  startDate: PropTypes.any,
+  endDate: PropTypes.any,
+  setStartDate: PropTypes.func,
+  setEndDate: PropTypes.func,
+}
+function DateRangeComponent(props): React.ReactElement {
+  const startDateLowerThanEndDate = props.startDate <= props.endDate
   return (
     <>
       <Typography variant="subtitle2">
@@ -40,13 +47,13 @@ function DateRangeComponent(props) {
               value={props.startDate}
               onChange={props.setStartDate}
               sx={{ width: '100%' }}
-              renderInput={(params) => (
+              renderInput={(params): React.ReactElement => (
                 <TextField
                   {...params}
                   size="small"
                   sx={{ width: '100%' }} // '150px'
-                  error={!startDate_lte_endDate}
-                  {...(!startDate_lte_endDate ? { helperText: 'Bad date ordering' } : {})} //
+                  error={!startDateLowerThanEndDate}
+                  {...(!startDateLowerThanEndDate ? { helperText: 'Bad date ordering' } : {})} //
                 />
               )}
             />
@@ -60,12 +67,12 @@ function DateRangeComponent(props) {
               value={props.endDate}
               onChange={props.setEndDate}
               sx={{ width: '100%' }}
-              renderInput={(params) => (
+              renderInput={(params): React.ReactElement => (
                 <TextField
                   {...params}
                   size="small"
                   sx={{ width: '100%' }} // '150px'
-                  error={!startDate_lte_endDate}
+                  error={!startDateLowerThanEndDate}
                 />
               )}
             />
@@ -73,7 +80,7 @@ function DateRangeComponent(props) {
         </Grid>
       </Grid>
     </>
-  );
+  )
 }
 
-export default React.memo(DateRangeComponent);
+export default React.memo(DateRangeComponent)

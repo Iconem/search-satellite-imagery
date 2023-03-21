@@ -1,11 +1,17 @@
 // Component to define API keys for each satellite archive aggregator
 
-import * as React from 'react';
-import { Button, TextField, List, ListItem, Link, Modal, Backdrop, Fade, Box, Typography, Divider } from '@mui/material';
-import { Providers } from '../archive-apis/search-utilities';
+import * as React from 'react'
+import { Button, TextField, List, ListItem, Link, Modal, Backdrop, Fade, Box, Typography, Divider } from '@mui/material'
+import { Providers } from '../archive-apis/search-utilities'
+import PropTypes from 'prop-types'
 
-function ApiKeysModalComponent(props) {
-  const [infoModalOpen, setInfoModalOpen] = React.useState(false);
+ApiKeysModalComponent.propTypes = {
+  apiKeys: PropTypes.any,
+  setApiKeys: PropTypes.func,
+}
+
+function ApiKeysModalComponent(props): React.ReactElement {
+  const [infoModalOpen, setInfoModalOpen] = React.useState(false)
 
   const infoModalStyle = {
     position: 'absolute',
@@ -17,16 +23,24 @@ function ApiKeysModalComponent(props) {
     border: '2px solid #000',
     boxShadow: 24,
     p: 10,
-  };
+  }
 
   return (
     <>
-      <Button onClick={() => { setInfoModalOpen(true); }}>Set API keys</Button>
+      <Button
+        onClick={() => {
+          setInfoModalOpen(true)
+        }}
+      >
+        Set API keys
+      </Button>
       <Modal
         aria-labelledby="transition-modal-title"
         aria-describedby="transition-modal-description"
         open={infoModalOpen}
-        onClose={() => { setInfoModalOpen(false); }}
+        onClose={() => {
+          setInfoModalOpen(false)
+        }}
         closeAfterTransition
         BackdropComponent={Backdrop}
         BackdropProps={{
@@ -262,7 +276,7 @@ function ApiKeysModalComponent(props) {
         </Fade>
       </Modal>
     </>
-  );
+  )
 }
 
-export default React.memo(ApiKeysModalComponent);
+export default React.memo(ApiKeysModalComponent)
