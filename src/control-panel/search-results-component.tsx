@@ -1,24 +1,25 @@
 // Component for presenting search results on a mui-x datagrid
 
 import * as React from 'react';
-import {Tooltip, Typography, GlobalStyles, Box} from '@mui/material';
-import { DataGrid, GridColumnMenu, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton, GridToolbarDensitySelector, GridRowHeightParams, GridColDef, GridEventListener  } from '@mui/x-data-grid';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCloudSun, faSquarePollHorizontal, faSatellite, faBolt, faVectorSquare } from '@fortawesome/free-solid-svg-icons'
+import { Tooltip, Typography, GlobalStyles, Box } from '@mui/material';
+import { DataGrid, GridColumnMenu, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton, GridToolbarDensitySelector, type GridRowHeightParams, type GridColDef, GridEventListener } from '@mui/x-data-grid';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCloudSun, faSquarePollHorizontal, faSatellite, faBolt, faVectorSquare } from '@fortawesome/free-solid-svg-icons';
 import bbox from '@turf/bbox';
 
 /* SEARCH RESULTS COMPONENT */
 function CustomGridToolbar() {
   return (
     <GridToolbarContainer
-        sx={ {
-          '& .MuiButton-root': {
-            // color: 'black',
-            fontSize: 'small',
-            fontWeight: 300,
-            textTransform: 'none',
-          },
-      }}>
+      sx={{
+        '& .MuiButton-root': {
+          // color: 'black',
+          fontSize: 'small',
+          fontWeight: 300,
+          textTransform: 'none',
+        },
+      }}
+    >
       <GridToolbarFilterButton />
       <GridToolbarColumnsButton />
       <GridToolbarDensitySelector />
@@ -29,166 +30,175 @@ function CustomGridToolbar() {
 function CustomColumnMenuComponent(props) {
   const { hideMenu, currentColumn, color, ...other } = props;
 
-  return (
-    <GridColumnMenu
-      hideMenu={hideMenu}
-      currentColumn={currentColumn}
-      ownerState={{ color }}
-      {...other}
-    />
-  );
+  return <GridColumnMenu hideMenu={hideMenu} currentColumn={currentColumn} ownerState={{ color }} {...other} />;
 }
 
 function check_unknown(x, suffix) {
-  return (x || x === 0) ? `${Math.round(x)}${suffix}` : '-'
+  return x || x === 0 ? `${Math.round(x)}${suffix}` : '-';
 }
 
-const no_image_fallback_url = 'https://via.placeholder.com/300x300.webp/FFFFFF/000000?text=No+Preview+Available' // './no_image_fallback.jpg'
+const no_image_fallback_url = 'https://via.placeholder.com/300x300.webp/FFFFFF/000000?text=No+Preview+Available'; // './no_image_fallback.jpg'
 
 const datagridColumns: GridColDef[] = [
-  { 
-    field: 'acquisitionDate', 
+  {
+    field: 'acquisitionDate',
     // valueGetter: (params) => params.row.acquisitionDate.substring(0, 16).replace('T', ' '),
     valueGetter: (params) => new Date(params.row.acquisitionDate),
     renderCell: (params) => {
-      const dateStr = params.value
-      return (<Tooltip title={dateStr.toISOString().substring(0, 16).replace('T', ' ')} disableInteractive ><p>{dateStr.toISOString().substring(0, 10)}</p></Tooltip>) 
+      const dateStr = params.value;
+      return (
+        <Tooltip title={dateStr.toISOString().substring(0, 16).replace('T', ' ')} disableInteractive>
+          <p>{dateStr.toISOString().substring(0, 10)}</p>
+        </Tooltip>
+      );
     },
     width: 90, // 120 to see datetime, 100 to see only date
     type: 'dateTime',
     description: 'Acquisition Date',
-    renderHeader: () => (<strong>Date</strong>),
+    renderHeader: () => <strong>Date</strong>,
   },
-  { 
-    field: 'resolution', 
+  {
+    field: 'resolution',
     type: 'number',
-    valueGetter: (params) => parseFloat(params.row?.resolution) ,
+    valueGetter: (params) => parseFloat(params.row?.resolution),
     description: 'Resolution (m/px)',
     width: 60,
     renderCell: (params) => {
-      return (<p>{`${Math.floor(params.value * 100) / 100 || '?'}m`}</p>) 
+      return <p>{`${Math.floor(params.value * 100) / 100 || '?'}m`}</p>;
     },
     renderHeader: () => (
-    <Tooltip title={'Resolution (m/px)'}>
-      <strong>GSD</strong>
-    </Tooltip>
+      <Tooltip title={'Resolution (m/px)'}>
+        <strong>GSD</strong>
+      </Tooltip>
     ),
   },
-  { 
-    field: 'price', 
+  {
+    field: 'price',
     type: 'number',
     width: 80,
     valueGetter: (params) => parseFloat(params.row?.price),
     renderCell: (params) => {
-      return (<p>{`${check_unknown(params.value, ' $')}`}</p>) // USD EURO
+      return <p>{`${check_unknown(params.value, ' $')}`}</p>; // USD EURO
     },
-    renderHeader: () => (<strong>Price</strong>),
+    renderHeader: () => <strong>Price</strong>,
   },
-  // { 
-  //   field: 'constellation', 
+  // {
+  //   field: 'constellation',
   //   width: 95,// 95,
   //   renderHeader: () => (<strong>Constellation</strong>),
   //   renderCell: (params) => {
-  //     return (<Tooltip title={params.value}><p>{params.value}</p></Tooltip>) 
+  //     return (<Tooltip title={params.value}><p>{params.value}</p></Tooltip>)
   //   },
   // },
-  { 
+  {
     field: 'provider',
     headerName: 'provider',
     minWidth: 160,
     flex: 1,
     // valueGetter: (params) => params.row?.provider,
-    renderHeader: () => (<strong>Provider</strong>),
+    renderHeader: () => <strong>Provider</strong>,
     renderCell: (params) => {
-      return (<Tooltip title={params.value} disableInteractive><p>{params.value}</p></Tooltip>) 
+      return (
+        <Tooltip title={params.value} disableInteractive>
+          <p>{params.value}</p>
+        </Tooltip>
+      );
     },
   },
-  { 
-    field: 'cloudCoverage', 
+  {
+    field: 'cloudCoverage',
     type: 'number',
     renderCell: (params) => {
-      return (<p>{`${check_unknown(params.value, '%')}`}</p>) 
+      return <p>{`${check_unknown(params.value, '%')}`}</p>;
     },
     valueGetter: (params) => params.row?.cloudCoverage,
     description: 'Cloud Coverage',
     width: 55,
     renderHeader: () => (
-      <Tooltip title={'Cloud Coverage'}> 
-        <strong>{' '}
-        <FontAwesomeIcon icon={faCloudSun} />
-        {' '}</strong>
-      </Tooltip> 
+      <Tooltip title={'Cloud Coverage'}>
+        <strong>
+          {' '}
+          <FontAwesomeIcon icon={faCloudSun} />{' '}
+        </strong>
+      </Tooltip>
     ),
   },
-  { 
+  {
     field: 'shapeIntersection',
     type: 'number',
     renderCell: (params) => {
-      return (<p>{`${check_unknown(params.value, '%')}`}</p>) 
+      return <p>{`${check_unknown(params.value, '%')}`}</p>;
     },
     width: 55,
-    valueGetter: (params) => params.row?.shapeIntersection, 
+    valueGetter: (params) => params.row?.shapeIntersection,
     renderHeader: () => (
-      <Tooltip title={'Shape Intersection'}> 
-        <strong>{' '}
-        <FontAwesomeIcon icon={faVectorSquare} />
-        {' '}</strong>
-      </Tooltip> 
+      <Tooltip title={'Shape Intersection'}>
+        <strong>
+          {' '}
+          <FontAwesomeIcon icon={faVectorSquare} />{' '}
+        </strong>
+      </Tooltip>
     ),
   },
   // Provider properties are probably dependent on the provider, airbus in the ase of the below props
-  { 
-    field: 'Azimuth', 
+  {
+    field: 'Azimuth',
     type: 'number',
     renderCell: (params) => {
-      return (<p>{`${check_unknown(params.value, '°')}`}</p>) 
+      return <p>{`${check_unknown(params.value, '°')}`}</p>;
     },
     valueGetter: (params) => params.row?.providerProperties?.azimuthAngle,
     renderHeader: () => (
       <Tooltip title={'Azimuth'}>
-      <strong> <FontAwesomeIcon icon={faSatellite} /> </strong>
-      </Tooltip> 
+        <strong>
+          {' '}
+          <FontAwesomeIcon icon={faSatellite} />{' '}
+        </strong>
+      </Tooltip>
     ),
     width: 55,
     description: 'Azimuth',
     hide: false,
   },
-  { 
-    field: 'Sun Azimuth', 
+  {
+    field: 'Sun Azimuth',
     type: 'number',
     renderCell: (params) => {
-      return (<p>{`${check_unknown(params.value, '°')}`}</p>) 
+      return <p>{`${check_unknown(params.value, '°')}`}</p>;
     },
     valueGetter: (params) => params.row?.providerProperties?.illuminationAzimuthAngle,
     renderHeader: () => (
       <Tooltip title={'Sun Azimuth'}>
-      <strong> <FontAwesomeIcon icon={faBolt} /> </strong>
-      </Tooltip> 
+        <strong>
+          {' '}
+          <FontAwesomeIcon icon={faBolt} />{' '}
+        </strong>
+      </Tooltip>
     ),
     width: 55,
     description: 'Sun Azimuth',
     hide: false,
   },
-  { 
-    field: 'Sun Elevation', 
+  {
+    field: 'Sun Elevation',
     type: 'number',
     renderCell: (params) => {
-      return (<p>{`${check_unknown(params.value, '°')}`}</p>) 
+      return <p>{`${check_unknown(params.value, '°')}`}</p>;
     },
     valueGetter: (params) => params.row?.providerProperties?.illuminationElevationAngle,
-    hide: true
+    hide: true,
   },
-  { 
-    field: 'Incidence', 
+  {
+    field: 'Incidence',
     type: 'number',
     renderCell: (params) => {
-      return (<p>{`${check_unknown(params.value, '°')}`}</p>) 
+      return <p>{`${check_unknown(params.value, '°')}`}</p>;
     },
     valueGetter: (params) => params.row?.providerProperties?.incidenceAngle,
-    hide: true
+    hide: true,
   },
-  { 
-    field: 'thumbnail', 
+  {
+    field: 'thumbnail',
     type: 'image',
     renderCell: (params) => (
       <Box
@@ -199,25 +209,25 @@ const datagridColumns: GridColDef[] = [
           height: '100%',
         }}
         alt=""
-        src={params.value} 
+        src={params.value}
         // onerror={"this.src='alternative.jpg';"}
       />
-
     ),
     valueGetter: (params) => params.row?.thumbnail_uri, // thumbnail_uri or preview_uri
-    hide: true
+    hide: true,
   },
   {
-    field: 'preview', 
+    field: 'preview',
     type: 'image',
     renderCell: (params) => (
-      <img src={params.value} 
+      <img
+        src={params.value}
         style={{
           objectFit: 'cover',
           width: '100%',
           height: '100%',
-         pointerEvents: 'none'
-        }} 
+          pointerEvents: 'none',
+        }}
         // onError={e => {
         //    // or e.target.className = fallback_className
         //   (e.target as any).src = no_image_fallback_url;
@@ -226,105 +236,99 @@ const datagridColumns: GridColDef[] = [
       />
     ),
     valueGetter: (params) => params.row?.preview_uri, // thumbnail_uri or preview_uri
-    hide: false, 
+    hide: false,
     // resizable: true, // only works for datagrids with mui-x pro
     // width is not dynamic yet https://github.com/mui/mui-x/issues/1241
     minWidth: 200,
-    flex: 1
+    flex: 1,
     // width:({ id, densityFactor }: GridRowHeightParams) => {
     //   switch (densityFactor) {
-    //     case 0.7: 
+    //     case 0.7:
     //       return null;
-    //     case 1: 
+    //     case 1:
     //       return 100;
-    //     case 1.3: 
+    //     case 1.3:
     //       return 200;
     //   }
     // }
   },
-  { 
-    field: 'identifier', 
+  {
+    field: 'identifier',
     minWidth: 100,
     flex: 0.9,
     renderCell: (params) => {
-      return (<Tooltip title={params.value}><p>{params.value}</p></Tooltip>) 
+      return (
+        <Tooltip title={params.value}>
+          <p>{params.value}</p>
+        </Tooltip>
+      );
     },
     valueGetter: (params) => params.row?.id,
     hide: false,
     renderHeader: () => (
       <Tooltip title={'Identifier of scene/image/product on the corresponding platform provider'} disableInteractive>
-      <strong> Identifier </strong>
-      </Tooltip> 
+        <strong> Identifier </strong>
+      </Tooltip>
     ),
-
   },
-]
+];
 
 // displays id ok for up42 (properties.id), head (r.identifier), maxar (f.attributes.image_identifier), skywatch (r.product_name) and eos (r.sceneID)
 
-
 const handleRowHover = (e, searchResults, setFootprintFeatures) => {
   const rowId = e.target.parentElement.dataset.id;
-  const row = searchResults['features'].find(
-    (el) => el.properties.id === rowId
-  );
+  const row = searchResults.features.find((el) => el.properties.id === rowId);
   // setFootprintFeatures(row?.geometry)
-  setFootprintFeatures(row)
+  setFootprintFeatures(row);
 };
-
 
 const handleRowClick = (
   params, // GridRowParams
   event, // MuiEvent<React.MouseEvent<HTMLElement>>
   details, // GridCallbackDetails
   mapRef,
-  searchResults,
+  searchResults
 ) => {
-  const feature_geom = searchResults['features'].find(
-    (el) => el.properties.id === params.id
-  )
-  console.log('rowClick params', params, feature_geom)
-  const bounds = bbox(feature_geom)
-  const [minLng, minLat, maxLng, maxLat] = bounds
+  const feature_geom = searchResults.features.find((el) => el.properties.id === params.id);
+  console.log('rowClick params', params, feature_geom);
+  const bounds = bbox(feature_geom);
+  const [minLng, minLat, maxLng, maxLat] = bounds;
   mapRef?.current?.fitBounds(
     [
-      [minLng, minLat], 
-      [maxLng, maxLat]
+      [minLng, minLat],
+      [maxLng, maxLat],
     ],
     {
-      padding: {top: 100, bottom: 100, left: 100, right: 100}, 
+      padding: { top: 100, bottom: 100, left: 100, right: 100 },
       bearing: 0,
-      center: [0.5 * (minLng+maxLng), 0.5 * (minLat+maxLat)]
-      }
+      center: [0.5 * (minLng + maxLng), 0.5 * (minLat + maxLat)],
+    }
   );
 };
 
-
 function SearchResultsComponent(props) {
-  const searchResults = props.searchResults
-  const rows = searchResults['features'].map(
-    feature => feature.properties
-  )
+  const searchResults = props.searchResults;
+  const rows = searchResults.features.map((feature) => feature.properties);
   return (
     <>
-      <Typography variant="subtitle1" >
-        <FontAwesomeIcon icon={faSquarePollHorizontal} /> 
-        &nbsp; Search Results  
+      <Typography variant="subtitle1">
+        <FontAwesomeIcon icon={faSquarePollHorizontal} />
+        &nbsp; Search Results
       </Typography>
 
       {/* height: 600, */}
-      <div style={{  width: '100%', flex: '1 1 auto', minHeight: '320px' }}> 
+      <div style={{ width: '100%', flex: '1 1 auto', minHeight: '320px' }}>
         <div style={{ display: 'flex', height: '100%' }}>
           <div style={{ flexGrow: 1 }}>
             <GlobalStyles
               styles={{
-                  "& .MuiDataGrid-panelWrapper": {
-                    padding: "10px" // padding of toolbar styles
-                  },
+                '& .MuiDataGrid-panelWrapper': {
+                  padding: '10px', // padding of toolbar styles
+                },
               }}
             />
             <DataGrid
-              selectionModel={ [props.footprintFeatures?.properties?.id || null] }
+              selectionModel={[props.footprintFeatures?.properties?.id || null]}
               // Fired when selction changed from datagrid
               // onSelectionModelChange={(newSelectionModel) => {
               //   console.log('newSelectionModel', newSelectionModel)
@@ -351,8 +355,8 @@ function SearchResultsComponent(props) {
               }}
               initialState={{
                 sorting: {
-                  sortModel: [{ field: "acquisitionDate", sort: "desc" }]
-                }, 
+                  sortModel: [{ field: 'acquisitionDate', sort: 'desc' }],
+                },
                 // detailPanel: { expandedRowIds: [1, 2, 3] }
               }}
               // If wanted to show image only in expanded detailed view
@@ -360,11 +364,11 @@ function SearchResultsComponent(props) {
               checkboxSelection={false}
               getRowHeight={({ id, densityFactor }: GridRowHeightParams) => {
                 switch (densityFactor) {
-                  case 0.7: 
+                  case 0.7:
                     return null;
-                  case 1: 
+                  case 1:
                     return 100;
-                  case 1.3: 
+                  case 1.3:
                     return 200;
                 }
                 // return 100 * densityFactor; // 70/100/130
@@ -374,19 +378,19 @@ function SearchResultsComponent(props) {
               hideFooterSelectedRowCount={true}
               rowsPerPageOptions={[]}
               columns={datagridColumns}
-              rows={ rows }
-              onRowClick= { (p, e, d) => handleRowClick(p, e, d, props.mapRef, searchResults) }
+              rows={rows}
+              onRowClick={(p, e, d) => { handleRowClick(p, e, d, props.mapRef, searchResults); }}
               componentsProps={{
                 row: {
-                  onMouseEnter: e => handleRowHover(e, searchResults, props.setFootprintFeatures),
+                  onMouseEnter: (e) => { handleRowHover(e, searchResults, props.setFootprintFeatures); },
                   // onMouseLeave: e => props.setFootprintFeatures({
-                  //   coordinates: [], 
+                  //   coordinates: [],
                   //   type: 'Polygon'
-                  // }) 
-                }, 
-                columnMenu: { 
-                  // background: 'red', 
-                  counter: rows.length 
+                  // })
+                },
+                columnMenu: {
+                  // background: 'red',
+                  counter: rows.length,
                 },
                 toolbar: {
                   sx: {

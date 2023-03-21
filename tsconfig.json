@@ -7,9 +7,6 @@
     "moduleResolution": "node",
     "module": "ES2020",
     "sourceMap": true,
-    "lib": [
-      "ES2021.String", 
-      "DOM"
-    ]
+    "lib": ["ES2021.String", "DOM"]
   }
 }

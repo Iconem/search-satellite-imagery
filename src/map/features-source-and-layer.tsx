@@ -1,46 +1,46 @@
 // Simple Mapbox Source and Layer
 
 import * as React from 'react';
-import {Source, Layer} from 'react-map-gl';
+import { Source, Layer } from 'react-map-gl';
 import { lighten, darken } from '@mui/material/styles';
 
 function FeaturesSourceAndLayer(props) {
-  const theme = props.theme
+  const theme = props.theme;
   // console.log('FeaturesSourceAndLayer', props.features)
   return (
     <Source type="geojson" data={props.features}>
-      {
-        props.lineLayer &&
-        <Layer {...{
-          id: 'features-line' + props.id,
-          type: 'line',
-          paint: {
-            "line-color": lighten(theme.palette.primary.main, 0.5),
-            'line-opacity': 1, 
-            "line-width": 3,
-            'line-dasharray': [2, 1],
-          }
-        }} 
+      {props.lineLayer && (
+        <Layer
+          {...{
+            id: 'features-line' + props.id,
+            type: 'line',
+            paint: {
+              'line-color': lighten(theme.palette.primary.main, 0.5),
+              'line-opacity': 1,
+              'line-width': 3,
+              'line-dasharray': [2, 1],
+            },
+          }}
         />
-      }
-      {
-        props.fillLayer && 
-        <Layer {...{
-          id: 'features-fill' + props.id,
-          type: 'fill',
-          paint: {
-            'fill-color': lighten(theme.palette.primary.main, 0.5),
-            'fill-opacity': 0.5
-          },
-          stroke: {
-            'color': darken(theme.palette.primary.main, 0.5),
-            'opacity': 1, 
-            'stroke-width': 3,
-            'width': 3,
-          }
-        }} 
+      )}
+      {props.fillLayer && (
+        <Layer
+          {...{
+            id: 'features-fill' + props.id,
+            type: 'fill',
+            paint: {
+              'fill-color': lighten(theme.palette.primary.main, 0.5),
+              'fill-opacity': 0.5,
+            },
+            stroke: {
+              color: darken(theme.palette.primary.main, 0.5),
+              opacity: 1,
+              'stroke-width': 3,
+              width: 3,
+            },
+          }}
         />
-      }
+      )}
     </Source>
   );
 }

@@ -5,47 +5,48 @@ const Dotenv = require('dotenv-webpack');
 const { merge } = require('webpack-merge');
 const common = require('./webpack.common.js');
 
-const BundleAnalyzerPlugin =
-  require("webpack-bundle-analyzer").BundleAnalyzerPlugin
-const bundleAnalyzerMode = true ? 'static' : 'server'
-console.log('bundleAnalyzerMode', bundleAnalyzerMode)
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+const bundleAnalyzerMode = true ? 'static' : 'server';
+console.log('bundleAnalyzerMode', bundleAnalyzerMode);
 
-const SpeedMeasurePlugin = require("speed-measure-webpack-plugin");
+const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
 const smp = new SpeedMeasurePlugin();
 
-const config = smp.wrap(merge(common, {
-  mode: 'production',
-  plugins: [
-    new BundleAnalyzerPlugin({
-      analyzerMode: bundleAnalyzerMode
-    }),
-  ],
-  optimization: {
-    splitChunks: {
-      // chunks: 'async',
-      // minSize: 20000,
-      // minRemainingSize: 0,
-      // minChunks: 1,
-      // maxAsyncRequests: 30,
-      // maxInitialRequests: 30,
-      // enforceSizeThreshold: 50000,
-      // cacheGroups: {
-      //   defaultVendors: {
-      //     test: /[\\/]node_modules[\\/]/,
-      //     priority: -10,
-      //     reuseExistingChunk: true,
-      //   },
-      //   default: {
-      //     minChunks: 2,
-      //     priority: -20,
-      //     reuseExistingChunk: true,
-      //   },
-      // },
+const config = smp.wrap(
+  merge(common, {
+    mode: 'production',
+    plugins: [
+      new BundleAnalyzerPlugin({
+        analyzerMode: bundleAnalyzerMode,
+      }),
+    ],
+    optimization: {
+      splitChunks: {
+        // chunks: 'async',
+        // minSize: 20000,
+        // minRemainingSize: 0,
+        // minChunks: 1,
+        // maxAsyncRequests: 30,
+        // maxInitialRequests: 30,
+        // enforceSizeThreshold: 50000,
+        // cacheGroups: {
+        //   defaultVendors: {
+        //     test: /[\\/]node_modules[\\/]/,
+        //     priority: -10,
+        //     reuseExistingChunk: true,
+        //   },
+        //   default: {
+        //     minChunks: 2,
+        //     priority: -20,
+        //     reuseExistingChunk: true,
+        //   },
+        // },
+      },
     },
-  },
-}));
+  })
+);
 
 // Enables bundling against src in this repo rather than the installed version
-module.exports = env => {
+module.exports = (env) => {
   return env && env.local ? require('../webpack.config.local')(config)(env) : config;
-}
+};

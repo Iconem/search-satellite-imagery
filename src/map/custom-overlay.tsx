@@ -2,11 +2,11 @@
 // Minimal example here: https://visgl.github.io/react-map-gl/docs/get-started/adding-custom-data
 
 import * as React from 'react';
-import {useState, cloneElement} from 'react';
-import {useControl} from 'react-map-gl';
-import {createPortal} from 'react-dom';
+import { useState, cloneElement } from 'react';
+import { useControl } from 'react-map-gl';
+import { createPortal } from 'react-dom';
 
-import type {MapboxMap, IControl} from 'react-map-gl';
+import type { MapboxMap, IControl } from 'react-map-gl';
 
 class OverlayControl implements IControl {
   _map: MapboxMap = null;
@@ -44,18 +44,19 @@ class OverlayControl implements IControl {
 /**
  * A custom control that rerenders arbitrary React content whenever the camera changes
  */
-function CustomOverlay(props: {children: React.ReactElement}) {
+function CustomOverlay(props: { children: React.ReactElement }) {
   const [, setVersion] = useState(0);
 
-  const ctrl = useControl<OverlayControl>(() => {
-    const forceUpdate = () => setVersion(v => v + 1);
-    return new OverlayControl(forceUpdate);
-  }, 
-  {position: props['position']}
+  const ctrl = useControl<OverlayControl>(
+    () => {
+      const forceUpdate = () => { setVersion((v) => v + 1); };
+      return new OverlayControl(forceUpdate);
+    },
+    { position: props.position }
   );
 
   const map = ctrl.getMap();
-  return map && createPortal(cloneElement(props.children, {map}), ctrl.getElement());
+  return map && createPortal(cloneElement(props.children, { map }), ctrl.getElement());
 }
 
 export default React.memo(CustomOverlay);

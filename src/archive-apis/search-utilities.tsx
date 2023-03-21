@@ -3,31 +3,25 @@
 import area from '@turf/area';
 import intersect from '@turf/intersect';
 
-function filter_features_with_search_params (f, searchPolygon) { 
-  return true 
-    && searchPolygon.properties.gsd_min <= (f.properties.resolution || 0)
-    && (f.properties.resolution || 0) <= searchPolygon.properties.gsd_max
-    && (f.properties.cloudCoverage ?? 0) <= searchPolygon.properties.cloudCoverage
-    && (f.properties.shapeIntersection ?? 100) >= searchPolygon.properties.aoiCoverage
-    && new Date(f.properties.acquisitionDate) >= new Date(searchPolygon.properties.startDate)
-    && new Date(f.properties.acquisitionDate) <= new Date(searchPolygon.properties.endDate)
+function filter_features_with_search_params(f, searchPolygon) {
+  return true && searchPolygon.properties.gsd_min <= (f.properties.resolution || 0) && (f.properties.resolution || 0) <= searchPolygon.properties.gsd_max && (f.properties.cloudCoverage ?? 0) <= searchPolygon.properties.cloudCoverage && (f.properties.shapeIntersection ?? 100) >= searchPolygon.properties.aoiCoverage && new Date(f.properties.acquisitionDate) >= new Date(searchPolygon.properties.startDate) && new Date(f.properties.acquisitionDate) <= new Date(searchPolygon.properties.endDate);
 }
 
 // Shape intersection expressed as number in [0,100] of overlap of feature_1 over feature_2
 const shapeIntersection = (feature_1, feature_2) => {
-  return Math.round(area(intersect(feature_1, feature_2)) / area(feature_2) * 100) 
-}
+  return Math.round((area(intersect(feature_1, feature_2)) / area(feature_2)) * 100);
+};
 // Get imagery price given price_info {min_area, price_per_sq_km}
 function get_area_price(feature_area, price_info) {
-  const price = Math.max(feature_area / 1_000_000, price_info.min_area) * price_info.price_per_sq_km
-  return Math.round(price)
+  const price = Math.max(feature_area / 1_000_000, price_info.min_area) * price_info.price_per_sq_km;
+  return Math.round(price);
 }
 function get_imagery_price(feature, constellation_name, constellation_dict) {
   if (constellation_name in constellation_dict) {
-    const price_info = constellation_dict[constellation_name]
-    return get_area_price(area(feature.geometry), price_info)
+    const price_info = constellation_dict[constellation_name];
+    return get_area_price(area(feature.geometry), price_info);
   } else {
-    return null
+    return null;
   }
 }
 
@@ -35,14 +29,14 @@ function get_imagery_price(feature, constellation_name, constellation_dict) {
 // 16.5 USD/km2, 5km2 min on SentinelHub, must be close to Maxar/Digital Globe Pricing
 const maxar_price_info = {
   price_per_sq_km: 16.5, // (16.5 USD/km2) 5km2 min on SentinelHub, must be close to Maxar/Digital Globe Pricing
-  min_area: 5
-}
+  min_area: 5,
+};
 function get_maxar_price(feature) {
   // return get_imagery_price(feature, feature.properties.constellation, maxar_constellation_dict)
-  return get_area_price(area(feature.geometry), maxar_price_info)
+  return get_area_price(area(feature.geometry), maxar_price_info);
 }
 
-const max_abs = (x) => Math.max(...x.map(Math.abs))
+const max_abs = (x) => Math.max(...x.map(Math.abs));
 
 // ENUM names are required for EOS get satellites matching gsd
 enum Satellites {
@@ -84,7 +78,7 @@ enum Satellites {
   JL1GF03 = 'JL1GF03',
   JL101A = 'JL101A',
   JL104 = 'JL104',
-  CapellaSpace= 'CapellaSpace',
+  CapellaSpace = 'CapellaSpace',
 }
 enum Constellation {
   Pleiades = 'Pleiades',
@@ -117,9 +111,8 @@ enum Constellation {
   CapellaSpace = 'CapellaSpace',
   Skyfi = 'Skyfi',
   OAM = 'OpenAerialMap',
-  STAC = 'STAC'
+  STAC = 'STAC',
 }
-
 
 enum Providers {
   UP42 = 'UP42',
@@ -134,90 +127,56 @@ enum Providers {
   STAC = 'STAC',
 }
 
-
 const providers_dict = {
   [Providers.UP42]: [
-    Constellation.Pleiades, 
-    Constellation.PleiadesNeo, 
+    Constellation.Pleiades,
+    Constellation.PleiadesNeo,
     Constellation.TripleSat,
     Constellation.SPOT,
     Constellation.NearSpace,
     Constellation.CapellaSpace,
     // Constellation.NearMap,
-    // Constellation.HxGN, 
-  ], 
-  [Providers.HEADAEROSPACE]: [
-    Constellation.Superview1, 
-    Constellation.Superview2, 
-    Constellation.EarthScanner, 
-    Constellation.Gaofen2, 
-    Constellation.Gaofen7, 
-    Constellation.DailyVision
+    // Constellation.HxGN,
   ],
-  [Providers.MAXAR_DIGITALGLOBE]: [
-    Constellation.GeoEye, 
-    Constellation.WorldView_1_2, 
-    Constellation.WorldView_3_4, 
-    Constellation.QuickBird2, 
-    Constellation.Ikonos1
-  ],
-  [Providers.EOS]: [
-    Constellation.Superview1, 
-    Constellation.Superview2, 
-    Constellation.Kompsat3, 
-    Constellation.Kompsat2, 
-    Constellation.Gaofen1
-  ], 
-  [Providers.SKYWATCH]: [
-    Constellation.PlanetSkysat, 
-    Constellation.TripleSat, 
-    Constellation.Pleiades, 
-    Constellation.PleiadesNeo, 
-    Constellation.Kompsat3, 
-    Constellation.Kompsat2
-  ],
-  [Providers.SKYFI]: [
-    Constellation.DailyVision
-  ],
-  [Providers.OAM]: [
-    Constellation.OAM
-  ],
+  [Providers.HEADAEROSPACE]: [Constellation.Superview1, Constellation.Superview2, Constellation.EarthScanner, Constellation.Gaofen2, Constellation.Gaofen7, Constellation.DailyVision],
+  [Providers.MAXAR_DIGITALGLOBE]: [Constellation.GeoEye, Constellation.WorldView_1_2, Constellation.WorldView_3_4, Constellation.QuickBird2, Constellation.Ikonos1],
+  [Providers.EOS]: [Constellation.Superview1, Constellation.Superview2, Constellation.Kompsat3, Constellation.Kompsat2, Constellation.Gaofen1],
+  [Providers.SKYWATCH]: [Constellation.PlanetSkysat, Constellation.TripleSat, Constellation.Pleiades, Constellation.PleiadesNeo, Constellation.Kompsat3, Constellation.Kompsat2],
+  [Providers.SKYFI]: [Constellation.DailyVision],
+  [Providers.OAM]: [Constellation.OAM],
   [Providers.ARLULA]: [
-    Constellation.GeoEye, 
-    Constellation.WorldView_1_2, 
-    Constellation.WorldView_3_4, 
-    Constellation.QuickBird2, 
+    Constellation.GeoEye,
+    Constellation.WorldView_1_2,
+    Constellation.WorldView_3_4,
+    Constellation.QuickBird2,
     Constellation.Ikonos1,
-    Constellation.Kompsat3, 
+    Constellation.Kompsat3,
     Constellation.Kompsat2,
-    Constellation.TripleSat, 
+    Constellation.TripleSat,
     // TODO LatConnect 60
   ],
   [Providers.APOLLO]: [
-    Constellation.Pleiades, 
-    Constellation.PleiadesNeo, 
+    Constellation.Pleiades,
+    Constellation.PleiadesNeo,
     // TODO COMPLETE
   ],
-  [Providers.STAC]: [
-    Constellation.STAC
-  ],
+  [Providers.STAC]: [Constellation.STAC],
   // 'SENTINELHUB': [Constellation.Pleiades,  Constellation.Worldview],
-}
+};
 // Maxar EUSI satellites https://docs.sentinel-hub.com/api/latest/static/files/data/maxar/world-view/resources/brochures/EUSI_Satellite_Booklet_digital.pdf
 
 const constellation_dict = {
   [Constellation.Superview1]: {
-    satellites: [Satellites.SuperView1A, 
-      Satellites.SuperView1B, Satellites.SuperView1C, Satellites.SuperView1D, Satellites.SuperView1],
-    gsd: 0.5
+    satellites: [Satellites.SuperView1A, Satellites.SuperView1B, Satellites.SuperView1C, Satellites.SuperView1D, Satellites.SuperView1],
+    gsd: 0.5,
   },
   [Constellation.Superview2]: {
     satellites: [Satellites.SuperView2],
-    gsd: 0.4
+    gsd: 0.4,
   },
   [Constellation.EarthScanner]: {
     satellites: [Satellites.EarthScanner],
-    gsd: 0.5
+    gsd: 0.5,
   },
   [Constellation.TripleSat]: {
     satellites: [Satellites.TripleSat1, Satellites.TripleSat2, Satellites.TripleSat3],
@@ -225,108 +184,107 @@ const constellation_dict = {
   },
   [Constellation.Kompsat3]: {
     satellites: [Satellites.KompSat3, Satellites.KompSat3A],
-    gsd: 0.5
+    gsd: 0.5,
   },
   [Constellation.Kompsat2]: {
     satellites: [Satellites.KOMPSAT2],
-    gsd: 1
+    gsd: 1,
   },
   [Constellation.Ziyuan3]: {
     satellites: [Satellites.Ziyuan3],
-    gsd: 2.5
-  }, 
+    gsd: 2.5,
+  },
   [Constellation.Gaofen1]: {
     satellites: [Satellites.Gaofen1],
-    gsd: 2
+    gsd: 2,
   },
   [Constellation.Gaofen2]: {
     satellites: [Satellites.Gaofen2],
-    gsd: 0.8
+    gsd: 0.8,
   },
   [Constellation.Gaofen7]: {
     satellites: [Satellites.Gaofen7],
-    gsd: 0.65
+    gsd: 0.65,
   },
   [Constellation.GeoEye]: {
     satellites: [Satellites.GeoEye],
-    gsd: 0.4
+    gsd: 0.4,
   },
   [Constellation.DailyVision]: {
     satellites: [Satellites.JilinGXA, Satellites.JilinGF02AB, Satellites.DailyVision1mJLGF3],
-    gsd: 0.75
+    gsd: 0.75,
   },
   [Constellation.Pleiades]: {
     satellites: [Satellites.Pleiades],
-    gsd: 0.5
+    gsd: 0.5,
   },
   [Constellation.PleiadesNeo]: {
     satellites: [Satellites.PleiadesNeo],
-    gsd: 0.3
+    gsd: 0.3,
   },
   [Constellation.PlanetSkysat]: {
     satellites: [Satellites.PlanetSkysat],
-    gsd: 0.5
+    gsd: 0.5,
   },
   [Constellation.HxGN]: {
     satellites: [Satellites.HxGN],
-    gsd: 0.3
+    gsd: 0.3,
   },
   [Constellation.NearMap]: {
     satellites: [Satellites.NearMap],
-    gsd: 0.3
+    gsd: 0.3,
   },
   [Constellation.GeoEye1]: {
     satellites: [Satellites.GeoEye1],
-    gsd: 0.4
+    gsd: 0.4,
   },
   [Constellation.WorldView_1_2]: {
     satellites: [Satellites.WorldView1, Satellites.WorldView2],
-    gsd: 0.5
+    gsd: 0.5,
   },
   [Constellation.WorldView_3_4]: {
     satellites: [Satellites.WorldView3, Satellites.WorldView4],
-    gsd: 0.3
+    gsd: 0.3,
   },
   [Constellation.QuickBird2]: {
     satellites: [Satellites.QuickBird2],
-    gsd: 0.6
+    gsd: 0.6,
   },
   [Constellation.Ikonos1]: {
     satellites: [Satellites.Ikonos1],
-    gsd: 0.8
+    gsd: 0.8,
   },
-  
+
   [Constellation.JL1GF03]: {
     satellites: [Satellites.JL1GF03],
-    gsd: 1
+    gsd: 1,
   },
   [Constellation.JL101A]: {
     satellites: [Satellites.JL101A],
-    gsd: 0.7
+    gsd: 0.7,
   },
   [Constellation.JL104]: {
     satellites: [Satellites.JL104],
-    gsd: 1
+    gsd: 1,
   },
-  
+
   [Constellation.NearSpace]: {
     satellites: [Satellites.NearSpace],
-    gsd: 0.3
+    gsd: 0.3,
   },
   [Constellation.CapellaSpace]: {
     satellites: [Satellites.CapellaSpace],
-    gsd: 0.5
+    gsd: 0.5,
   },
   [Constellation.OAM]: {
     satellites: [],
-    gsd: 0.005
+    gsd: 0.005,
   },
   [Constellation.STAC]: {
     satellites: [],
-    gsd: 0.01
+    gsd: 0.01,
   },
-
-}
+};
 
 const eos_names = {
   [Satellites.SuperView1A]: 'SuperView 1A',
@@ -343,7 +301,7 @@ const eos_names = {
   [Satellites.Ziyuan3]: 'Ziyuan-3',
   [Satellites.Gaofen1]: 'Gaofen 1',
   [Satellites.Gaofen2]: 'Gaofen 2',
-}
+};
 const maxar_names = {
   [Satellites.GeoEye1]: 'GE01',
   [Satellites.WorldView1]: 'WV01',
@@ -352,7 +310,7 @@ const maxar_names = {
   [Satellites.WorldView4]: 'WV04',
   [Satellites.QuickBird2]: 'QB02',
   [Satellites.Ikonos1]: 'IK01',
-}
+};
 
 const head_names = {
   [Constellation.Superview1]: 'SV-1',
@@ -363,28 +321,28 @@ const head_names = {
   [Satellites.DailyVision1mJLGF3]: 'JL1GF03-PMS',
   [Satellites.Gaofen2]: 'GF-2',
   [Satellites.Gaofen7]: 'GF-7',
-}
+};
 const head_search_names = {
   [Satellites.SuperView1]: 'SuperView',
-  [Satellites.SuperView2]: 'SuperView', 
-  [Satellites.EarthScanner]: 'EarthScanner-KF1', // 
+  [Satellites.SuperView2]: 'SuperView',
+  [Satellites.EarthScanner]: 'EarthScanner-KF1', //
   [Satellites.JilinGXA]: 'Jilin-GXA',
   [Satellites.JilinGF02AB]: 'Jilin-GF02A/B',
   [Satellites.DailyVision1mJLGF3]: 'DailyVision1m-JLGF3',
   [Satellites.Gaofen2]: 'GaoFen-2',
   // [Satellites.Gaofen7]: 'GaoFen-7',
-}
+};
 
 const head_constellation_dict = {
   'SV-1': {
     constellation: Constellation.Superview1,
     min_area: 25,
-    price_per_sq_km: 9, 
+    price_per_sq_km: 9,
   },
   'SV-2': {
     constellation: Constellation.Superview2,
     min_area: 25,
-    price_per_sq_km: 12, 
+    price_per_sq_km: 12,
   },
   'JL1KF01-PMS': {
     constellation: Constellation.EarthScanner,
@@ -409,41 +367,41 @@ const head_constellation_dict = {
   'JL1GF03-PMS': {
     constellation: Constellation.JL1GF03,
   },
-  'JL101A': {
+  JL101A: {
     constellation: Constellation.JL101A,
   },
   'JL104-PMS': {
     constellation: Constellation.JL104,
-  }, 
-}
+  },
+};
 
 const up42_constellation_dict = {
-  'phr': {
+  phr: {
     constellation: Constellation.Pleiades,
     price_per_sq_km: 10, // (10EUR/km2) no min
-    min_area: 0
+    min_area: 0,
   },
-  'pneo': {
+  pneo: {
     constellation: Constellation.PleiadesNeo,
-    price_per_sq_km: 15,  // TODO: check pricing and min_area
-    min_area: 0
+    price_per_sq_km: 15, // TODO: check pricing and min_area
+    min_area: 0,
   },
-  'triplesat': {
+  triplesat: {
     constellation: Constellation.TripleSat,
-    price_per_sq_km: 15,  // TODO: check pricing and min_area
-    min_area: 0
+    price_per_sq_km: 15, // TODO: check pricing and min_area
+    min_area: 0,
   },
   // 'HEAD SuperView': {
   //   constellation: 'SuperView',
   //   price_per_sq_km: 9, // (9EUR/km2) 25km² min
   //   min_area: 25
-  // }, 
+  // },
   // 'HEAD EarthScanner': {
   //   constellation: 'EarthScanner',
   //   price_per_sq_km: 7, // (7EUR/km2) 25km² min
   //   min_area: 25
-  // }, 
-}
+  // },
+};
 
 const up42_producers_names = {
   [Constellation.Pleiades]: 'Airbus',
@@ -451,26 +409,21 @@ const up42_producers_names = {
   [Constellation.TripleSat]: 'TWENTY_ONE_AT',
   [Constellation.SPOT]: 'ESA',
   [Constellation.NearSpace]: 'NEAR_SPACE_LABS',
-}
+};
 
 function get_constellation_respecting_gsd(gsd) {
-  return Object.keys(constellation_dict)
-    .filter(key => 
-      (gsd.min <= constellation_dict[key].gsd) && (constellation_dict[key].gsd <= gsd.max))
+  return Object.keys(constellation_dict).filter((key) => gsd.min <= constellation_dict[key].gsd && constellation_dict[key].gsd <= gsd.max);
 }
 
 function get_satellites_respecting_gsd(gsd) {
   return get_constellation_respecting_gsd(gsd)
-    .map(key => constellation_dict[key].satellites)
-    .flat()
+    .map((key) => constellation_dict[key].satellites)
+    .flat();
 }
 
 function get_constellation_obj(sat_name, constellation_dict) {
   let constellation_obj;
-  Object.keys(constellation_dict).forEach(
-    constellation_name => 
-        constellation_obj = constellation_dict[constellation_name].satellites.includes(sat_name) ? constellation_dict[constellation_name] : constellation_obj
-  );
+  Object.keys(constellation_dict).forEach((constellation_name) => (constellation_obj = constellation_dict[constellation_name].satellites.includes(sat_name) ? constellation_dict[constellation_name] : constellation_obj));
   return constellation_obj;
 }
 
@@ -478,13 +431,13 @@ function get_constellation_name(sat_name, constellation_dict) {
   const constellation_obj = get_constellation_obj(sat_name, constellation_dict);
   if (constellation_obj) {
     // return constellation_obj.name
-    return Object.keys(constellation_dict).find(key => constellation_dict[key] === constellation_obj);
+    return Object.keys(constellation_dict).find((key) => constellation_dict[key] === constellation_obj);
   } else {
-    return sat_name
+    return sat_name;
   }
 }
 
-// const eos_constellation_dict = 
+// const eos_constellation_dict =
 //   Object.keys(constellation_dict)
 //     .reduce(function(result, key) {
 //       if (false || providers_dict[Providers.EOS].includes(Constellation[key])) {
@@ -498,27 +451,21 @@ function get_constellation_name(sat_name, constellation_dict) {
 // TODO
 // Could be simplified
 
-const eos_constellation_dict = 
-  providers_dict[Providers.EOS]
-  .reduce(function(result, constellation) {
-      result[constellation] = {
-        satellites: constellation_dict[constellation].satellites.map(x => eos_names[x] || x)
-      }
-      return result
-    }
-, {})
+const eos_constellation_dict = providers_dict[Providers.EOS].reduce(function (result, constellation) {
+  result[constellation] = {
+    satellites: constellation_dict[constellation].satellites.map((x) => eos_names[x] || x),
+  };
+  return result;
+}, {});
 
-const maxar_constellation_dict = 
-  providers_dict[Providers.MAXAR_DIGITALGLOBE]
-  .reduce(function(result, constellation) {
-      result[constellation] = {
-        satellites: constellation_dict[constellation].satellites.map(x => maxar_names[x] || x)
-      }
-      return result
-    }
-, {})
+const maxar_constellation_dict = providers_dict[Providers.MAXAR_DIGITALGLOBE].reduce(function (result, constellation) {
+  result[constellation] = {
+    satellites: constellation_dict[constellation].satellites.map((x) => maxar_names[x] || x),
+  };
+  return result;
+}, {});
 
-// const head_constellation_dict = 
+// const head_constellation_dict =
 //   providers_dict[Providers.HEADAEROSPACE]
 //   .reduce(function(result, constellation) {
 //       result[constellation] = {
@@ -528,19 +475,19 @@ const maxar_constellation_dict =
 //     }
 // , {})
 
-
-
 export {
   // Methods
   filter_features_with_search_params,
-  shapeIntersection, 
-  get_imagery_price, 
+  shapeIntersection,
+  get_imagery_price,
   max_abs,
   get_constellation_name,
   get_satellites_respecting_gsd,
 
   // Enums
-  Satellites, Constellation, Providers, 
+  Satellites,
+  Constellation,
+  Providers,
 
   // Generic Dicts
   constellation_dict,
@@ -555,4 +502,4 @@ export {
   head_search_names,
   up42_constellation_dict,
   up42_producers_names,
-}
+};

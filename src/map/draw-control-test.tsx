@@ -1,11 +1,10 @@
 // Forked from Mapbox-Draw-Controls with editing polygon draw mode to rectangle since editing whole toolbar is a bit trickier
 // https://github.com/visgl/react-map-gl/tree/7.0-release/examples/draw-polygon
-// Full example code: https://nebula.gl/docs/api-reference/react-map-gl-draw/react-map-gl-draw code and 
+// Full example code: https://nebula.gl/docs/api-reference/react-map-gl-draw/react-map-gl-draw code and
 // Custom Draw Modes: https://github.com/mapbox/mapbox-gl-draw/blob/main/docs/MODES.md
 // https://visgl.github.io/react-map-gl/examples/draw-polygon
 
 // import {CommonSelectors, Constants} from '@mapbox/mapbox-gl-draw';
-
 
 // import * as CommonSelectors from '../lib/common_selectors';
 // import * as Constants from '../constants';
@@ -73,55 +72,6 @@
 
 // export default DrawPoint;
 
-
-var LotsOfPointsMode = {
-  onSetup: null,
-  onClick: null,
-  onKeyUp: null,
-  toDisplayFeatures: null,
-};
-
-// When the mode starts this function will be called.
-// The `opts` argument comes from `draw.changeMode('lotsofpoints', {count:7})`.
-// The value returned should be an object and will be passed to all other lifecycle functions
-LotsOfPointsMode.onSetup = function(opts) {
-  // console.log('onsetup')
-  var state = {
-    count: opts.count || 0
-  };
-  return state;
-};
-
-// Whenever a user clicks on the map, Draw will call `onClick`
-LotsOfPointsMode.onClick = function(state, e) {
-  // console.log('onclick')
-  // `this.newFeature` takes geojson and makes a DrawFeature
-  var point = this.newFeature({
-    type: 'Feature',
-    properties: {
-      count: state.count
-    },
-    geometry: {
-      type: 'Point',
-      coordinates: [e.lngLat.lng, e.lngLat.lat]
-    }
-  });
-  this.addFeature(point); // puts the point on the map
-};
-
-// Whenever a user clicks on a key while focused on the map, it will be sent here
-LotsOfPointsMode.onKeyUp = function(state, e) {
-  if (e.keyCode === 27) return this.changeMode('simple_select');
-};
-
-// This is the only required function for a mode.
-// It decides which features currently in Draw's data store will be rendered on the map.
-// All features passed to `display` will be rendered, so you can pass multiple display features per internal feature.
-// See `styling-draw` in `API.md` for advice on making display features
-LotsOfPointsMode.toDisplayFeatures = function(state, geojson, display) {
-  display(geojson);
-};
-
 // // Add the new draw mode to the MapboxDraw object
 // var draw = new MapboxDraw({
 //   defaultMode: 'lots_of_points',
@@ -131,23 +81,68 @@ LotsOfPointsMode.toDisplayFeatures = function(state, geojson, display) {
 //   }, MapboxDraw.modes),
 // });
 
+import { kml } from '@tmcw/togeojson';
 
-import { kml } from "@tmcw/togeojson";
+const LotsOfPointsMode = {
+  onSetup: null,
+  onClick: null,
+  onKeyUp: null,
+  toDisplayFeatures: null,
+};
+
+// When the mode starts this function will be called.
+// The `opts` argument comes from `draw.changeMode('lotsofpoints', {count:7})`.
+// The value returned should be an object and will be passed to all other lifecycle functions
+LotsOfPointsMode.onSetup = function (opts) {
+  // console.log('onsetup')
+  const state = {
+    count: opts.count || 0,
+  };
+  return state;
+};
+
+// Whenever a user clicks on the map, Draw will call `onClick`
+LotsOfPointsMode.onClick = function (state, e) {
+  // console.log('onclick')
+  // `this.newFeature` takes geojson and makes a DrawFeature
+  const point = this.newFeature({
+    type: 'Feature',
+    properties: {
+      count: state.count,
+    },
+    geometry: {
+      type: 'Point',
+      coordinates: [e.lngLat.lng, e.lngLat.lat],
+    },
+  });
+  this.addFeature(point); // puts the point on the map
+};
+
+// Whenever a user clicks on a key while focused on the map, it will be sent here
+LotsOfPointsMode.onKeyUp = function (state, e) {
+  if (e.keyCode === 27) return this.changeMode('simple_select');
+};
+
+// This is the only required function for a mode.
+// It decides which features currently in Draw's data store will be rendered on the map.
+// All features passed to `display` will be rendered, so you can pass multiple display features per internal feature.
+// See `styling-draw` in `API.md` for advice on making display features
+LotsOfPointsMode.toDisplayFeatures = function (state, geojson, display) {
+  display(geojson);
+};
 
 function handleKMLUpload2(event, _this, _this_changeMode) {
-  event.preventDefault()
-  const kml_file = event.target.files[0]
-  console.log('kml_file info', kml_file)
+  event.preventDefault();
+  const kml_file = event.target.files[0];
+  console.log('kml_file info', kml_file);
   // console.log('props in handleKMLUpload', props)
   const reader = new FileReader();
   reader.onload = async (e) => {
-    console.log(e)
-    const kml_content = e.target.result
-    const xmlDoc = new DOMParser()
-      .parseFromString(kml_content as string, 'text/xml');
-    const geojson_features = kml(xmlDoc)
-    console.log('geojson_features from kml', geojson_features)
-
+    console.log(e);
+    const kml_content = e.target.result;
+    const xmlDoc = new DOMParser().parseFromString(kml_content as string, 'text/xml');
+    const geojson_features = kml(xmlDoc);
+    console.log('geojson_features from kml', geojson_features);
 
     // _this.addFeature(geojson_features.features[0]); // puts the point on the map
     // _this.addFeature(geojson_features.features[0]); // puts the point on the map
@@ -206,28 +201,23 @@ function handleKMLUpload2(event, _this, _this_changeMode) {
     //     f.properties = {}
     //     newFeatures[f.id] = f;
     //     console.log('load kml f', f)
-    //   } 
+    //   }
     //     console.log('load kml newFeatures', newFeatures)
     //   return newFeatures;
     // });
-
 
     // Not useful
     // props.map.fire("draw.create", {
     //   features: [geojson_features.features[0]]
     // });
 
-  _this_changeMode('simple_select')
-  console.log('mode changed')
+    _this_changeMode('simple_select');
+    console.log('mode changed');
   };
-  reader.readAsText(event.target.files[0], 'UTF-8')
+  reader.readAsText(event.target.files[0], 'UTF-8');
 }
 
-
-
-
-
-var LotsOfPointsMode2 = {
+const LotsOfPointsMode2 = {
   onSetup: null,
   onClick: null,
   onKeyUp: null,
@@ -237,15 +227,15 @@ var LotsOfPointsMode2 = {
 // When the mode starts this function will be called.
 // The `opts` argument comes from `draw.changeMode('lotsofpoints', {count:7})`.
 // The value returned should be an object and will be passed to all other lifecycle functions
-LotsOfPointsMode2.onSetup = function(opts) {
+LotsOfPointsMode2.onSetup = function (opts) {
   // console.log('onsetup')
-  const kmlUploadInput = document.getElementById('kmlUploadInput')
-  kmlUploadInput.onchange = e => handleKMLUpload2(e, this, this.changeMode)
-  kmlUploadInput.click()
+  const kmlUploadInput = document.getElementById('kmlUploadInput');
+  kmlUploadInput.onchange = (e) => { handleKMLUpload2(e, this, this.changeMode); };
+  kmlUploadInput.click();
 };
 
 // Whenever a user clicks on the map, Draw will call `onClick`
-LotsOfPointsMode2.onClick = function(state, e) {
+LotsOfPointsMode2.onClick = function (state, e) {
   // console.log('onclick')
   // // `this.newFeature` takes geojson and makes a DrawFeature
   // var point = this.newFeature({
@@ -263,7 +253,7 @@ LotsOfPointsMode2.onClick = function(state, e) {
 };
 
 // Whenever a user clicks on a key while focused on the map, it will be sent here
-LotsOfPointsMode2.onKeyUp = function(state, e) {
+LotsOfPointsMode2.onKeyUp = function (state, e) {
   if (e.keyCode === 27) return this.changeMode('simple_select');
 };
 
@@ -271,7 +261,7 @@ LotsOfPointsMode2.onKeyUp = function(state, e) {
 // It decides which features currently in Draw's data store will be rendered on the map.
 // All features passed to `display` will be rendered, so you can pass multiple display features per internal feature.
 // See `styling-draw` in `API.md` for advice on making display features
-LotsOfPointsMode2.toDisplayFeatures = function(state, geojson, display) {
+LotsOfPointsMode2.toDisplayFeatures = function (state, geojson, display) {
   // display(geojson);
 };
 
@@ -284,4 +274,4 @@ LotsOfPointsMode2.toDisplayFeatures = function(state, geojson, display) {
 //   }, MapboxDraw.modes),
 // });
 
-export {LotsOfPointsMode, LotsOfPointsMode2}
+export { LotsOfPointsMode, LotsOfPointsMode2 };

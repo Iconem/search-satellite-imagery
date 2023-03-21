@@ -1,9 +1,9 @@
 // Forked from the react-map-gl geocoder example https://visgl.github.io/react-map-gl/examples/geocoder
 // Just removed pin on search result
 
-import {useState} from 'react';
-import {useControl, Marker, MarkerProps, ControlPosition} from 'react-map-gl';
-import MapboxGeocoder, {GeocoderOptions} from '@mapbox/mapbox-gl-geocoder';
+import { useState } from 'react';
+import { useControl, Marker, type MarkerProps, type ControlPosition } from 'react-map-gl';
+import MapboxGeocoder, { type GeocoderOptions } from '@mapbox/mapbox-gl-geocoder';
 
 type GeocoderControlProps = Omit<GeocoderOptions, 'accessToken' | 'mapboxgl' | 'marker'> & {
   mapboxAccessToken: string;
@@ -26,33 +26,32 @@ export default function GeocoderControl(props: GeocoderControlProps) {
       const ctrl = new MapboxGeocoder({
         ...props,
         marker: false,
-        accessToken: props.mapboxAccessToken
+        accessToken: props.mapboxAccessToken,
       });
-    //   ctrl.on('loading', props.onLoading);
-    //   ctrl.on('results', props.onResults);
-    //   ctrl.on('result', evt => {
-    //     props.onResult(evt);
+      //   ctrl.on('loading', props.onLoading);
+      //   ctrl.on('results', props.onResults);
+      //   ctrl.on('result', evt => {
+      //     props.onResult(evt);
 
-    //     const {result} = evt;
-    //     const location =
-    //       result &&
-    //       (result.center || (result.geometry?.type === 'Point' && result.geometry.coordinates));
-    //     if (location && props.marker) {
-    //       setMarker(<Marker {...props.marker} longitude={location[0]} latitude={location[1]} />);
-    //     } else {
-    //       setMarker(null);
-    //     }
-    //   });
+      //     const {result} = evt;
+      //     const location =
+      //       result &&
+      //       (result.center || (result.geometry?.type === 'Point' && result.geometry.coordinates));
+      //     if (location && props.marker) {
+      //       setMarker(<Marker {...props.marker} longitude={location[0]} latitude={location[1]} />);
+      //     } else {
+      //       setMarker(null);
+      //     }
+      //   });
       ctrl.on('error', props.onError);
       return ctrl;
     },
     {
-      position: props.position, 
-      
+      position: props.position,
     }
   );
 
-  // @ts-ignore (TS2339) private member
+  // @ts-expect-error (TS2339) private member
   if (geocoder._map) {
     if (geocoder.getProximity() !== props.proximity && props.proximity !== undefined) {
       geocoder.setProximity(props.proximity);
@@ -114,5 +113,5 @@ GeocoderControl.defaultProps = {
   onLoading: noop,
   onResults: noop,
   onResult: noop,
-  onError: noop
+  onError: noop,
 };
