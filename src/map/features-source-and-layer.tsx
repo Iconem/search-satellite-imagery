@@ -1,18 +1,26 @@
 // Simple Mapbox Source and Layer
 
-import * as React from 'react';
-import { Source, Layer } from 'react-map-gl';
-import { lighten, darken } from '@mui/material/styles';
+import * as React from 'react'
+import { Source, Layer } from 'react-map-gl'
+import { lighten, darken } from '@mui/material/styles'
+import PropTypes from 'prop-types'
 
-function FeaturesSourceAndLayer(props) {
-  const theme = props.theme;
+FeaturesSourceAndLayer.propTypes = {
+  features: PropTypes.any,
+  lineLayer: PropTypes.bool,
+  fillLayer: PropTypes.bool,
+  id: PropTypes.string,
+  theme: PropTypes.any,
+}
+function FeaturesSourceAndLayer(props): React.ReactElement {
+  const theme = props.theme
   // console.log('FeaturesSourceAndLayer', props.features)
   return (
     <Source type="geojson" data={props.features}>
       {props.lineLayer && (
         <Layer
           {...{
-            id: 'features-line' + props.id,
+            id: `features-line-${props.id as string}`,
             type: 'line',
             paint: {
               'line-color': lighten(theme.palette.primary.main, 0.5),
@@ -26,7 +34,7 @@ function FeaturesSourceAndLayer(props) {
       {props.fillLayer && (
         <Layer
           {...{
-            id: 'features-fill' + props.id,
+            id: `features-fill-${props.id as string}`,
             type: 'fill',
             paint: {
               'fill-color': lighten(theme.palette.primary.main, 0.5),
@@ -42,7 +50,7 @@ function FeaturesSourceAndLayer(props) {
         />
       )}
     </Source>
-  );
+  )
 }
 
-export default React.memo(FeaturesSourceAndLayer);
+export default React.memo(FeaturesSourceAndLayer)

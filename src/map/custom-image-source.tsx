@@ -1,41 +1,47 @@
 // Simple Mapbox Source and Layer for Raster or TMS Source
 
-import * as React from 'react';
-import { Source, Layer } from 'react-map-gl';
-import { Providers } from '../archive-apis/search-utilities';
+import * as React from 'react'
+import { Source, Layer } from 'react-map-gl'
+import { Providers } from '../archive-apis/search-utilities'
+import PropTypes from 'prop-types'
 
 // import rewind from '@turf/rewind';
 // import simplify from '@turf/simplify';
 // import {polygon} from '@turf/helpers';
 // import * as turf from "@turf/turf";
-import bbox from '@turf/bbox';
-import bboxPolygon from '@turf/bbox-polygon';
-import { getCoords } from '@turf/invariant';
-import { polygon } from '@turf/helpers';
+import bbox from '@turf/bbox'
+import bboxPolygon from '@turf/bbox-polygon'
+import { getCoords } from '@turf/invariant'
+import { polygon } from '@turf/helpers'
 
-function CustomImageSource(props) {
-  const use_tms_source = [Providers.HEADAEROSPACE, Providers.SKYFI, Providers.OAM].includes(props.feature?.properties?.providerPlatform);
+CustomImageSource.propTypes = {
+  feature: PropTypes.any.isRequired,
+  rasterOpacity: PropTypes.number,
+}
+
+function CustomImageSource(props): React.ReactElement {
+  const useTMSSource = [Providers.HEADAEROSPACE, Providers.SKYFI, Providers.OAM].includes(props.feature?.properties?.providerPlatform)
 
   // BUG DURING TREE SHAKING WITH other conditional if with same div types and different ids
-  let coordinates;
-  const footprint_bbox = [-180, -90, 180, 90];
-  if (props.feature?.geometry?.coordinates?.length == 1) {
-    coordinates = props.feature.geometry?.coordinates[0];
+  let coordinates
+  const footprintBbox = [-180, -90, 180, 90]
+  if (props.feature?.geometry?.coordinates?.length === 1) {
+    coordinates = props.feature.geometry?.coordinates[0]
 
     // Depending on the providers, we will not use the same coordinates for the raster overlay. Arlula, we can pass directly the footprint coordinates
     if (props.feature.providerPlatform !== Providers.ARLULA) {
       if (!Array.isArray(coordinates)) {
-        return <></>;
+        return <></>
       }
 
-      let footprintPolygon = polygon(props.feature.geometry?.coordinates);
+      let footprintPolygon = polygon(props.feature.geometry?.coordinates)
       // footprintPolygon = simplify(footprintPolygon, {tolerance: 0.01, highQuality: false});
       // footprintPolygon = rewind(footprintPolygon);
-      const footprint_bbox = bbox(footprintPolygon);
-      footprintPolygon = bboxPolygon(footprint_bbox);
+      const footprintBbox = bbox(footprintPolygon)
+      footprintPolygon = bboxPolygon(footprintBbox)
       // BBOX is the easiest way to get the aoi footprint cooordinates sorted in the right order (needs from NW, clockwise)
       // Can also simplify the footprint to get a 4-coords polygon rather than 20-ish
-      coordinates = getCoords(footprintPolygon)[0].slice(0, 4).reverse();
+      coordinates = getCoords(footprintPolygon)[0].slice(0, 4).reverse()
       // coordinates = footprintPolygon.geometry.coordinates[0].slice(0,4).reverse()
     }
   } else {
@@ -44,47 +50,47 @@ function CustomImageSource(props) {
       [0, 0],
       [0, 0],
       [0, 0],
-    ];
+    ]
   }
 
   if (props.feature?.properties?.preview_uri && props.rasterOpacity > 0) {
-    // console.log('existing feature for custom imagery source', props.feature.properties.providerProperties.preview_uri_tiles, props.feature.properties.preview_uri, props.rasterOpacity, 'use_tms_source', use_tms_source)
-    const preview_uri_tiles = props.feature?.properties?.providerProperties?.preview_uri_tiles ?? null;
+    // console.log('existing feature for custom imagery source', props.feature.properties.providerProperties.previewUriTiles, props.feature.properties.preview_uri, props.rasterOpacity, 'useTMSSource', useTMSSource)
+    const previewUriTiles = props.feature?.properties?.providerProperties?.previewUriTiles ?? null
     return (
       <>
-        {use_tms_source && (
+        {useTMSSource && (
           <Source
             id="map-source-tms"
             type="raster"
             tiles={[
-              preview_uri_tiles?.url || '',
-              // preview_uri_tiles?.url?.replaceAll('.png', '.jpg') || ''
+              previewUriTiles?.url || '',
+              // previewUriTiles?.url?.replaceAll('.png', '.jpg') || ''
             ]}
-            tileSize={preview_uri_tiles?.tileSize || 256}
-            scheme={preview_uri_tiles?.scheme || 'xyz'}
-            bounds={footprint_bbox}
-            minzoom={preview_uri_tiles?.minzoom || 1}
-            maxzoom={preview_uri_tiles?.maxzoom || 20}
+            tileSize={previewUriTiles?.tileSize || 256}
+            scheme={previewUriTiles?.scheme || 'xyz'}
+            bounds={footprintBbox}
+            minzoom={previewUriTiles?.minzoom || 1}
+            maxzoom={previewUriTiles?.maxzoom || 20}
             key={props.feature?.properties?.id}
           />
         )}
-        {!use_tms_source && (
+        {!useTMSSource && (
           <Source
             id="map-source-raster"
             type="image"
-            url={(use_tms_source ? '' : props.feature.properties.preview_uri) || ''}
+            url={(useTMSSource ? '' : props.feature.properties.preview_uri) || ''}
             coordinates={coordinates.slice(0, 4)}
             key={props.feature?.properties?.id}
             // url={''}
             // coordinates={[[0,0],[0,0],[0,0],[0,0]]}
           />
         )}
-        <Layer id="overlay" source={use_tms_source ? 'map-source-tms' : 'map-source-raster'} type="raster" paint={{ 'raster-opacity': props.rasterOpacity }} minzoom={0} maxzoom={22} key={`use-tms-source-${use_tms_source}`} />
+        <Layer id="overlay" source={useTMSSource ? 'map-source-tms' : 'map-source-raster'} type="raster" paint={{ 'raster-opacity': props.rasterOpacity }} minzoom={0} maxzoom={22} key={`use-tms-source-${+useTMSSource}`} />
       </>
-    );
+    )
   }
   // In all other cases
-  return <></>;
+  return <></>
 }
 
-export default React.memo(CustomImageSource);
+export default React.memo(CustomImageSource)

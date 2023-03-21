@@ -23,7 +23,8 @@ module.exports = {
     ],
     '@typescript-eslint/strict-boolean-expressions': 1,
     '@typescript-eslint/ban-ts-comment': 'off',
-    '@typescript-eslint/prefer-optional-chain': 'warning',
+    '@typescript-eslint/prefer-optional-chain': 1,
+    '@typescript-eslint/no-dynamic-delete': 1,
   },
   settings: {
     react: {

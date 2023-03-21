@@ -81,14 +81,14 @@
 //   }, MapboxDraw.modes),
 // });
 
-import { kml } from '@tmcw/togeojson';
+import { kml } from '@tmcw/togeojson'
 
 const LotsOfPointsMode = {
-  onSetup: null,
+  onSetup: undefined,
   onClick: null,
   onKeyUp: null,
   toDisplayFeatures: null,
-};
+}
 
 // When the mode starts this function will be called.
 // The `opts` argument comes from `draw.changeMode('lotsofpoints', {count:7})`.
@@ -97,9 +97,9 @@ LotsOfPointsMode.onSetup = function (opts) {
   // console.log('onsetup')
   const state = {
     count: opts.count || 0,
-  };
-  return state;
-};
+  }
+  return state
+}
 
 // Whenever a user clicks on the map, Draw will call `onClick`
 LotsOfPointsMode.onClick = function (state, e) {
@@ -114,42 +114,42 @@ LotsOfPointsMode.onClick = function (state, e) {
       type: 'Point',
       coordinates: [e.lngLat.lng, e.lngLat.lat],
     },
-  });
-  this.addFeature(point); // puts the point on the map
-};
+  })
+  this.addFeature(point) // puts the point on the map
+}
 
 // Whenever a user clicks on a key while focused on the map, it will be sent here
 LotsOfPointsMode.onKeyUp = function (state, e) {
-  if (e.keyCode === 27) return this.changeMode('simple_select');
-};
+  if (e.keyCode === 27) return this.changeMode('simple_select')
+}
 
 // This is the only required function for a mode.
 // It decides which features currently in Draw's data store will be rendered on the map.
 // All features passed to `display` will be rendered, so you can pass multiple display features per internal feature.
 // See `styling-draw` in `API.md` for advice on making display features
 LotsOfPointsMode.toDisplayFeatures = function (state, geojson, display) {
-  display(geojson);
-};
+  display(geojson)
+}
 
-function handleKMLUpload2(event, _this, _this_changeMode) {
-  event.preventDefault();
-  const kml_file = event.target.files[0];
-  console.log('kml_file info', kml_file);
+function handleKMLUpload2(event, _this, thisChangeMode): void {
+  event.preventDefault()
+  const kmlFile = event.target.files[0]
+  console.log('kmlFile info', kmlFile)
   // console.log('props in handleKMLUpload', props)
-  const reader = new FileReader();
+  const reader = new FileReader()
   reader.onload = async (e) => {
-    console.log(e);
-    const kml_content = e.target.result;
-    const xmlDoc = new DOMParser().parseFromString(kml_content as string, 'text/xml');
-    const geojson_features = kml(xmlDoc);
-    console.log('geojson_features from kml', geojson_features);
+    console.log(e)
+    const kmlContent = e.target.result
+    const xmlDoc = new DOMParser().parseFromString(kmlContent as string, 'text/xml')
+    const geojsonFeatures = kml(xmlDoc)
+    console.log('geojsonFeatures from kml', geojsonFeatures)
 
-    // _this.addFeature(geojson_features.features[0]); // puts the point on the map
-    // _this.addFeature(geojson_features.features[0]); // puts the point on the map
+    // _this.addFeature(geojsonFeatures.features[0]); // puts the point on the map
+    // _this.addFeature(geojsonFeatures.features[0]); // puts the point on the map
     // console.log('after')
 
     // Zoom on imported kml
-    // const bounds = bb<ox(geojson_features)
+    // const bounds = bb<ox(geojsonFeatures)
     // const [minLng, minLat, maxLng, maxLat] = bounds
     // console.log('mapRef', props)
     // props.mapRef.current.fitBounds(
@@ -168,7 +168,7 @@ function handleKMLUpload2(event, _this, _this_changeMode) {
     //         // id: uuidv4(),
     //         type: 'Feature',
     //         geometry: {
-    //           coordinates: [geojson_features.features[0].geometry.coordinates[0].map(co => co.slice(0,2))],
+    //           coordinates: [geojsonFeatures.features[0].geometry.coordinates[0].map(co => co.slice(0,2))],
     //           type: 'Polygon'
     //         }
     //         // properties: {}
@@ -181,7 +181,7 @@ function handleKMLUpload2(event, _this, _this_changeMode) {
     //         // id: uuidv4(),
     //         type: 'Feature',
     //         geometry: {
-    //           coordinates: [geojson_features.features[0].geometry.coordinates[0].map(co => co.slice(0,2))],
+    //           coordinates: [geojsonFeatures.features[0].geometry.coordinates[0].map(co => co.slice(0,2))],
     //           type: 'Polygon'
     //         }
     //         // properties: {}
@@ -191,12 +191,12 @@ function handleKMLUpload2(event, _this, _this_changeMode) {
     //   type: 'FeatureCollection',
     //   features: [{
     //   id: uuidv4(),
-    //   ...geojson_features.features[0]
+    //   ...geojsonFeatures.features[0]
     // }]})
     // console.log('props in onload', props)
     // props.setDrawFeatures(currFeatures => {
     //   const newFeatures = {...currFeatures};
-    //   for (const f of geojson_features.features) {
+    //   for (const f of geojsonFeatures.features) {
     //     f.id = uuidv4().replaceAll('-', '')
     //     f.properties = {}
     //     newFeatures[f.id] = f;
@@ -208,13 +208,13 @@ function handleKMLUpload2(event, _this, _this_changeMode) {
 
     // Not useful
     // props.map.fire("draw.create", {
-    //   features: [geojson_features.features[0]]
+    //   features: [geojsonFeatures.features[0]]
     // });
 
-    _this_changeMode('simple_select');
-    console.log('mode changed');
-  };
-  reader.readAsText(event.target.files[0], 'UTF-8');
+    thisChangeMode('simple_select')
+    console.log('mode changed')
+  }
+  reader.readAsText(event.target.files[0], 'UTF-8')
 }
 
 const LotsOfPointsMode2 = {
@@ -222,17 +222,19 @@ const LotsOfPointsMode2 = {
   onClick: null,
   onKeyUp: null,
   toDisplayFeatures: null,
-};
+}
 
 // When the mode starts this function will be called.
 // The `opts` argument comes from `draw.changeMode('lotsofpoints', {count:7})`.
 // The value returned should be an object and will be passed to all other lifecycle functions
 LotsOfPointsMode2.onSetup = function (opts) {
   // console.log('onsetup')
-  const kmlUploadInput = document.getElementById('kmlUploadInput');
-  kmlUploadInput.onchange = (e) => { handleKMLUpload2(e, this, this.changeMode); };
-  kmlUploadInput.click();
-};
+  const kmlUploadInput = document.getElementById('kmlUploadInput')
+  kmlUploadInput.onchange = (e) => {
+    handleKMLUpload2(e, this, this.changeMode)
+  }
+  kmlUploadInput.click()
+}
 
 // Whenever a user clicks on the map, Draw will call `onClick`
 LotsOfPointsMode2.onClick = function (state, e) {
@@ -250,12 +252,12 @@ LotsOfPointsMode2.onClick = function (state, e) {
   //   }
   // });
   // this.addFeature(point); // puts the point on the map
-};
+}
 
 // Whenever a user clicks on a key while focused on the map, it will be sent here
 LotsOfPointsMode2.onKeyUp = function (state, e) {
-  if (e.keyCode === 27) return this.changeMode('simple_select');
-};
+  if (e.keyCode === 27) return this.changeMode('simple_select')
+}
 
 // This is the only required function for a mode.
 // It decides which features currently in Draw's data store will be rendered on the map.
@@ -263,7 +265,7 @@ LotsOfPointsMode2.onKeyUp = function (state, e) {
 // See `styling-draw` in `API.md` for advice on making display features
 LotsOfPointsMode2.toDisplayFeatures = function (state, geojson, display) {
   // display(geojson);
-};
+}
 
 // // Add the new draw mode to the MapboxDraw object
 // var draw = new MapboxDraw({
@@ -274,4 +276,4 @@ LotsOfPointsMode2.toDisplayFeatures = function (state, geojson, display) {
 //   }, MapboxDraw.modes),
 // });
 
-export { LotsOfPointsMode, LotsOfPointsMode2 };
+export { LotsOfPointsMode, LotsOfPointsMode2 }

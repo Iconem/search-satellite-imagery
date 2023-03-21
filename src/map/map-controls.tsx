@@ -3,41 +3,46 @@
 // + custom-built Style-Switcher at top left
 // + ScaleControl at bottom left
 
-import * as React from 'react';
+import * as React from 'react'
 
-import { useState, useCallback } from 'react';
-import { NavigationControl, ScaleControl, MapRef } from 'react-map-gl';
+import { useCallback } from 'react'
+import { NavigationControl, ScaleControl } from 'react-map-gl'
 
-import { draw_polygon_styles } from '../theme';
-import MapboxStyleSwitcher from './mapbox-style-switcher';
-import DrawControl from './draw-control';
-import GeocoderControl from './geocoder-control';
-import CustomOverlay from './custom-overlay';
+import { drawPolygonStyles } from '../theme'
+import MapboxStyleSwitcher from './mapbox-style-switcher'
+import DrawControl from './draw-control'
+import GeocoderControl from './geocoder-control'
+import CustomOverlay from './custom-overlay'
+import PropTypes from 'prop-types'
 
-import { v4 as uuidv4 } from 'uuid';
-import bbox from '@turf/bbox';
-import { kml } from '@tmcw/togeojson';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUpload, faSun, faMoon } from '@fortawesome/free-solid-svg-icons';
-import { Slider } from '@mui/material';
+import bbox from '@turf/bbox'
+import { kml } from '@tmcw/togeojson'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faUpload, faSun, faMoon } from '@fortawesome/free-solid-svg-icons'
+import { Slider } from '@mui/material'
 
-function KML_input(props) {
-  function handleKMLUpload(event) {
-    event.preventDefault();
-    const kml_file = event.target.files[0];
-    console.log('kml_file info', kml_file);
-    console.log('props in handleKMLUpload', props);
-    const reader = new FileReader();
+KmlInput.propTypes = {
+  mapRef: PropTypes.any,
+  setDrawFeatures: PropTypes.func,
+}
+
+function KmlInput(props): React.ReactElement {
+  function handleKMLUpload(event): void {
+    event.preventDefault()
+    const kmlFile = event.target.files[0]
+    console.log('kmlFile info', kmlFile)
+    console.log('props in handleKMLUpload', props)
+    const reader = new FileReader()
     reader.onload = async (e) => {
-      const kml_content = e.target.result;
-      const xmlDoc = new DOMParser().parseFromString(kml_content as string, 'text/xml');
-      const geojson_features = kml(xmlDoc);
-      console.log('geojson_features from kml', geojson_features);
+      const kmlContent = e.target?.result
+      const xmlDoc = new DOMParser().parseFromString(kmlContent as string, 'text/xml')
+      const geojsonFeatures = kml(xmlDoc)
+      console.log('geojsonFeatures from kml', geojsonFeatures)
 
       // Zoom on imported kml
-      const bounds = bbox(geojson_features);
-      const [minLng, minLat, maxLng, maxLat] = bounds;
-      console.log('mapRef', props);
+      const bounds = bbox(geojsonFeatures)
+      const [minLng, minLat, maxLng, maxLat] = bounds
+      console.log('mapRef', props)
       props.mapRef.current.fitBounds(
         [
           [minLng, minLat],
@@ -48,27 +53,34 @@ function KML_input(props) {
           duration: 1000,
           center: [0.5 * (minLng + maxLng), 0.5 * (minLat + maxLat)],
         }
-      );
+      )
 
       // Can be imported but not edited because not added to the draw features component
-      console.log('props in onload', props);
-      props.setDrawFeatures([{ ...geojson_features.features[0], id: 'imported_kml_feature' }]);
+      console.log('props in onload', props)
+      props.setDrawFeatures([{ ...geojsonFeatures.features[0], id: 'imported_kml_feature' }])
       // Not useful
       // props.map.fire("draw.create", {
-      //   features: [{...geojson_features.features[0], id: 'imported_kml_feature'}]
+      //   features: [{...geojsonFeatures.features[0], id: 'imported_kml_feature'}]
       // });
-    };
-    reader.readAsText(event.target.files[0], 'UTF-8');
+    }
+    reader.readAsText(event.target.files[0], 'UTF-8')
   }
 
   return (
     <div className="mapboxgl-ctrl mapboxgl-ctrl-group">
-      <input id="kmlUploadInput" type="file" onChange={(e) => { handleKMLUpload(e); }} style={{ pointerEvents: 'auto', display: 'none' }} />
+      <input
+        id="kmlUploadInput"
+        type="file"
+        onChange={(e) => {
+          handleKMLUpload(e)
+        }}
+        style={{ pointerEvents: 'auto', display: 'none' }}
+      />
       <button
         type="button"
         title="Upload KML AOI"
         onClick={() => {
-          document.getElementById('kmlUploadInput').click();
+          document.getElementById('kmlUploadInput')?.click()
         }}
       >
         <span className="mapboxgl-ctrl-icon" style={{ padding: '7px' }}>
@@ -76,42 +88,54 @@ function KML_input(props) {
         </span>
       </button>
     </div>
-  );
+  )
 }
 
-function MapControls(props) {
+MapControls.propTypes = {
+  mapRef: PropTypes.any,
+  setDrawFeatures: PropTypes.func,
+  mapboxAccessToken: PropTypes.string,
+  theme: PropTypes.string,
+  setBasemapStyle: PropTypes.func,
+  themePaletteMode: PropTypes.bool,
+  setThemePaletteMode: PropTypes.func,
+  rasterOpacity: PropTypes.number,
+  setRasterOpacity: PropTypes.func,
+}
+
+function MapControls(props): React.ReactElement {
   const onDrawCreate = useCallback((e) => {
     props.setDrawFeatures((currFeatures) => {
-      const newFeatures = { ...currFeatures };
+      const newFeatures = { ...currFeatures }
       for (const f of e.features) {
-        newFeatures[f.id] = f;
+        newFeatures[f.id] = f
       }
-      return newFeatures;
-    });
-  }, []);
+      return newFeatures
+    })
+  }, [])
   const onDrawUpdate = useCallback((e) => {
     props.setDrawFeatures((currFeatures) => {
-      const newFeatures = { ...currFeatures };
+      const newFeatures = { ...currFeatures }
       for (const f of e.features) {
-        newFeatures[f.id] = f;
+        newFeatures[f.id] = f
       }
-      return newFeatures;
-    });
-  }, []);
+      return newFeatures
+    })
+  }, [])
 
   const onDrawDelete = useCallback((e) => {
     props.setDrawFeatures((currFeatures) => {
-      const newFeatures = { ...currFeatures };
+      const newFeatures = { ...currFeatures }
       for (const f of e.features) {
-        delete newFeatures[f.id];
+        delete newFeatures[f.id]
       }
-      return newFeatures;
-    });
-  }, []);
+      return newFeatures
+    })
+  }, [])
 
   return (
     <>
-      <GeocoderControl mapboxAccessToken={props.mapboxAccessToken} position="top-left" flyTo={{ speed: 2.5 }} />
+      <GeocoderControl mapboxAccessToken={props.mapboxAccessToken} position="top-left" flyTo={{ speed: 2.5 }} mapRef={props.mapRef} />
       <DrawControl
         // modes={modes}
         position="top-left"
@@ -127,11 +151,11 @@ function MapControls(props) {
         onCreate={onDrawCreate}
         onUpdate={onDrawUpdate}
         onDelete={onDrawDelete}
-        styles={draw_polygon_styles(props.theme)}
+        styles={drawPolygonStyles(props.theme)}
         setDrawFeatures={props.setDrawFeatures}
       />
       <CustomOverlay position="top-left" style={{ pointerEvents: 'all' }}>
-        <KML_input setDrawFeatures={props.setDrawFeatures} mapRef={props.mapRef} />
+        <KmlInput setDrawFeatures={props.setDrawFeatures} mapRef={props.mapRef} />
       </CustomOverlay>
       <NavigationControl showCompass={false} position="top-left" />
       <CustomOverlay position="top-left" style={{ pointerEvents: 'all' }}>
@@ -178,15 +202,15 @@ function MapControls(props) {
       {/* Control Theme Mode Dark vs Light */}
       <CustomOverlay position="top-left" style={{ pointerEvents: 'all' }}>
         <div className="mapboxgl-ctrl mapboxgl-ctrl-group">
-          <button type="button" title={`Set ${props.themePaletteMode == 'dark' ? 'Light' : 'Dark'} Mode`} onClick={() => props.setThemePaletteMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'))}>
+          <button type="button" title={`Set ${props.themePaletteMode === 'dark' ? 'Light' : 'Dark'} Mode`} onClick={() => props.setThemePaletteMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'))}>
             <span className="mapboxgl-ctrl-icon" style={{ padding: '7px' }}>
-              <FontAwesomeIcon icon={props.themePaletteMode == 'dark' ? faSun : faMoon} />{' '}
+              <FontAwesomeIcon icon={props.themePaletteMode === 'dark' ? faSun : faMoon} />{' '}
             </span>
           </button>
         </div>
       </CustomOverlay>
     </>
-  );
+  )
 }
 
-export default React.memo(MapControls);
+export default React.memo(MapControls)
