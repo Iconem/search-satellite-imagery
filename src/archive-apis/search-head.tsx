@@ -4,6 +4,7 @@ import ky from 'ky';
 import {get_imagery_price, head_constellation_dict, constellation_dict, Providers, head_search_names, providers_dict, max_abs} from './search-utilities'
 import {fitBounds} from '@math.gl/web-mercator';
 import bbox from '@turf/bbox';
+import {log} from '../utilities'
 
 /* ------------------- */
 /*    HEAD Aerospace   */
@@ -86,7 +87,7 @@ const search_head = async (search_settings, apikey='', searchPolygon=null, sette
     
     if (search_results_raw) {
       const search_results_json = format_head_results(search_results_raw, searchPolygon)
-      console.log('HEAD Search URL: \n', head_search_url, '\nRAW HEAD search results: \n', search_results_raw, '\nJSON HEAD search results: \n', search_results_json)
+      log('HEAD Search URL: \n', head_search_url, '\nRAW HEAD search results: \n', search_results_raw, '\nJSON HEAD search results: \n', search_results_json)
       return { search_results_json, }
     }
   }

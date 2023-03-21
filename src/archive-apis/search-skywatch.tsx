@@ -2,6 +2,7 @@
 
 import ky from 'ky';
 import {Providers} from './search-utilities'
+import {log} from '../utilities'
 
 /* -------------- */
 /*    SKYWATCH    */
@@ -60,7 +61,7 @@ const search_skywatch = async (search_settings, skywatch_apikey, searchPolygon=n
       headers: {'x-api-key': skywatch_apikey},
       json: skywatch_payload, 
     }).json();;
-  console.log('SKYWATCH searchId: \n', searchId, '\n')
+  log('SKYWATCH searchId: \n', searchId, '\n')
 
   let search_results_raw
   let n_queries = 0
@@ -80,7 +81,7 @@ const search_skywatch = async (search_settings, skywatch_apikey, searchPolygon=n
   
   if (search_results_raw) {
     const search_results_json = format_skywatch_results(search_results_raw, search_settings)
-    console.log('SKYWATCH PAYLOAD: \n', skywatch_payload, '\nRAW SKYWATCH search results: \n', search_results_raw, '\nJSON SKYWATCH search results: \n', search_results_json)
+    log('SKYWATCH PAYLOAD: \n', skywatch_payload, '\nRAW SKYWATCH search results: \n', search_results_raw, '\nJSON SKYWATCH search results: \n', search_results_json)
     return {search_results_json}
   }
   

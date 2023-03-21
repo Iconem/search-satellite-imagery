@@ -4,6 +4,7 @@ import ky from 'ky';
 import {encode as base64_encode} from 'base-64';
 import {shapeIntersection, get_imagery_price, up42_constellation_dict, providers_dict, Providers, up42_producers_names} from './search-utilities'
 import { v4 as uuidv4 } from 'uuid';
+import {log} from '../utilities'
 
 /* -------------- */
 /*      UP42      */
@@ -170,7 +171,7 @@ const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, set
     await search_for_next_page(up42_results_raw, search_settings, up42_apikey, searchPolygon, setters, up42_bearer_json)
   } else {
     let hosts_list = await get_up42_hosts ( up42_apikey, up42_bearer_json )
-    console.log('UP42 Hosts list', hosts_list.map(h => h.name), hosts_list, '\n\n')
+    log('UP42 Hosts list', hosts_list.map(h => h.name), hosts_list, '\n\n')
     hosts_list = hosts_list.filter(host => 
       !exclude_hosts.includes(host.name)
     )
@@ -192,7 +193,7 @@ const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, set
                   json: up42_payload
                 }
               ).json() as any;
-              console.log(`Host ${hostname} results: `, up42_results_raw)
+              log(`Host ${hostname} results: `, up42_results_raw)
 
               // Should update up42_results_raw.features
               await search_for_next_page(up42_results_raw, search_settings, up42_apikey, searchPolygon, setters, up42_bearer_json)
@@ -203,12 +204,12 @@ const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, set
         ]}))
     const thing = await Promise.all(Object.values(search_promises).map (o => o.promise))
     .then((results) => {
-      console.log('finished requests for all hosts promises', results)
+      log('finished requests for all hosts promises', results)
       const requests_features_flat = results.map(res => (res as any)?.features).flat()
       up42_results_raw = {
         'features': requests_features_flat
       }
-      console.log('results_flat', up42_results_raw)
+      log('results_flat', up42_results_raw)
       return up42_results_raw
     })
   }
@@ -216,7 +217,7 @@ const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, set
 
   // TODO: TEST next
   const search_results_json = format_up42_results(up42_results_raw, searchPolygon)
-  console.log('UP42 PAYLOAD: \n', up42_payload, '\nRAW UP42 search results: \n', up42_results_raw, '\nJSON UP42 search results: \n', search_results_json)
+  log('UP42 PAYLOAD: \n', up42_payload, '\nRAW UP42 search results: \n', up42_results_raw, '\nJSON UP42 search results: \n', search_results_json)
 
   // Initiate search for previews/thumbnails
   get_up42_previews_async(search_results_json, up42_bearer_json).then(
@@ -226,7 +227,7 @@ const search_up42 = async (search_settings, up42_apikey, searchPolygon=null, set
         'input': searchPolygon,
         'output': results,
       }
-      console.log('UP42 search previews have been retrieved, setting react state')
+      log('UP42 search previews have been retrieved, setting react state')
       setters.setSearchResults(searchResults)
     }
   })

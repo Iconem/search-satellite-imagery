@@ -3,6 +3,7 @@
 import ky from 'ky';
 import bbox from '@turf/bbox';
 import { Providers } from './search-utilities'
+import {log} from '../utilities'
 
 // https://api.openaerialmap.org/meta?order_by=acquisition_end&sort=desc&limit=100
 const oam_limit = 1000
@@ -20,16 +21,14 @@ const search_openaerialmap = async (search_settings, oam_apikey, searchPolygon=n
     'acquisition_to': search_settings.endDate.toISOString().substring(0,10),
   }) as any; 
   const oam_search_url = oam_url.toString()
-  console.log('oam_search_url', oam_search_url)
+  log('oam_search_url', oam_search_url)
    
   // const oam_search_url = `${oam_base_url}?limit=${oam_limit}&bbox=135,31.95216223802496,146.25,40.97989806962013&gsd_from=${search_settings.gsd.min}&gsd_to=${search_settings.gsd.max}&acquisition_from=search_settings.endDate.toISOString().substring(0,10)`
 
   const search_results_raw = await ky.get(oam_search_url).json()
 
-  console.log('OpenAerialMap PAYLOAD: \n', oam_search_url, '\nRAW OAM search results raw: \n', search_results_raw)
   const search_results_json = format_oam_results(search_results_raw, searchPolygon)
-  console.log('OpenAerialMap PAYLOAD: \n', oam_search_url, '\nRAW OAM search results raw: \n', search_results_raw, '\nJSON OAM search results: \n', search_results_json)
-  console.log(search_results_json.features[0])
+  log('OpenAerialMap PAYLOAD: \n', oam_search_url, '\nRAW OAM search results raw: \n', search_results_raw, '\nJSON OAM search results: \n', search_results_json)
   return { search_results_json, }
 }
 

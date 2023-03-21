@@ -124,14 +124,12 @@ const RecursiveTreeView: React.FC<IMyProps> = (props: IMyProps) => {
     }
 
     const nodeToToggle = getNodeById(nodes, id, path);
-    // console.log(path);
 
     return { childNodesToToggle: getAllChild(nodeToToggle, array), path };
   };
 
   function getOnChange(checked: boolean, nodes: RenderTree) {
     const { childNodesToToggle, path } = getChildById(treeview_data, nodes.id);
-    console.log("childNodesToChange", { childNodesToToggle, checked });
 
     let array = checked
       // ? [...selected, ...childNodesToToggle]

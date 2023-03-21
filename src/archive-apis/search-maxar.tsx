@@ -3,6 +3,7 @@
 import ky from 'ky';
 import {max_abs, get_maxar_price, get_constellation_name, maxar_constellation_dict, Providers} from './search-utilities'
 import { v4 as uuidv4 } from 'uuid';
+import {log} from '../utilities'
 
 /* ---------------------------- */
 /*      Maxar DigitalGlobe      */
@@ -60,7 +61,7 @@ const search_maxar = async (search_settings, maxar_apikey, searchPolygon=null, s
       body: maxar_payload
     }).json();
     const search_results_json = format_maxar_results(maxar_results_raw, searchPolygon)
-    console.log('maxar PAYLOAD: \n', maxar_payload, '\nRAW maxar search results: \n', maxar_results_raw, '\nJSON maxar search results: \n', search_results_json)
+    log('maxar PAYLOAD: \n', maxar_payload, '\nRAW maxar search results: \n', maxar_results_raw, '\nJSON maxar search results: \n', search_results_json)
   
     return {
       search_results_json,

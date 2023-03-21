@@ -3,6 +3,7 @@
 import ky from 'ky';
 import {Providers} from './search-utilities'
 import { v4 as uuidv4 } from 'uuid';
+import {log} from '../utilities'
 
 /* -------------- */
 /*      SKYFI     */
@@ -67,7 +68,7 @@ const search_skyfi = async (search_settings, skyfi_apikey, searchPolygon=null, s
     "page":pageIdx,
     "pageSize":pageSize
   }
-  console.log('skyfi PAYLOAD: \n', skyfi_payload)
+  log('skyfi PAYLOAD: \n', skyfi_payload)
 
   const skyfi_results_raw = await ky.post(skyfi_search_url, {
     headers: {
@@ -77,10 +78,10 @@ const search_skyfi = async (search_settings, skyfi_apikey, searchPolygon=null, s
     },
     json: skyfi_payload
   }).json();
-  console.log(`FOUND ${(skyfi_results_raw as any).numReturnedArchives}/${(skyfi_results_raw as any).numTotalArchives}, 'skyfi skyfi_results_raw: \n', skyfi_results_raw, `)
+  log(`FOUND ${(skyfi_results_raw as any).numReturnedArchives}/${(skyfi_results_raw as any).numTotalArchives}, 'skyfi skyfi_results_raw: \n', skyfi_results_raw, `)
 
   const search_results_json = format_skyfi_results(skyfi_results_raw, searchPolygon)
-  console.log('skyfi PAYLOAD: \n', skyfi_payload, '\nRAW skyfi search results: \n', skyfi_results_raw, '\nJSON skyfi search results: \n', search_results_json)
+  log('skyfi PAYLOAD: \n', skyfi_payload, '\nRAW skyfi search results: \n', skyfi_results_raw, '\nJSON skyfi search results: \n', search_results_json)
 
   
   if (look_for_next_page && (skyfi_results_raw as any).numTotalArchives > pageSize * pageIdx) {

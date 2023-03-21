@@ -4,6 +4,7 @@ import ky from 'ky';
 import {Providers, max_abs, filter_features_with_search_params} from './search-utilities'
 import { v4 as uuidv4 } from 'uuid';
 import bboxPolygon from '@turf/bbox-polygon';
+import {log} from '../utilities'
 
 // https://imagehunter.apollomapping.com/
 
@@ -69,7 +70,7 @@ const search_apollo = async (search_settings, apollo_apikey, searchPolygon=null,
   ).json();
 
   const search_results_json = format_apollo_results(apollo_results_raw)
-  console.log('apollo PAYLOAD: \n', apollo_payload.toString(), '\nRAW apollo search results: \n', apollo_results_raw, '\nJSON apollo search results: \n', search_results_json)
+  log('apollo PAYLOAD: \n', apollo_payload.toString(), '\nRAW apollo search results: \n', apollo_results_raw, '\nJSON apollo search results: \n', search_results_json)
   
   // Filter out unwanted features before searching previews
   search_results_json.features = search_results_json.features.filter(
@@ -176,7 +177,7 @@ const get_apollo_previews_async = async (apollo_results) => {
       }));
 
       if (errors.length > 0) {
-        console.log(`ApolloMapping Previews fetch - Catched error during chunk previews fetch for loop ${i}, so break master loop by return`)
+        log(`ApolloMapping Previews fetch - Catched error during chunk previews fetch for loop ${i}, so break master loop by return`)
         throw new Error(`ApolloMapping Previews fetch - Catched error during chunk previews fetch for loop ${i}, so break master loop by return`);
         // throw new Error(errors.join());
         // return

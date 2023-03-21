@@ -51,7 +51,7 @@ function parseJwt (token) {
 
 function log (...log_args) {
   if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
-    console.log(log_args)
+    console.log(...log_args)
   }
 }
 

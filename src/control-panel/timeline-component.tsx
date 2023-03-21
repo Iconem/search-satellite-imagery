@@ -102,7 +102,6 @@ function TimelineComponent(props) {
               // showVerticalCrosshair
               // showSeriesGlyphs
               renderTooltip={({ tooltipData, colorScale }) => {
-                console.log('YOYO')
                 console.log(tooltipData)
                 console.log(tooltipData.nearestDatum.key)
                 console.log(accessors.xAccessor(tooltipData.nearestDatum.datum))

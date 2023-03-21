@@ -8,6 +8,7 @@ import {
   eos_names, 
   Providers,
 } from './search-utilities'
+import {log} from '../utilities'
 
 /* --------------- */
 /*   EOS HIGHRES   */
@@ -77,7 +78,7 @@ const search_eos_highres = async (search_settings, eos_apikey, searchPolygon=nul
     ).json()
 
     const search_results_json = format_eos_results(search_results_raw)
-    console.log('EOS PAYLOAD: \n', eos_payload_highres, '\nRAW EOS search results raw: \n', search_results_raw, '\nJSON EOS search results: \n', search_results_json)
+    log('EOS PAYLOAD: \n', eos_payload_highres, '\nRAW EOS search results raw: \n', search_results_raw, '\nJSON EOS search results: \n', search_results_json)
     return { search_results_json, }
 	} catch (error) {
 		// if (error.name === 'AbortError') {
@@ -87,7 +88,6 @@ const search_eos_highres = async (search_settings, eos_apikey, searchPolygon=nul
         open: false, 
         message: ''
       })
-      console.log('set')
       setters.setSnackbarOptions({
         open: true, 
         message: `Search Results Request timed-out on EOS API after ${eos_timeout_ms/1000}s`
@@ -170,7 +170,7 @@ const search_eos_lowres = async (search_settings, eos_apikey, eos_page_idx=1) =>
   const search_results_json = await ky.post(eos_search_lowres_url + `?api_key=${eos_apikey}`, {
       json: eos_payload_lowres
   }).json();
-  console.log('EOS PAYLOAD: \n', eos_payload_lowres, '`n', 'EOS search results: \n', search_results_json)
+  log('EOS PAYLOAD: \n', eos_payload_lowres, '`n', 'EOS search results: \n', search_results_json)
   return {
     search_results_json,
   }

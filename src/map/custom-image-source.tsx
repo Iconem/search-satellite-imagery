@@ -14,7 +14,6 @@ import {getCoords} from '@turf/invariant';
 import {polygon} from '@turf/helpers';
 
 function CustomImageSource(props) {
-  // console.log('CustomImageSource', props.feature)
   const use_tms_source = [
     Providers.HEADAEROSPACE, 
     Providers.SKYFI,
@@ -42,7 +41,6 @@ function CustomImageSource(props) {
       // Can also simplify the footprint to get a 4-coords polygon rather than 20-ish
       coordinates = getCoords(footprintPolygon)[0].slice(0,4).reverse()
       // coordinates = footprintPolygon.geometry.coordinates[0].slice(0,4).reverse()
-      // console.log('coordinates', coordinates, props.feature.properties.preview_uri, use_tms_source)
     }
   } else {
     coordinates = [[0,0],[0,0],[0,0],[0,0]]

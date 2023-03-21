@@ -85,7 +85,7 @@ var LotsOfPointsMode = {
 // The `opts` argument comes from `draw.changeMode('lotsofpoints', {count:7})`.
 // The value returned should be an object and will be passed to all other lifecycle functions
 LotsOfPointsMode.onSetup = function(opts) {
-  console.log('onsetup')
+  // console.log('onsetup')
   var state = {
     count: opts.count || 0
   };
@@ -94,7 +94,7 @@ LotsOfPointsMode.onSetup = function(opts) {
 
 // Whenever a user clicks on the map, Draw will call `onClick`
 LotsOfPointsMode.onClick = function(state, e) {
-  console.log('onclick')
+  // console.log('onclick')
   // `this.newFeature` takes geojson and makes a DrawFeature
   var point = this.newFeature({
     type: 'Feature',
@@ -146,12 +146,12 @@ function handleKMLUpload2(event, _this, _this_changeMode) {
     const xmlDoc = new DOMParser()
       .parseFromString(kml_content as string, 'text/xml');
     const geojson_features = kml(xmlDoc)
-    console.log('YO geojson_features from kml', geojson_features)
+    console.log('geojson_features from kml', geojson_features)
 
 
     // _this.addFeature(geojson_features.features[0]); // puts the point on the map
     // _this.addFeature(geojson_features.features[0]); // puts the point on the map
-    console.log('after')
+    // console.log('after')
 
     // Zoom on imported kml
     // const bounds = bb<ox(geojson_features)
@@ -238,7 +238,7 @@ var LotsOfPointsMode2 = {
 // The `opts` argument comes from `draw.changeMode('lotsofpoints', {count:7})`.
 // The value returned should be an object and will be passed to all other lifecycle functions
 LotsOfPointsMode2.onSetup = function(opts) {
-  console.log('onsetup')
+  // console.log('onsetup')
   const kmlUploadInput = document.getElementById('kmlUploadInput')
   kmlUploadInput.onchange = e => handleKMLUpload2(e, this, this.changeMode)
   kmlUploadInput.click()
@@ -246,7 +246,7 @@ LotsOfPointsMode2.onSetup = function(opts) {
 
 // Whenever a user clicks on the map, Draw will call `onClick`
 LotsOfPointsMode2.onClick = function(state, e) {
-  console.log('onclick')
+  // console.log('onclick')
   // // `this.newFeature` takes geojson and makes a DrawFeature
   // var point = this.newFeature({
   //   type: 'Feature',

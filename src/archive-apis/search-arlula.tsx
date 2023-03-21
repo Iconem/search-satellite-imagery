@@ -4,7 +4,7 @@ import ky from 'ky';
 import {encode as base64_encode} from 'base-64';
 import {Providers, max_abs} from './search-utilities'
 import { v4 as uuidv4 } from 'uuid';
-
+import {log} from '../utilities'
 
 // https://www.arlula.com/documentation
 
@@ -44,7 +44,7 @@ const search_arlula = async (search_settings, arlula_apikey, searchPolygon=null,
 
   // TODO: TEST next
   const search_results_json = format_arlula_results(arlula_results_raw)
-  console.log('arlula PAYLOAD: \n', arlula_url.toString(), '\nRAW arlula search results: \n', arlula_results_raw, '\nJSON arlula search results: \n', search_results_json)
+  log('arlula PAYLOAD: \n', arlula_url.toString(), '\nRAW arlula search results: \n', arlula_results_raw, '\nJSON arlula search results: \n', search_results_json)
 
   return {
     search_results_json,
