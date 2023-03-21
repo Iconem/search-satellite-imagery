@@ -51,7 +51,6 @@ const search_skyfi = async (search_settings, skyfi_apikey, searchPolygon=null, s
   if ((search_settings.gsd.min <= 1) && (search_settings.gsd.max >= 1) || (search_settings.gsd.min <= 5) && (search_settings.gsd.max >= 5)) resolution_array.push('MEDIUM')
 
   // const coordinates_wkt = "POLYGON((-77.05679665567264 38.899388312735795,-77.02040942302703 38.899388312735795,-77.02040942302703 38.92503663542644,-77.05679665567264 38.92503663542644,-77.05679665567264 38.899388312735795))"
-  console.log(search_settings.coordinates, searchPolygon)
   const coordinates_wkt = wkt_stringify(searchPolygon)
 
   // Up42 hosts listing

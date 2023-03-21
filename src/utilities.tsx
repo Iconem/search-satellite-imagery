@@ -49,9 +49,16 @@ function parseJwt (token) {
   return JSON.parse(jsonPayload);
 }
 
+function log (...log_args) {
+  if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+    console.log(log_args)
+  }
+}
+
 export {
   useLocalStorage, 
   GSD_steps, 
   GSDFromIndex, 
-  parseJwt
+  parseJwt, 
+  log
 }

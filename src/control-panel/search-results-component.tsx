@@ -294,7 +294,8 @@ const handleRowClick = (
     {
       padding: {top: 100, bottom: 100, left: 100, right: 100}, 
       bearing: 0,
-    }
+      center: [0.5 * (minLng+maxLng), 0.5 * (minLat+maxLat)]
+      }
   );
 };
 

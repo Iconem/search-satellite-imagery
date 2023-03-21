@@ -16,7 +16,7 @@ import search_openaerialmap from '../archive-apis/search-openaerialmap'
 import search_arlula from '../archive-apis/search-arlula'
 import search_apollo from '../archive-apis/search-apollo'
 import {Providers, filter_features_with_search_params} from '../archive-apis/search-utilities'
-import { GSD_steps, GSDFromIndex} from '../utilities'
+import { GSD_steps, GSDFromIndex, log} from '../utilities'
 
 import search_stac from '../archive-apis/search-stac'
 
@@ -25,7 +25,7 @@ const productionMode = !process.env.NODE_ENV || process.env.NODE_ENV === 'produc
 /* Search Button */
 function SearchButton(props) {
   const handleLoadingButtonClick = () => {
-    console.log('SearchButton props.providersTreeviewDataSelection', props.providersTreeviewDataSelection)
+    log('SearchButton props.providersTreeviewDataSelection', props.providersTreeviewDataSelection)
     // if (!props.loadingResults) {
       // props.search_imagery()
     // }
@@ -167,7 +167,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
   }
   setters.setSearchResults(searchResults)
 
-  console.log('Search Settings', polygons, '\n Coordinates', coordinates, searchPolygon)
+  // console.log('Search Settings', polygons, '\n Coordinates', coordinates, searchPolygon)
   // const search_polygon = polygons && polygons.length && (polygons.length > 0) && polygons[0]
   
   if (area(searchPolygon as any) / 1_000_000 > 100_000 ) {
@@ -188,7 +188,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
     }
   }
   console.log(`SEARCH PARAMETERS: \n`, 
-    'search_settings:\n', search_settings, '\n\n', 
+    'search_settings:', search_settings, '\n', 
     `GSD: ${search_settings.gsdIndex.map(GSDFromIndex)}\n`, 
   )
   
@@ -221,7 +221,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
         .filter(([key]) => providersTreeviewDataSelection.some(treeId => treeId.includes(key)))
     )
     : providers_search;
-  console.log('filtered_providers_search', providers_search, filtered_providers_search)
+  // console.log('before/after filtered_providers_search', providers_search, filtered_providers_search)
 
   // PROMISES FOR EACH SEARCH API
   const search_promises = Object.fromEntries( // build a dict from a dict via an array of key-value pairs
@@ -251,9 +251,9 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
                 search_results_json.features
                   .filter(f => !f.properties.shapeIntersection)
                   .forEach(f => {
-                    console.log('recompute shapeIntersection for ', f)
+                    // console.log('recompute shapeIntersection for ', f)
                     f.properties.shapeIntersection = shapeIntersection(f.geometry, searchPolygon)
-                    console.log('f.properties.shapeIntersection', f.properties.shapeIntersection,  searchPolygon.properties.shapeIntersection,  (f.properties.shapeIntersection ?? 100) >= searchPolygon.properties.shapeIntersection)
+                    // console.log('f.properties.shapeIntersection', f.properties.shapeIntersection,  searchPolygon.properties.shapeIntersection,  (f.properties.shapeIntersection ?? 100) >= searchPolygon.properties.shapeIntersection)
                 })
 
                 // Filter out results not matching resquest
@@ -305,7 +305,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
     )
   )
   setters.setSearchPromises(search_promises)
-  console.log('Search API Requests Promises', search_promises)
+  log('Search API Requests Promises', search_promises)
   Promise.all(Object.values(search_promises).map (o => o.promise))
   .then((results) => {
     setters.setLoadingResults(false);

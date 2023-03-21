@@ -5,11 +5,21 @@ const Dotenv = require('dotenv-webpack');
 const { merge } = require('webpack-merge');
 const common = require('./webpack.common.js');
 
+const BundleAnalyzerPlugin =
+  require("webpack-bundle-analyzer").BundleAnalyzerPlugin
+const bundleAnalyzerMode = true ? 'static' : 'server'
+console.log('bundleAnalyzerMode', bundleAnalyzerMode)
+
 const SpeedMeasurePlugin = require("speed-measure-webpack-plugin");
 const smp = new SpeedMeasurePlugin();
 
 const config = smp.wrap(merge(common, {
   mode: 'production',
+  plugins: [
+    new BundleAnalyzerPlugin({
+      analyzerMode: bundleAnalyzerMode
+    }),
+  ],
   optimization: {
     splitChunks: {
       // chunks: 'async',

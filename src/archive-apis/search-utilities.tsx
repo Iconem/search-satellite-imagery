@@ -323,7 +323,7 @@ const constellation_dict = {
   },
   [Constellation.STAC]: {
     satellites: [],
-    gsd: 0.005
+    gsd: 0.01
   },
 
 }

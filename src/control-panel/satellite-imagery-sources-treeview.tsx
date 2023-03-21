@@ -159,8 +159,6 @@ const RecursiveTreeView: React.FC<IMyProps> = (props: IMyProps) => {
       ) || false;
 
     if (allSelectedChildren && !selectedSet.has(nodes.id)) {
-      console.log("if allSelectedChildren");
-
       // setSelected([...selected, nodes.id]);
       props.setProvidersTreeviewDataSelection([...props.providersTreeviewDataSelection, nodes.id]);
     }

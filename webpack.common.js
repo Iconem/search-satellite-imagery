@@ -7,10 +7,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const SpeedMeasurePlugin = require("speed-measure-webpack-plugin");
 const smp = new SpeedMeasurePlugin();
 
-const BundleAnalyzerPlugin =
-  require("webpack-bundle-analyzer").BundleAnalyzerPlugin
-
 const CompressionPlugin = require("compression-webpack-plugin");
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 // For env variables passing to the frontend code (webpack replaces occurences of process.env.var by their respective value)
 // Can more simply use Dotenv plugin with .env filepath and safe: true param
@@ -26,8 +24,6 @@ const CompressionPlugin = require("compression-webpack-plugin");
 // }, {});
 
 // console.log('\n\n\nenv', env)
-const bundleAnalyzerMode = true ? 'static' : 'server'
-console.log('bundleAnalyzerMode', bundleAnalyzerMode)
 
 const config = smp.wrap({
 
@@ -38,7 +34,7 @@ const config = smp.wrap({
   output: {
     library: 'App', 
     
-    clean: true,
+    // clean: false,
   },
 
   resolve: {
@@ -92,9 +88,6 @@ const config = smp.wrap({
   // Read environment variable. Recommended way is to simply use Dotenv with .env at root of project
   // https://webpack.js.org/plugins/environment-plugin/
   plugins: [
-    new BundleAnalyzerPlugin({
-      analyzerMode: bundleAnalyzerMode
-    }),
     new Dotenv({
       path: './.env', // Path to .env file (this is the default)
       safe: true,     // load .env.example (defaults to "false" which does not use dotenv-safe)
@@ -103,13 +96,18 @@ const config = smp.wrap({
     // new CompressionPlugin(),
     // Other way to add index.html to dist
     // new AddAssetHtmlPlugin({ filepath: require.resolve('./index.html') }),
+    new CleanWebpackPlugin({
+      verbose: true,
+      dry: false,
+      cleanAfterEveryBuildPatterns: ['!**/favicon.svg'],
+    }),
     new AddAssetHtmlPlugin({ filepath: require.resolve('./favicon.svg') }),
     new HtmlWebpackPlugin({
       template: './index.html', 
       inject: false,
       favicon: './favicon.svg', 
       title: 'Search EO imagery - Iconem',
-    })
+    }), 
   ],
 });
 
