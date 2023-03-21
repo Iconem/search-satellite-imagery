@@ -5,7 +5,7 @@ import { styled } from '@mui/system'
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 
-import { TextField, Typography, Grid } from '@mui/material'
+import { Typography, Grid } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCalendarDay } from '@fortawesome/free-solid-svg-icons'
 import PropTypes from 'prop-types'
@@ -47,15 +47,23 @@ function DateRangeComponent(props): React.ReactElement {
               value={props.startDate}
               onChange={props.setStartDate}
               sx={{ width: '100%' }}
-              renderInput={(params): React.ReactElement => (
-                <TextField
-                  {...params}
-                  size="small"
-                  sx={{ width: '100%' }} // '150px'
-                  error={!startDateLowerThanEndDate}
-                  {...(!startDateLowerThanEndDate ? { helperText: 'Bad date ordering' } : {})} //
-                />
-              )}
+              // renderInput={(params): React.ReactElement => (
+              //   <TextField
+              //     {...params}
+              //     size="small"
+              //     sx={{ width: '100%' }} // '150px'
+              //     error={!startDateLowerThanEndDate}
+              //     {...(!startDateLowerThanEndDate ? { helperText: 'Bad date ordering' } : {})} //
+              //   />
+              // )}
+              componentsProps={{
+                textField: {
+                  size: 'small',
+                  sx: { width: '100%' },
+                  error: !startDateLowerThanEndDate,
+                  helperText: !startDateLowerThanEndDate ? 'Bad Date Ordering' : '',
+                },
+              }}
             />
           </LocalizationProvider>
         </Grid>
@@ -67,14 +75,21 @@ function DateRangeComponent(props): React.ReactElement {
               value={props.endDate}
               onChange={props.setEndDate}
               sx={{ width: '100%' }}
-              renderInput={(params): React.ReactElement => (
-                <TextField
-                  {...params}
-                  size="small"
-                  sx={{ width: '100%' }} // '150px'
-                  error={!startDateLowerThanEndDate}
-                />
-              )}
+              // renderInput={(params): React.ReactElement => (
+              //   <TextField
+              //     {...params}
+              //     size="small"
+              //     sx={{ width: '100%' }} // '150px'
+              //     error={!startDateLowerThanEndDate}
+              //   />
+              // )}
+              componentsProps={{
+                textField: {
+                  size: 'small',
+                  sx: { width: '100%' },
+                  error: !startDateLowerThanEndDate,
+                },
+              }}
             />
           </LocalizationProvider>
         </Grid>

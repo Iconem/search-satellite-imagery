@@ -12,10 +12,10 @@ Tree view https://mui.com/material-ui/react-tree-view/#gmail-clone
 import * as React from 'react'
 
 // MUI Components: Inputs | Data Display | Feedback+Nav | Layout | Mui-X-datepicker | Components API | Colors
-import { Snackbar, Alert, Collapse, Box, Grid, Stack, Typography, Slider, Link } from '@mui/material'
+import { Snackbar, Alert, Collapse, Box, Grid, Stack, Typography, Link } from '@mui/material'
 
 // Other imports
-import { useLocalStorage } from '../utilities'
+import { useLocalStorage, GSD_STEPS } from '../utilities'
 import area from '@turf/area'
 // FontAwesome icons https://fontawesome.com/icons
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -33,7 +33,6 @@ import ApiKeysModalComponent from './api-keys-modal-component'
 import SearchButton from './search-button'
 import ExportButton from './export-button'
 import APIRequestsStatuses from './api-requests-statuses'
-import { GSD_STEPS } from '../utilities'
 import { sourcesTreeviewInitialSelection } from './satellite-imagery-sources-treeview'
 
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -41,6 +40,9 @@ import { sourcesTreeviewInitialSelection } from './satellite-imagery-sources-tre
 
 /* Display COMPONENTS */
 /* AOI area COMPONENT */
+AOIComponent.propTypes = {
+  polygons: PropTypes.any,
+}
 function AOIComponent(props): React.ReactElement {
   let polygonArea = 0
   for (const polygon of props.polygons) {
@@ -78,6 +80,15 @@ function AOIComponent(props): React.ReactElement {
 //   [state_property]: newValue
 // })
 const millisecondsPerDay = 24 * 60 * 60 * 1000
+ControlPanel.propTypes = {
+  polygons: PropTypes.any,
+  searchResults: PropTypes.any,
+  setSearchResults: PropTypes.func,
+  footprintFeatures: PropTypes.any,
+  setFootprintFeatures: PropTypes.func,
+  mapRef: PropTypes.any,
+  theme: PropTypes.any,
+}
 function ControlPanel(props): React.ReactElement {
   const polygons = props.polygons
   // Fit all search settings in a single react state object
@@ -122,12 +133,12 @@ function ControlPanel(props): React.ReactElement {
   // [Providers.SKYWATCH]: process.env.SKYWATCH_APIKEY,
   // [Providers.MAXAR_DIGITALGLOBE]: process.env.MAXAR_DIGITALGLOBE_APIKEY,
 
-  const setStartDate = (newValue: Date | null) =>
+  const setStartDate = (newValue: Date | null): void =>
     setSearchSettings({
       ...searchSettings,
       startDate: newValue,
     })
-  const setEndDate = (newValue: Date | null) =>
+  const setEndDate = (newValue: Date | null): void =>
     setSearchSettings({
       ...searchSettings,
       endDate: newValue,
@@ -142,7 +153,7 @@ function ControlPanel(props): React.ReactElement {
     open: false,
     message: '',
   })
-  const handleSnackbarClose = (event, reason) => {
+  const handleSnackbarClose = (event, reason): void => {
     if (reason === 'clickaway') {
       return
     }

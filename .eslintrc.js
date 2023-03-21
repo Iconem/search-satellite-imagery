@@ -21,7 +21,7 @@ module.exports = {
         semi: false,
       },
     ],
-    '@typescript-eslint/strict-boolean-expressions': 1,
+    '@typescript-eslint/strict-boolean-expressions': 2,
     '@typescript-eslint/ban-ts-comment': 'off',
     '@typescript-eslint/prefer-optional-chain': 1,
     '@typescript-eslint/no-dynamic-delete': 1,

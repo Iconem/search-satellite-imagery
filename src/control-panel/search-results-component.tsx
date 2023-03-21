@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { Tooltip, Typography, GlobalStyles, Box } from '@mui/material'
-import { DataGrid, GridColumnMenu, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton, GridToolbarDensitySelector, type GridRowHeightParams, type GridColDef } from '@mui/x-data-grid'
+import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton, GridToolbarDensitySelector, type GridRowHeightParams, type GridColDef } from '@mui/x-data-grid'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCloudSun, faSquarePollHorizontal, faSatellite, faBolt, faVectorSquare } from '@fortawesome/free-solid-svg-icons'
 import bbox from '@turf/bbox'
@@ -199,7 +199,7 @@ const datagridColumns: GridColDef[] = [
   },
   {
     field: 'thumbnail',
-    type: 'image',
+    type: 'string',
     renderCell: (params) => (
       <Box
         component="img"
@@ -218,7 +218,7 @@ const datagridColumns: GridColDef[] = [
   },
   {
     field: 'preview',
-    type: 'image',
+    type: 'string',
     renderCell: (params) => (
       <img
         src={params.value}

@@ -10,14 +10,14 @@ import PropTypes from 'prop-types'
 /* API Request Status */
 APIRequestsStatuses.propTypes = {
   searchPromises: PropTypes.any,
-  theme: PropTypes.func,
+  theme: PropTypes.any,
   searchResults: PropTypes.any,
 }
 function APIRequestsStatuses(props): React.ReactElement {
   // const [apiRequestsStatusesCollapsed, setApiRequestsStatusesCollapsed] = React.useState(false)
   const [apiRequestsStatusesCollapsed, setApiRequestsStatusesCollapsed] = useLocalStorage('apiRequestsStatusesCollapsed', false)
 
-  const textColor = (o) => (!o.searchFinished ? props.theme.palette.text.primary : o.errorOnFetch ? props.theme.palette.error.light : props.theme.palette.success.light)
+  const textColor = (o): any => (!o.searchFinished ? props.theme.palette.text.primary : o.errorOnFetch ? props.theme.palette.error.light : props.theme.palette.success.light)
 
   return (
     <>

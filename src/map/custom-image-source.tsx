@@ -15,7 +15,7 @@ import { getCoords } from '@turf/invariant'
 import { polygon } from '@turf/helpers'
 
 CustomImageSource.propTypes = {
-  feature: PropTypes.any.isRequired,
+  feature: PropTypes.any,
   rasterOpacity: PropTypes.number,
 }
 
@@ -56,9 +56,10 @@ function CustomImageSource(props): React.ReactElement {
   if (props.feature?.properties?.preview_uri && props.rasterOpacity > 0) {
     // console.log('existing feature for custom imagery source', props.feature.properties.providerProperties.previewUriTiles, props.feature.properties.preview_uri, props.rasterOpacity, 'useTMSSource', useTMSSource)
     const previewUriTiles = props.feature?.properties?.providerProperties?.previewUriTiles ?? null
+    console.log('YO', previewUriTiles, props, previewUriTiles?.url)
     return (
       <>
-        {useTMSSource && (
+        {useTMSSource && previewUriTiles?.url && (
           <Source
             id="map-source-tms"
             type="raster"
@@ -74,7 +75,7 @@ function CustomImageSource(props): React.ReactElement {
             key={props.feature?.properties?.id}
           />
         )}
-        {!useTMSSource && (
+        {!useTMSSource && props.feature.properties.preview_uri && (
           <Source
             id="map-source-raster"
             type="image"

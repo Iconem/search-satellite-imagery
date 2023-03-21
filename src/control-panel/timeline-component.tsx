@@ -4,7 +4,8 @@
 import * as React from 'react'
 
 import { GlyphCircle } from '@visx/glyph'
-import { XYChart, GlyphSeries, Axis, Grid, Annotation, AnnotationCircleSubject, AnnotationLabel, BarSeries, AnnotationConnector, AnnotationLineSubject, Tooltip } from '@visx/xychart'
+// import { XYChart, GlyphSeries, Axis, Grid, Annotation, AnnotationCircleSubject, AnnotationLabel, BarSeries, AnnotationConnector, AnnotationLineSubject, Tooltip } from '@visx/xychart'
+import { XYChart, GlyphSeries, Axis, Grid, Annotation, AnnotationCircleSubject, AnnotationLabel } from '@visx/xychart'
 import { Group } from '@visx/group'
 // import { RenderTooltipParams } from "@visx/xychart/lib/components/Tooltip";
 
