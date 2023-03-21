@@ -50,6 +50,7 @@
     "mapbox-gl-draw-rectangle-mode": "^1.0.4",
     "mapbox-gl-draw-rectangle-restrict-area": "3.1.5",
     "mapbox-gl-style-switcher": "1.0.11",
+    "prop-types": "^15.8.1",
     "react": "^17.0.0",
     "react-dom": "^17.0.0",
     "react-map-gl": "^7.0.21",

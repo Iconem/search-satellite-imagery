@@ -1,41 +1,39 @@
-import * as React from 'react';
-import { render } from 'react-dom';
-import Map, { type MapRef } from 'react-map-gl';
-import type GeoJSON from 'geojson';
-import CssBaseline from '@mui/material/CssBaseline';
-import { ThemeProvider } from '@mui/material/styles';
-import Split from 'react-split';
+import * as React from 'react'
+import { render } from 'react-dom'
+import Map, { type MapRef } from 'react-map-gl'
+import type GeoJSON from 'geojson'
+import CssBaseline from '@mui/material/CssBaseline'
+import { ThemeProvider, createTheme } from '@mui/material/styles'
+import Split from 'react-split'
 
 // Custom Components and theme
-import { createTheme, lighten, darken } from '@mui/material/styles';
-import { getDesignTokens } from './theme';
-import ControlPanel from './control-panel/control-panel';
-import TimelineComponent from './control-panel/timeline-component';
-import MapControls from './map/map-controls';
-import CustomImageSource from './map/custom-image-source';
-import FeaturesSourceAndLayer from './map/features-source-and-layer';
-import { useLocalStorage } from './utilities';
+// import { createTheme, lighten, darken } from '@mui/material/styles';
+import { getDesignTokens } from './theme'
+import ControlPanel from './control-panel/control-panel'
+import TimelineComponent from './control-panel/timeline-component'
+import MapControls from './map/map-controls'
+import CustomImageSource from './map/custom-image-source'
+import FeaturesSourceAndLayer from './map/features-source-and-layer'
+import { useLocalStorage } from './utilities'
 
-import sample_results from './sample_results_up42_head_maxar.json';
-
-const usePrevious = <T extends unknown>(value: T): T | undefined => {
-  const ref = React.useRef<T>();
+function usePrevious<T>(value: T): T | undefined {
+  const ref = React.useRef<T>()
   React.useEffect(() => {
-    ref.current = value;
-  });
-  return ref.current;
-};
+    ref.current = value
+  })
+  return ref.current
+}
 
 const defaultViewStateNaturalearth = {
   longitude: 53.75,
   latitude: 0.13,
   zoom: 2.35,
-};
-const defaultViewStateMercator = {
-  longitude: 28.75,
-  latitude: 33.34,
-  zoom: 2.5,
-};
+}
+// const defaultViewStateMercator = {
+//   longitude: 28.75,
+//   latitude: 33.34,
+//   zoom: 2.5,
+// }
 
 // Font-awesome when tree-shaking not working
 // import {
@@ -68,44 +66,44 @@ const defaultViewStateMercator = {
 //   faMap, faLayerGroup
 // )
 
-export default function App(props) {
-  const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN;
-  const mapRef = React.useRef<MapRef>();
+const App: React.FC = (props) => {
+  const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN
+  const mapRef = React.useRef<MapRef>()
 
   // Default version of state
   // const [searchResults, setSearchResults] = React.useState(sample_results);
   // const [searchResults, setSearchResults] = React.useState(null);
   // const [basemapStyle, setBasemapStyle] = React.useState("satellite-streets-v11");
   // const [drawFeatures, setDrawFeatures] = useLocalStorage('drawFeatures', {});
-  const [drawFeatures, setDrawFeatures] = React.useState({});
+  const [drawFeatures, setDrawFeatures] = React.useState({})
   // Local Storage Version of some state params
-  const [searchResults, setSearchResults] = useLocalStorage('searchResults', null);
-  const [basemapStyle, setBasemapStyle] = useLocalStorage('basemapStyle', 'satellite-streets-v11');
-  const [rasterOpacity, setRasterOpacity] = useLocalStorage('rasterOpacity', 0.8);
-  const [splitPanelSizesPercent, setSplitPanelSizesPercent] = useLocalStorage('splitPanelSizesPercent', [75, 25]);
-  const [viewState, setViewState] = useLocalStorage('viewState', defaultViewStateNaturalearth, false);
+  const [searchResults, setSearchResults] = useLocalStorage('searchResults', null)
+  const [basemapStyle, setBasemapStyle] = useLocalStorage('basemapStyle', 'satellite-streets-v11')
+  const [rasterOpacity, setRasterOpacity] = useLocalStorage('rasterOpacity', 0.8)
+  const [splitPanelSizesPercent, setSplitPanelSizesPercent] = useLocalStorage('splitPanelSizesPercent', [75, 25])
+  const [viewState, setViewState] = useLocalStorage('viewState', defaultViewStateNaturalearth, false)
 
   // Edit map center when split panel modified
-  const prevSplitPanelSizesPercent = usePrevious(splitPanelSizesPercent);
+  const prevSplitPanelSizesPercent = usePrevious(splitPanelSizesPercent)
   React.useEffect(() => {
     if (prevSplitPanelSizesPercent !== splitPanelSizesPercent) {
       // const moveRatio = window.innerWidth * (splitPanelSizesPercent - prevSplitPanelSizesPercent)
-      const moveRatio = prevSplitPanelSizesPercent ? (window.innerWidth * (splitPanelSizesPercent[1] - prevSplitPanelSizesPercent[1])) / 100 : 0;
-      const currentBounds = mapRef.current?.getBounds();
-      const boundsCenter = currentBounds?.getCenter();
+      const moveRatio = prevSplitPanelSizesPercent ? (window.innerWidth * (splitPanelSizesPercent[1] - prevSplitPanelSizesPercent[1])) / 100 : 0
+      const currentBounds = mapRef.current?.getBounds()
+      const boundsCenter = currentBounds?.getCenter()
       if (boundsCenter) {
         // console.log('SPLIT MOVED, width', window.innerWidth, prevSplitPanelSizesPercent, splitPanelSizesPercent, 'ratio', moveRatio, 'currentBounds', currentBounds)
         mapRef?.current?.fitBounds(currentBounds, {
           padding: { top: 0, bottom: 0, left: 0, right: moveRatio },
           center: [boundsCenter.lng, boundsCenter.lat],
-        });
+        })
       }
     } else {
       // console.log('Split did not move')
     }
-  }, [splitPanelSizesPercent]);
+  }, [splitPanelSizesPercent])
 
-  const [footprintFeatures, setFootprintFeatures] = React.useState<null | GeoJSON.FeatureCollection>(null);
+  const [footprintFeatures, setFootprintFeatures] = React.useState<null | GeoJSON.FeatureCollection>(null)
   // const [selectedFeature, setSelectedFeature] = useState<null | GeoJSON.Feature>(null);
 
   return (
@@ -170,7 +168,7 @@ export default function App(props) {
         // }}
         ref={mapRef}
         hash={true}
-        mapStyle={`mapbox://styles/mapbox/${basemapStyle}`}
+        mapStyle={`mapbox://styles/mapbox/${(basemapStyle || 'satellite-streets-v12') as string}`}
         mapboxAccessToken={MAPBOX_TOKEN}
         renderWorldCopies={false}
         dragRotate={false}
@@ -225,7 +223,7 @@ export default function App(props) {
           className="split"
           style={{ height: '100%' }}
           onDragEnd={function (sizes) {
-            setSplitPanelSizesPercent(sizes);
+            setSplitPanelSizesPercent(sizes)
           }}
         >
           <TimelineComponent theme={props.theme} searchResults={searchResults} footprintFeatures={footprintFeatures} setFootprintFeatures={setFootprintFeatures} />
@@ -244,21 +242,23 @@ export default function App(props) {
         </Split>
       </div>
     </>
-  );
+  )
 }
 
-export function ThemedApp() {
-  const [themePaletteMode, setThemePaletteMode] = useLocalStorage('themePaletteMode', 'dark');
-  const theme = createTheme(getDesignTokens(themePaletteMode));
+function ThemedApp(): React.ReactElement {
+  const [themePaletteMode, setThemePaletteMode] = useLocalStorage('themePaletteMode', 'dark')
+  const theme = createTheme(getDesignTokens(themePaletteMode))
   // const theme = React.useMemo(() => createTheme(a), [themePaletteMode]);
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <App theme={theme} themePaletteMode={themePaletteMode} setThemePaletteMode={setThemePaletteMode} />
     </ThemeProvider>
-  );
+  )
 }
 
-export function renderToDom(container) {
-  render(<ThemedApp />, container);
+function renderToDom(container): void {
+  render(<ThemedApp />, container)
 }
+
+export { App, ThemedApp, renderToDom }

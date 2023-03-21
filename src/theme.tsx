@@ -1,9 +1,9 @@
-import { createTheme, lighten, darken } from '@mui/material/styles';
-import { blue, red, grey, blueGrey } from '@mui/material/colors';
-import darkScrollbar from '@mui/material/darkScrollbar';
+import { lighten, darken } from '@mui/material/styles'
+import { blue, grey } from '@mui/material/colors'
+import darkScrollbar from '@mui/material/darkScrollbar'
 
 // A custom theme for this app
-const getDesignTokens = (themePaletteMode) => ({
+const getDesignTokens = (themePaletteMode): any => ({
   spacing: 2,
   palette: {
     mode: themePaletteMode, // dark or light
@@ -92,11 +92,11 @@ const getDesignTokens = (themePaletteMode) => ({
     //   },
     // },
   },
-});
+})
 
 // mapbox-gl-draw styles:
 // https://github.com/mapbox/mapbox-gl-draw/blob/main/docs/EXAMPLES.md
-const draw_polygon_styles = (theme) => [
+const drawPolygonStyles = (theme): any => [
   // ACTIVE (being drawn)
   // line stroke
   {
@@ -211,6 +211,6 @@ const draw_polygon_styles = (theme) => [
       'line-width': 3,
     },
   },
-];
+]
 
-export { getDesignTokens, draw_polygon_styles };
+export { getDesignTokens, drawPolygonStyles }
