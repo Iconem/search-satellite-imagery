@@ -5,6 +5,8 @@ import type GeoJSON from 'geojson'
 import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import Split from 'react-split'
+import PropTypes from 'prop-types'
+import { Analytics } from '@vercel/analytics/react'
 
 // Custom Components and theme
 // import { createTheme, lighten, darken } from '@mui/material/styles';
@@ -66,7 +68,7 @@ const defaultViewStateNaturalearth = {
 //   faMap, faLayerGroup
 // )
 
-const App: React.FC = (props) => {
+function App(props): React.ReactElement {
   const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN
   const mapRef = React.useRef<MapRef>()
 
@@ -235,14 +237,18 @@ const App: React.FC = (props) => {
             // setSelectedFeature={setSelectedFeature}
             searchResults={searchResults}
             setSearchResults={setSearchResults}
-            rasterOpacity={rasterOpacity}
-            setRasterOpacity={setRasterOpacity}
             mapRef={mapRef}
           />
         </Split>
       </div>
     </>
   )
+}
+
+App.propTypes = {
+  theme: PropTypes.any,
+  themePaletteMode: PropTypes.string,
+  setThemePaletteMode: PropTypes.func,
 }
 
 function ThemedApp(): React.ReactElement {
@@ -252,6 +258,7 @@ function ThemedApp(): React.ReactElement {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <Analytics mode={'production'} />
       <App theme={theme} themePaletteMode={themePaletteMode} setThemePaletteMode={setThemePaletteMode} />
     </ThemeProvider>
   )
