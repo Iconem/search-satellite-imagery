@@ -50,7 +50,7 @@ function MapboxStyleSwitcher(props): React.ReactElement {
       </button>
     </div>
   ) : (
-    <div className={'mapboxgl-ctrl mapboxgl-ctrl-group'} style={{ filter: 'invert(100%) brightness(100%) contrast(100%)' }}>
+    <div className={'mapboxgl-ctrl mapboxgl-ctrl-group'}>
       {/* <ImageList sx={{ width: 500, height: 450 }} cols={3} rowHeight={164}> */}
       <ClickAwayListener
         onClickAway={() => {
@@ -63,7 +63,7 @@ function MapboxStyleSwitcher(props): React.ReactElement {
           // onMouseLeave= {() => setStyleSwitcherOpen(false)}
         >
           {staticMapUrls.map((item) => (
-            <ImageListItem key={item.styleId} sx={{ cursor: 'pointer', width: '96px' }}>
+            <ImageListItem key={item.styleId} sx={{ cursor: 'pointer', width: '96px', filter: 'invert(100%) brightness(100%) contrast(100%)' }}>
               <img
                 src={item.url}
                 alt={item.styleId}

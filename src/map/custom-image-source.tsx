@@ -55,7 +55,7 @@ function CustomImageSource(props): React.ReactElement {
 
   if (props.feature?.properties?.preview_uri && props.rasterOpacity > 0) {
     // console.log('existing feature for custom imagery source', props.feature.properties.providerProperties.previewUriTiles, props.feature.properties.preview_uri, props.rasterOpacity, 'useTMSSource', useTMSSource)
-    const previewUriTiles = props.feature?.properties?.providerProperties?.previewUriTiles ?? null
+    const previewUriTiles = props.feature?.properties?.providerProperties?.preview_uri_tiles || null
     console.log('YO', previewUriTiles, props, previewUriTiles?.url)
     return (
       <>

@@ -2,10 +2,13 @@
 
 import * as React from 'react'
 import { Tooltip, Typography, GlobalStyles, Box } from '@mui/material'
-import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton, GridToolbarDensitySelector, type GridRowHeightParams, type GridColDef } from '@mui/x-data-grid'
+import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton, GridToolbarDensitySelector, type GridRowHeightParams, type GridColDef, GridFooterContainer, GridPagination, gridPageCountSelector, useGridApiContext, useGridSelector, GridAutoSizer } from '@mui/x-data-grid'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCloudSun, faSquarePollHorizontal, faSatellite, faBolt, faVectorSquare } from '@fortawesome/free-solid-svg-icons'
 import bbox from '@turf/bbox'
+
+import MuiPagination from '@mui/material/Pagination'
+import { type TablePaginationProps } from '@mui/material/TablePagination'
 
 /* SEARCH RESULTS COMPONENT */
 function CustomGridToolbar(): React.ReactElement {
@@ -25,6 +28,38 @@ function CustomGridToolbar(): React.ReactElement {
       <GridToolbarDensitySelector />
     </GridToolbarContainer>
   )
+}
+
+function CustomFooter(): React.ReactElement {
+  return (
+    <GridFooterContainer>
+      {/* <GridPagination /> */}
+      {/* <GridAutoSizer /> */}
+      <CustomPagination />
+    </GridFooterContainer>
+  )
+}
+
+function Pagination({ page, onPageChange, className }: Pick<TablePaginationProps, 'page' | 'onPageChange' | 'className'>): React.ReactElement {
+  const apiRef = useGridApiContext()
+  const pageCount = useGridSelector(apiRef, gridPageCountSelector)
+
+  return (
+    // <></>
+    <MuiPagination
+      color="primary"
+      className={className}
+      count={pageCount}
+      page={page + 1}
+      onChange={(event, newPage) => {
+        onPageChange(event as any, newPage - 1)
+      }}
+    />
+  )
+}
+
+function CustomPagination(props: any): React.ReactElement {
+  return <GridPagination ActionsComponent={Pagination} {...props} />
 }
 
 // function CustomColumnMenuComponent(props: any): React.ReactElement {
@@ -158,7 +193,6 @@ const datagridColumns: GridColDef[] = [
     ),
     width: 55,
     description: 'Azimuth',
-    hide: false,
   },
   {
     field: 'Sun Azimuth',
@@ -177,7 +211,6 @@ const datagridColumns: GridColDef[] = [
     ),
     width: 55,
     description: 'Sun Azimuth',
-    hide: false,
   },
   {
     field: 'Sun Elevation',
@@ -186,7 +219,6 @@ const datagridColumns: GridColDef[] = [
       return <p>{`${checkUnknown(params.value, '°')}`}</p>
     },
     valueGetter: (params) => params.row?.providerProperties?.illuminationElevationAngle,
-    hide: true,
   },
   {
     field: 'Incidence',
@@ -195,7 +227,6 @@ const datagridColumns: GridColDef[] = [
       return <p>{`${checkUnknown(params.value, '°')}`}</p>
     },
     valueGetter: (params) => params.row?.providerProperties?.incidenceAngle,
-    hide: true,
   },
   {
     field: 'thumbnail',
@@ -214,7 +245,6 @@ const datagridColumns: GridColDef[] = [
       />
     ),
     valueGetter: (params) => params.row?.thumbnail_uri, // thumbnail_uri or preview_uri
-    hide: true,
   },
   {
     field: 'preview',
@@ -236,7 +266,6 @@ const datagridColumns: GridColDef[] = [
       />
     ),
     valueGetter: (params) => params.row?.preview_uri, // thumbnail_uri or preview_uri
-    hide: false,
     // resizable: true, // only works for datagrids with mui-x pro
     // width is not dynamic yet https://github.com/mui/mui-x/issues/1241
     minWidth: 200,
@@ -264,7 +293,6 @@ const datagridColumns: GridColDef[] = [
       )
     },
     valueGetter: (params) => params.row?.id,
-    hide: false,
     renderHeader: () => (
       <Tooltip title={'Identifier of scene/image/product on the corresponding platform provider'} disableInteractive>
         <strong> Identifier </strong>
@@ -308,6 +336,8 @@ const handleRowClick = (
 
 function SearchResultsComponent(props): React.ReactElement {
   const searchResults = props.searchResults
+  const [autoPageSizeBool, setAutoPageSizeBool] = React.useState(false)
+
   const rows = searchResults.features.map((feature) => feature.properties)
   return (
     <>
@@ -317,7 +347,7 @@ function SearchResultsComponent(props): React.ReactElement {
       </Typography>
 
       {/* height: 600, */}
-      <div style={{ width: '100%', flex: '1 1 auto', minHeight: '320px' }}>
+      <div style={{ width: '100%', flex: '1 1 auto', minHeight: '320px', overflow: 'auto' }}>
         <div style={{ display: 'flex', height: '100%' }}>
           <div style={{ flexGrow: 1 }}>
             <GlobalStyles
@@ -328,6 +358,13 @@ function SearchResultsComponent(props): React.ReactElement {
               }}
             />
             <DataGrid
+              onPaginationModelChange={(newModel, reason) => {
+                if (newModel.pageSize === 0) {
+                  setAutoPageSizeBool(true)
+                } else {
+                  setAutoPageSizeBool(false)
+                }
+              }}
               selectionModel={[props.footprintFeatures?.properties?.id || null]}
               // Fired when selction changed from datagrid
               // onSelectionModelChange={(newSelectionModel) => {
@@ -346,19 +383,34 @@ function SearchResultsComponent(props): React.ReactElement {
               // }}
               getRowId={(row: any) => getRowIdFromProps(row)}
               density="compact"
-              autoPageSize={true}
               sortingOrder={['desc', 'asc']}
               // autoHeight
               components={{
                 Toolbar: CustomGridToolbar,
+                Footer: CustomFooter,
                 // ColumnMenu: CustomColumnMenuComponent,
               }}
               initialState={{
                 sorting: {
                   sortModel: [{ field: 'acquisitionDate', sort: 'desc' }],
                 },
+                columns: {
+                  columnVisibilityModel: {
+                    thumbnail: false,
+                    Incidence: false,
+                    'Sun Elevation': false,
+                  },
+                },
                 // detailPanel: { expandedRowIds: [1, 2, 3] }
+                pagination: { paginationModel: { pageSize: 25 } },
               }}
+              // PAGESIZE TODO
+              // autoPageSize={true}
+              autoPageSize={autoPageSizeBool}
+              // slots={{
+              //   pagination: CustomPagination,
+              // }}
+              pageSizeOptions={[0, 25, 100]} // cannot exceed 100 in open-source datagrid version
               // If wanted to show image only in expanded detailed view
               // getDetailPanelContent={({ row }) => <div>Row ID: {row.id}</div>}
               checkboxSelection={false}
