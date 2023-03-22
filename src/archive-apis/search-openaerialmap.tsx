@@ -1,41 +1,41 @@
 // Code for searching OpenAerialMap API
 
-import ky from 'ky';
-import bbox from '@turf/bbox';
-import { Providers } from './search-utilities';
-import { log } from '../utilities';
+import ky from 'ky'
+import bbox from '@turf/bbox'
+import { Providers } from './search-utilities'
+import { log } from '../utilities'
 
 // https://api.openaerialmap.org/meta?order_by=acquisition_end&sort=desc&limit=100
-const oam_limit = 1000;
-const oam_base_url = 'https://api.openaerialmap.org/meta';
+const OAM_LIMIT = 1000
+const OAM_BASE_URL = 'https://api.openaerialmap.org/meta'
 
-const search_openaerialmap = async (search_settings, oam_apikey, searchPolygon = null, setters = null) => {
-  const oam_url = new URL(oam_base_url);
-  const bounds = bbox(searchPolygon);
-  oam_url.search = new URLSearchParams({
-    limit: `${oam_limit}`,
+const searchOpenaerialmap = async (searchSettings, oamApikey, searchPolygon = null, setters = null): Promise<any> => {
+  const oamUrl = new URL(OAM_BASE_URL)
+  const bounds = bbox(searchPolygon)
+  oamUrl.search = new URLSearchParams({
+    limit: `${OAM_LIMIT}`,
     bbox: bounds.join(','),
-    gsd_from: `${search_settings.gsd.min}`,
-    gsd_to: `${search_settings.gsd.max}`,
-    acquisition_from: search_settings.startDate.toISOString().substring(0, 10),
-    acquisition_to: search_settings.endDate.toISOString().substring(0, 10),
-  }) as any;
-  const oam_search_url = oam_url.toString();
-  log('oam_search_url', oam_search_url);
+    gsd_from: `${searchSettings.gsd.min as string}`,
+    gsd_to: `${searchSettings.gsd.max as string}`,
+    acquisition_from: searchSettings.startDate.toISOString().substring(0, 10),
+    acquisition_to: searchSettings.endDate.toISOString().substring(0, 10),
+  }) as any
+  const oamSearchUrl = oamUrl.toString()
+  log('oamSearchUrl', oamSearchUrl)
 
-  // const oam_search_url = `${oam_base_url}?limit=${oam_limit}&bbox=135,31.95216223802496,146.25,40.97989806962013&gsd_from=${search_settings.gsd.min}&gsd_to=${search_settings.gsd.max}&acquisition_from=search_settings.endDate.toISOString().substring(0,10)`
+  // const oamSearchUrl = `${OAM_BASE_URL}?limit=${OAM_LIMIT}&bbox=135,31.95216223802496,146.25,40.97989806962013&gsd_from=${searchSettings.gsd.min}&gsd_to=${searchSettings.gsd.max}&acquisition_from=searchSettings.endDate.toISOString().substring(0,10)`
 
-  const search_results_raw = await ky.get(oam_search_url).json();
+  const searchResultsRaw = await ky.get(oamSearchUrl).json()
 
-  const search_results_json = format_oam_results(search_results_raw, searchPolygon);
-  log('OpenAerialMap PAYLOAD: \n', oam_search_url, '\nRAW OAM search results raw: \n', search_results_raw, '\nJSON OAM search results: \n', search_results_json);
-  return { search_results_json };
-};
+  const searchResultsJson = formatOamResults(searchResultsRaw, searchPolygon)
+  log('OpenAerialMap PAYLOAD: \n', oamSearchUrl, '\nRAW OAM search results raw: \n', searchResultsRaw, '\nJSON OAM search results: \n', searchResultsJson)
+  return { searchResultsJson }
+}
 
-const format_oam_results = (oam_results_raw, searchPolygon = null) => {
+const formatOamResults = (oamResultsRaw, searchPolygon = null): GeoJSON.FeatureCollection => {
   // meta':{'limit':1,'page':1,'found':15},
   return {
-    features: oam_results_raw.results.map((r) => {
+    features: oamResultsRaw.results.map((r) => {
       const feat = {
         geometry: {
           coordinates: r.geojson.coordinates[0],
@@ -43,7 +43,7 @@ const format_oam_results = (oam_results_raw, searchPolygon = null) => {
         },
         properties: {
           providerPlatform: `${Providers.OAM}`,
-          provider: `${Providers.OAM}/${r.provider}/${r.platform}/${r.properties?.sensor ?? ''}/${r.title}`,
+          provider: `${Providers.OAM}/${r.provider as string}/${r.platform as string}/${(r.properties?.sensor as string) ?? ''}/${r.title as string}`,
           id: r.uuid,
           acquisitionDate: r.acquisition_end,
           resolution: r.gsd,
@@ -60,11 +60,11 @@ const format_oam_results = (oam_results_raw, searchPolygon = null) => {
           raw_result_properties: { ...r },
         },
         type: 'Feature',
-      };
-      return feat;
+      }
+      return feat
     }),
     type: 'FeatureCollection',
-  };
-};
+  }
+}
 
-export default search_openaerialmap;
+export default searchOpenaerialmap

@@ -1,42 +1,42 @@
 // Code for utilities for searching archive APIs
 
-import area from '@turf/area';
-import intersect from '@turf/intersect';
+import area from '@turf/area'
+import intersect from '@turf/intersect'
 
-function filter_features_with_search_params(f, searchPolygon) {
-  return true && searchPolygon.properties.gsd_min <= (f.properties.resolution || 0) && (f.properties.resolution || 0) <= searchPolygon.properties.gsd_max && (f.properties.cloudCoverage ?? 0) <= searchPolygon.properties.cloudCoverage && (f.properties.shapeIntersection ?? 100) >= searchPolygon.properties.aoiCoverage && new Date(f.properties.acquisitionDate) >= new Date(searchPolygon.properties.startDate) && new Date(f.properties.acquisitionDate) <= new Date(searchPolygon.properties.endDate);
+function filterFeaturesWithSearchParams(f, searchPolygon): boolean {
+  return true && searchPolygon.properties.gsd_min <= (f.properties.resolution || 0) && (f.properties.resolution || 0) <= searchPolygon.properties.gsd_max && (f.properties.cloudCoverage ?? 0) <= searchPolygon.properties.cloudCoverage && (f.properties.shapeIntersection ?? 100) >= searchPolygon.properties.aoiCoverage && new Date(f.properties.acquisitionDate) >= new Date(searchPolygon.properties.startDate) && new Date(f.properties.acquisitionDate) <= new Date(searchPolygon.properties.endDate)
 }
 
-// Shape intersection expressed as number in [0,100] of overlap of feature_1 over feature_2
-const shapeIntersection = (feature_1, feature_2) => {
-  return Math.round((area(intersect(feature_1, feature_2)) / area(feature_2)) * 100);
-};
-// Get imagery price given price_info {min_area, price_per_sq_km}
-function get_area_price(feature_area, price_info) {
-  const price = Math.max(feature_area / 1_000_000, price_info.min_area) * price_info.price_per_sq_km;
-  return Math.round(price);
+// Shape intersection expressed as number in [0,100] of overlap of feature1 over feature2
+const shapeIntersection = (feature1, feature2): number => {
+  return Math.round((area(intersect(feature1, feature2)) / area(feature2)) * 100)
 }
-function get_imagery_price(feature, constellation_name, constellation_dict) {
-  if (constellation_name in constellation_dict) {
-    const price_info = constellation_dict[constellation_name];
-    return get_area_price(area(feature.geometry), price_info);
+// Get imagery price given priceInfo {min_area, price_per_sq_km}
+function getAreaPrice(featureArea, priceInfo): number | null {
+  const price = Math.max(featureArea / 1_000_000, priceInfo.min_area) * priceInfo.price_per_sq_km
+  return Math.round(price)
+}
+function getImageryPrice(feature, constellationName, constellationDict): number | null {
+  if (constellationName in constellationDict) {
+    const priceInfo = constellationDict[constellationName]
+    return getAreaPrice(area(feature.geometry), priceInfo)
   } else {
-    return null;
+    return null
   }
 }
 
 // We do not have access to a maxar price list, so using a default SentinelHub Pricing information
 // 16.5 USD/km2, 5km2 min on SentinelHub, must be close to Maxar/Digital Globe Pricing
-const maxar_price_info = {
+const maxarPriceInfo = {
   price_per_sq_km: 16.5, // (16.5 USD/km2) 5km2 min on SentinelHub, must be close to Maxar/Digital Globe Pricing
   min_area: 5,
-};
-function get_maxar_price(feature) {
-  // return get_imagery_price(feature, feature.properties.constellation, maxar_constellation_dict)
-  return get_area_price(area(feature.geometry), maxar_price_info);
+}
+function getMaxarPrice(feature): number | null {
+  // return getImageryPrice(feature, feature.properties.constellation, maxarConstellationDict)
+  return getAreaPrice(area(feature.geometry), maxarPriceInfo)
 }
 
-const max_abs = (x) => Math.max(...x.map(Math.abs));
+const maxAbs = (x): number => Math.max(...x.map(Math.abs))
 
 // ENUM names are required for EOS get satellites matching gsd
 enum Satellites {
@@ -127,7 +127,7 @@ enum Providers {
   STAC = 'STAC',
 }
 
-const providers_dict = {
+const providersDict = {
   [Providers.UP42]: [
     Constellation.Pleiades,
     Constellation.PleiadesNeo,
@@ -162,10 +162,10 @@ const providers_dict = {
   ],
   [Providers.STAC]: [Constellation.STAC],
   // 'SENTINELHUB': [Constellation.Pleiades,  Constellation.Worldview],
-};
+}
 // Maxar EUSI satellites https://docs.sentinel-hub.com/api/latest/static/files/data/maxar/world-view/resources/brochures/EUSI_Satellite_Booklet_digital.pdf
 
-const constellation_dict = {
+const constellationDict = {
   [Constellation.Superview1]: {
     satellites: [Satellites.SuperView1A, Satellites.SuperView1B, Satellites.SuperView1C, Satellites.SuperView1D, Satellites.SuperView1],
     gsd: 0.5,
@@ -284,9 +284,9 @@ const constellation_dict = {
     satellites: [],
     gsd: 0.01,
   },
-};
+}
 
-const eos_names = {
+const eosNames = {
   [Satellites.SuperView1A]: 'SuperView 1A',
   [Satellites.SuperView1]: 'SuperView 1',
   [Satellites.SuperView1B]: 'SuperView 1B',
@@ -301,8 +301,8 @@ const eos_names = {
   [Satellites.Ziyuan3]: 'Ziyuan-3',
   [Satellites.Gaofen1]: 'Gaofen 1',
   [Satellites.Gaofen2]: 'Gaofen 2',
-};
-const maxar_names = {
+}
+const maxarNames = {
   [Satellites.GeoEye1]: 'GE01',
   [Satellites.WorldView1]: 'WV01',
   [Satellites.WorldView2]: 'WV02',
@@ -310,19 +310,19 @@ const maxar_names = {
   [Satellites.WorldView4]: 'WV04',
   [Satellites.QuickBird2]: 'QB02',
   [Satellites.Ikonos1]: 'IK01',
-};
+}
 
-const head_names = {
-  [Constellation.Superview1]: 'SV-1',
-  [Constellation.Superview2]: 'SV-2',
-  [Satellites.EarthScanner]: 'JL1KF01-PMS',
-  [Satellites.JilinGXA]: 'JilinGXA',
-  [Satellites.JilinGF02AB]: 'JL1GF02-PMS',
-  [Satellites.DailyVision1mJLGF3]: 'JL1GF03-PMS',
-  [Satellites.Gaofen2]: 'GF-2',
-  [Satellites.Gaofen7]: 'GF-7',
-};
-const head_search_names = {
+// const headNames = {
+//   [Constellation.Superview1]: 'SV-1',
+//   [Constellation.Superview2]: 'SV-2',
+//   [Satellites.EarthScanner]: 'JL1KF01-PMS',
+//   [Satellites.JilinGXA]: 'JilinGXA',
+//   [Satellites.JilinGF02AB]: 'JL1GF02-PMS',
+//   [Satellites.DailyVision1mJLGF3]: 'JL1GF03-PMS',
+//   [Satellites.Gaofen2]: 'GF-2',
+//   [Satellites.Gaofen7]: 'GF-7',
+// }
+const headSearchNames = {
   [Satellites.SuperView1]: 'SuperView',
   [Satellites.SuperView2]: 'SuperView',
   [Satellites.EarthScanner]: 'EarthScanner-KF1', //
@@ -331,9 +331,9 @@ const head_search_names = {
   [Satellites.DailyVision1mJLGF3]: 'DailyVision1m-JLGF3',
   [Satellites.Gaofen2]: 'GaoFen-2',
   // [Satellites.Gaofen7]: 'GaoFen-7',
-};
+}
 
-const head_constellation_dict = {
+const headConstellationDict = {
   'SV-1': {
     constellation: Constellation.Superview1,
     min_area: 25,
@@ -373,9 +373,9 @@ const head_constellation_dict = {
   'JL104-PMS': {
     constellation: Constellation.JL104,
   },
-};
+}
 
-const up42_constellation_dict = {
+const up42ConstellationDict = {
   phr: {
     constellation: Constellation.Pleiades,
     price_per_sq_km: 10, // (10EUR/km2) no min
@@ -401,48 +401,48 @@ const up42_constellation_dict = {
   //   price_per_sq_km: 7, // (7EUR/km2) 25km² min
   //   min_area: 25
   // },
-};
+}
 
-const up42_producers_names = {
+const up42ProducersNames = {
   [Constellation.Pleiades]: 'Airbus',
   [Constellation.PleiadesNeo]: 'Airbus',
   [Constellation.TripleSat]: 'TWENTY_ONE_AT',
   [Constellation.SPOT]: 'ESA',
   [Constellation.NearSpace]: 'NEAR_SPACE_LABS',
-};
-
-function get_constellation_respecting_gsd(gsd) {
-  return Object.keys(constellation_dict).filter((key) => gsd.min <= constellation_dict[key].gsd && constellation_dict[key].gsd <= gsd.max);
 }
 
-function get_satellites_respecting_gsd(gsd) {
-  return get_constellation_respecting_gsd(gsd)
-    .map((key) => constellation_dict[key].satellites)
-    .flat();
+function getConstellationRespectingGsd(gsd): any[] {
+  return Object.keys(constellationDict).filter((key) => gsd.min <= constellationDict[key].gsd && constellationDict[key].gsd <= gsd.max)
 }
 
-function get_constellation_obj(sat_name, constellation_dict) {
-  let constellation_obj;
-  Object.keys(constellation_dict).forEach((constellation_name) => (constellation_obj = constellation_dict[constellation_name].satellites.includes(sat_name) ? constellation_dict[constellation_name] : constellation_obj));
-  return constellation_obj;
+function getSatellitesRespectingGsd(gsd): any[] {
+  return getConstellationRespectingGsd(gsd)
+    .map((key) => constellationDict[key].satellites)
+    .flat()
 }
 
-function get_constellation_name(sat_name, constellation_dict) {
-  const constellation_obj = get_constellation_obj(sat_name, constellation_dict);
-  if (constellation_obj) {
-    // return constellation_obj.name
-    return Object.keys(constellation_dict).find((key) => constellation_dict[key] === constellation_obj);
+function getConstellationObj(satName, constellationDict): any {
+  let constellationObj
+  Object.keys(constellationDict).forEach((constellationName) => (constellationObj = constellationDict[constellationName].satellites.includes(satName) ? constellationDict[constellationName] : constellationObj))
+  return constellationObj
+}
+
+function getConstellationName(satName, constellationDict): string | undefined {
+  const constellationObj = getConstellationObj(satName, constellationDict)
+  if (constellationObj) {
+    // return constellationObj.name
+    return Object.keys(constellationDict).find((key) => constellationDict[key] === constellationObj)
   } else {
-    return sat_name;
+    return satName
   }
 }
 
-// const eos_constellation_dict =
-//   Object.keys(constellation_dict)
+// const eosConstellationDict =
+//   Object.keys(constellationDict)
 //     .reduce(function(result, key) {
-//       if (false || providers_dict[Providers.EOS].includes(Constellation[key])) {
+//       if (false || providersDict[Providers.EOS].includes(Constellation[key])) {
 //         result[key] = {
-//           satellites: constellation_dict[key].satellites.map(x => eos_names[x].eos_name)
+//           satellites: constellationDict[key].satellites.map(x => eosNames[x].eos_name)
 //         }
 //       }
 //       return result
@@ -451,25 +451,25 @@ function get_constellation_name(sat_name, constellation_dict) {
 // TODO
 // Could be simplified
 
-const eos_constellation_dict = providers_dict[Providers.EOS].reduce(function (result, constellation) {
+const eosConstellationDict = providersDict[Providers.EOS].reduce(function (result, constellation) {
   result[constellation] = {
-    satellites: constellation_dict[constellation].satellites.map((x) => eos_names[x] || x),
-  };
-  return result;
-}, {});
+    satellites: constellationDict[constellation].satellites.map((x) => eosNames[x] || x),
+  }
+  return result
+}, {})
 
-const maxar_constellation_dict = providers_dict[Providers.MAXAR_DIGITALGLOBE].reduce(function (result, constellation) {
+const maxarConstellationDict = providersDict[Providers.MAXAR_DIGITALGLOBE].reduce(function (result, constellation) {
   result[constellation] = {
-    satellites: constellation_dict[constellation].satellites.map((x) => maxar_names[x] || x),
-  };
-  return result;
-}, {});
+    satellites: constellationDict[constellation].satellites.map((x) => maxarNames[x] || x),
+  }
+  return result
+}, {})
 
-// const head_constellation_dict =
-//   providers_dict[Providers.HEADAEROSPACE]
+// const headConstellationDict =
+//   providersDict[Providers.HEADAEROSPACE]
 //   .reduce(function(result, constellation) {
 //       result[constellation] = {
-//         satellites: constellation_dict[constellation].satellites.map(x => head_names[x] || x)
+//         satellites: constellationDict[constellation].satellites.map(x => headNames[x] || x)
 //       }
 //       return result
 //     }
@@ -477,12 +477,12 @@ const maxar_constellation_dict = providers_dict[Providers.MAXAR_DIGITALGLOBE].re
 
 export {
   // Methods
-  filter_features_with_search_params,
+  filterFeaturesWithSearchParams,
   shapeIntersection,
-  get_imagery_price,
-  max_abs,
-  get_constellation_name,
-  get_satellites_respecting_gsd,
+  getImageryPrice,
+  maxAbs,
+  getConstellationName,
+  getSatellitesRespectingGsd,
 
   // Enums
   Satellites,
@@ -490,16 +490,16 @@ export {
   Providers,
 
   // Generic Dicts
-  constellation_dict,
-  providers_dict,
+  constellationDict,
+  providersDict,
 
   // Per provider exports
-  eos_constellation_dict,
-  eos_names,
-  get_maxar_price,
-  maxar_constellation_dict,
-  head_constellation_dict,
-  head_search_names,
-  up42_constellation_dict,
-  up42_producers_names,
-};
+  eosConstellationDict,
+  eosNames,
+  getMaxarPrice,
+  maxarConstellationDict,
+  headConstellationDict,
+  headSearchNames,
+  up42ConstellationDict,
+  up42ProducersNames,
+}

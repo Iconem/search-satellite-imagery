@@ -1,58 +1,59 @@
 // Code for searching ARLULA API
 
-import ky from 'ky';
-import { encode as base64_encode } from 'base-64';
-import { Providers, max_abs } from './search-utilities';
-import { v4 as uuidv4 } from 'uuid';
-import { log } from '../utilities';
+import ky from 'ky'
+import { encode as base64_encode } from 'base-64'
+import { Providers, maxAbs } from './search-utilities'
+import { v4 as uuidv4 } from 'uuid'
+import { log } from '../utilities'
+import type GeoJSON from 'react-map-gl'
 
 // https://www.arlula.com/documentation
 
-const ARLULA_SEARCH_URL = 'https://api.arlula.com/api/archive/search';
-const get_arlula_auth = (arlula_apikey) => {
-  if (arlula_apikey.apiKey === '' || arlula_apikey.apiSecurity === '') {
-    arlula_apikey = {
+const ARLULA_SEARCH_URL = 'https://api.arlula.com/api/archive/search'
+const getArlulaAuth = (arlulaApikey): string => {
+  if (arlulaApikey.apiKey === '' || arlulaApikey.apiSecurity === '') {
+    arlulaApikey = {
       apiKey: process.env.ARLULA_APIKEY,
       apiSecurity: process.env.ARLULA_APISECURITY,
-    };
+    }
   }
-  return `Basic ${base64_encode(`${arlula_apikey.apiKey}:${arlula_apikey.apiSecurity}`)}`;
-};
+  return `Basic ${base64_encode(`${arlulaApikey.apiKey as string}:${arlulaApikey.apiSecurity as string}`) as string}`
+}
 
-const search_arlula = async (search_settings, arlula_apikey, searchPolygon = null, setters = null, arlula_bearer_json = null, next_url = '') => {
+const searchArlula = async (searchSettings, arlulaApikey, searchPolygon = null, setters = null, arlulaBearerJson = null, nextUrl = ''): Promise<any> => {
   // /api/archive/search?start=2019-01-03&end=2019-04-13&res=low&lat=-33.8523&long=151.2108
   // polygon	JSON array or WKT polygon string
 
-  const arlula_url = new URL(ARLULA_SEARCH_URL);
-  arlula_url.search = new URLSearchParams({
-    start: search_settings.startDate.toISOString().substring(0, 10),
-    end: search_settings.endDate.toISOString().substring(0, 10),
-    gsd: search_settings.gsd.max,
-    cloud: search_settings.cloudCoverage,
-    'off-nadir': `${max_abs(search_settings.offNadirAngle)}`,
-    polygon: JSON.stringify(searchPolygon.geometry.coordinates),
-  }) as any;
+  const arlulaUrl = new URL(ARLULA_SEARCH_URL)
+  arlulaUrl.search = new URLSearchParams({
+    start: searchSettings.startDate.toISOString().substring(0, 10),
+    end: searchSettings.endDate.toISOString().substring(0, 10),
+    gsd: searchSettings.gsd.max,
+    cloud: searchSettings.cloudCoverage,
+    'off-nadir': `${maxAbs(searchSettings.offNadirAngle)}`,
+    polygon: JSON.stringify((searchPolygon as any).geometry.coordinates),
+  }) as any
 
-  const arlula_results_raw = await ky
-    .get(arlula_url.toString(), {
+  const arlulaResultsRaw = await ky
+    .get(arlulaUrl.toString(), {
       headers: {
-        Authorization: get_arlula_auth(arlula_apikey),
+        Authorization: getArlulaAuth(arlulaApikey),
       },
     })
-    .json();
+    .json()
 
   // TODO: TEST next
-  const search_results_json = format_arlula_results(arlula_results_raw);
-  log('arlula PAYLOAD: \n', arlula_url.toString(), '\nRAW arlula search results: \n', arlula_results_raw, '\nJSON arlula search results: \n', search_results_json);
+  const searchResultsJson = formatArlulaResults(arlulaResultsRaw)
+  log('arlula PAYLOAD: \n', arlulaUrl.toString(), '\nRAW arlula search results: \n', arlulaResultsRaw, '\nJSON arlula search results: \n', searchResultsJson)
 
   return {
-    search_results_json,
-  };
-};
+    searchResultsJson,
+  }
+}
 
-const format_arlula_results = (arlula_results_raw) => {
+const formatArlulaResults = (arlulaResultsRaw): GeoJSON.FeatureCollection => {
   return {
-    features: arlula_results_raw.results.map((r) => {
+    features: arlulaResultsRaw.results.map((r) => {
       // const parsedJwt = parseJwt(r.orderingID)
       return {
         geometry: {
@@ -62,11 +63,11 @@ const format_arlula_results = (arlula_results_raw) => {
         },
         properties: {
           id: r.sceneID ?? uuidv4(), // or orderingID
-          // constellation: arlula_constellation_dict[r.properties.constellation]?.constellation || r.properties.constellation,
+          // constellation: arlula_constellationDict[r.properties.constellation]?.constellation || r.properties.constellation,
           price: r.bundles?.length > 0 && Math.min(...r.bundles.map((o) => o.price / 100))[0],
           // 'price': parsedJwt.ordering?.length > 0 && Math.min(...parsedJwt.ordering.map(o => o.price / 100)),
           providerPlatform: `${Providers.ARLULA}`,
-          provider: `${Providers.ARLULA}/${r.supplier}-${r.platform}`,
+          provider: `${Providers.ARLULA}/${r.supplier as string}-${r.platform as string}`,
           providerName: r.supplier,
 
           resolution: r.gsd,
@@ -81,10 +82,10 @@ const format_arlula_results = (arlula_results_raw) => {
           thumbnail_uri: r.thumbnail,
         },
         type: 'Feature',
-      };
+      }
     }),
     type: 'FeatureCollection',
-  };
-};
+  }
+}
 
-export default search_arlula;
+export default searchArlula

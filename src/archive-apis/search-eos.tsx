@@ -1,8 +1,9 @@
 // Code for searching EOS API
 
-import ky from 'ky';
-import { get_constellation_name, get_satellites_respecting_gsd, eos_constellation_dict, eos_names, Providers } from './search-utilities';
-import { log } from '../utilities';
+import ky from 'ky'
+import { getConstellationName, getSatellitesRespectingGsd, eosConstellationDict, eosNames, Providers } from './search-utilities'
+import { log } from '../utilities'
+import type GeoJSON from 'react-map-gl'
 
 /* --------------- */
 /*   EOS HIGHRES   */
@@ -16,104 +17,104 @@ import { log } from '../utilities';
 // Deep Link: could use https://eos.com/landviewer/?lat=48.93459&lng=2.24469&z=16&preset=highResolutionSensors&purchase-scene=895ca42a077b1087f53cf9c6a2ac71da
 // Or could POST to cart with id: https://eos.com/landviewer/reselling/cart/ with payload [{ "scene": { "sceneID": "MSC_220528074952_84497_01201367BN19", "dataGeometry": { ... }, ...}, "price": 137, "licenses": 1 }]
 
-const eos_limit = 100;
-const eos_timeout_ms = 20_000;
+const EOS_LIMIT = 100
+const EOS_TIMEOUT_MS = 20_000
 
-// let eos_search_highres_url = 'https://api.eos.com/api/v5/allsensors'
-const eos_search_highres_url = 'https://lms-reselling.eos.com/api/v5/allsensors';
-const search_eos_highres = async (search_settings, eos_apikey, searchPolygon = null, setters = null, eos_page_idx = 1) => {
-  if (eos_apikey === '') {
-    eos_apikey = process.env.EOS_APIKEY;
+// let eosSearchHighresUrl = 'https://api.eos.com/api/v5/allsensors'
+const eosSearchHighresUrl = 'https://lms-reselling.eos.com/api/v5/allsensors'
+const searchEosHighres = async (searchSettings, eosApikey, searchPolygon = null, setters = null, eosPageIdx = 1): Promise<any> => {
+  if (eosApikey === '') {
+    eosApikey = process.env.EOS_APIKEY
   }
-  const satellites = get_satellites_respecting_gsd(search_settings.gsd);
-  const eos_satellites = satellites.map((s) => eos_names[s]).filter((s) => s);
+  const satellites = getSatellitesRespectingGsd(searchSettings.gsd)
+  const eosSatellites = satellites.map((s) => eosNames[s]).filter((s) => s)
 
-  // console.log('eos satellites', eos_satellites)
-  const eos_payload_highres = {
+  // console.log('eos satellites', eosSatellites)
+  const eosPayloadHighres = {
     search: {
-      satellites: eos_satellites,
+      satellites: eosSatellites,
       // [
       //   'KOMPSAT-2', 'KOMPSAT-3A', 'KOMPSAT-3', 'SuperView 1A', 'SuperView 1B', 'SuperView 1C', 'SuperView 1D', 'Gaofen 1', 'Gaofen 2', 'Ziyuan-3', 'TripleSat Constellation-1', 'TripleSat Constellation-2', 'TripleSat Constellation-3'
       // ],
       shape: {
         type: 'Polygon',
-        coordinates: search_settings.coordinates,
+        coordinates: searchSettings.coordinates,
       },
       date: {
-        from: search_settings.startDate.toISOString().substring(0, 10), // YYYY-MM-DD date format
-        to: search_settings.endDate.toISOString().substring(0, 10),
+        from: searchSettings.startDate.toISOString().substring(0, 10), // YYYY-MM-DD date format
+        to: searchSettings.endDate.toISOString().substring(0, 10),
       },
       cloudCoverage: {
         from: 0,
-        to: search_settings.cloudCoverage,
+        to: searchSettings.cloudCoverage,
       },
       sunElevation: {
-        from: search_settings.sunElevation[0],
-        to: search_settings.sunElevation[1],
+        from: searchSettings.sunElevation[0],
+        to: searchSettings.sunElevation[1],
       },
       shapeIntersection: {
-        from: search_settings.aoiCoverage,
+        from: searchSettings.aoiCoverage,
         to: 100,
       },
     },
     sort: [{ field: 'date', order: 'desc' }],
-    page: eos_page_idx,
-    limit: eos_limit,
-  };
+    page: eosPageIdx,
+    limit: EOS_LIMIT,
+  }
 
   try {
-    const search_results_raw = await ky
+    const searchResultsRaw = await ky
       .post(
-        eos_search_highres_url, // + `?api_key=${eos_apikey}`,
+        eosSearchHighresUrl, // + `?api_key=${eosApikey}`,
         {
-          // headers: { 'Authorization': `ApiKey ${eos_apikey}` },
-          json: eos_payload_highres,
-          timeout: eos_timeout_ms,
+          // headers: { 'Authorization': `ApiKey ${eosApikey}` },
+          json: eosPayloadHighres,
+          timeout: EOS_TIMEOUT_MS,
         }
       )
-      .json();
+      .json()
 
-    const search_results_json = format_eos_results(search_results_raw);
-    log('EOS PAYLOAD: \n', eos_payload_highres, '\nRAW EOS search results raw: \n', search_results_raw, '\nJSON EOS search results: \n', search_results_json);
-    return { search_results_json };
+    const searchResultsJson = formatEosResults(searchResultsRaw)
+    log('EOS PAYLOAD: \n', eosPayloadHighres, '\nRAW EOS search results raw: \n', searchResultsRaw, '\nJSON EOS search results: \n', searchResultsJson)
+    return { searchResultsJson }
   } catch (error) {
     // if (error.name === 'AbortError') {
-    console.log('Returning empty FeatureCollection, probably because of timeout', error);
-    if (setters.setSnackbarOptions) {
+    console.log('Returning empty FeatureCollection, probably because of timeout', error)
+    if (setters?.setSnackbarOptions) {
       setters.setSnackbarOptions({
         open: false,
         message: '',
-      });
+      })
       setters.setSnackbarOptions({
         open: true,
-        message: `Search Results Request timed-out on EOS API after ${eos_timeout_ms / 1000}s`,
-      });
+        message: `Search Results Request timed-out on EOS API after ${EOS_TIMEOUT_MS / 1000}s`,
+      })
     }
     return {
-      search_results_json: {
+      searchResultsJson: {
         features: [],
         type: 'FeatureCollection',
       },
-    };
+    }
   }
-};
+}
 
-const format_eos_results = (eos_results_raw) => {
+const formatEosResults = (eosResultsRaw): GeoJSON.FeatureCollection => {
   // meta':{'limit':1,'page':1,'found':15},
   return {
-    features: eos_results_raw.results.map((r) => ({
+    features: eosResultsRaw.results.map((r) => ({
       geometry: r.dataGeometry,
       properties: {
         providerPlatform: `${Providers.EOS}`,
-        provider: `${Providers.EOS}/${r.satellite}`,
+        provider: `${Providers.EOS}/${r.satellite as string}`,
         id: r.sceneID,
         acquisitionDate: new Date(r.date).toISOString(), // '2019-03-23T10:24:03.000Z',
         resolution: parseFloat(r.resolution?.replace(' m/pxl', '') ?? '0'), // '1.5 m/pxl'
         cloudCoverage: r.cloudCoverage,
-        constellation: get_constellation_name(r.satellite, eos_constellation_dict),
-        // 'constellation': r.satellite in eos_constellation_dict ? eos_constellation_dict[r.satellite].constellation : r.satellite,
+        constellation: getConstellationName(r.satellite, eosConstellationDict),
+        // 'constellation': r.satellite in eosConstellationDict ? eosConstellationDict[r.satellite].constellation : r.satellite,
 
-        // 'constellation': eos_constellation_dict[r.satellite]?.constellation || r.satellite,
+        // 'constellation': eosConstellationDict[r.satellite]?.constellation || r.satellite,
 
         // Other interesting properties on EOS results
         // eos.thumbnail, eos.browseURL, eos.provider, eos.product
@@ -133,40 +134,40 @@ const format_eos_results = (eos_results_raw) => {
       type: 'Feature',
     })),
     type: 'FeatureCollection',
-  };
-};
+  }
+}
 
 /* -------------- */
 /*   EOS LOWRES   */
 /* -------------- */
-const eos_search_lowres_url = 'https://gate.eos.com/api/lms/search/v2';
-const search_eos_lowres = async (search_settings, eos_apikey, eos_page_idx = 1) => {
-  const eos_payload_lowres = {
+const EOS_SEARCH_LOWRES_URL = 'https://gate.eos.com/api/lms/search/v2'
+const searchEosLowres = async (searchSettings, eosApikey: string, eosPageIdx = 1): Promise<any> => {
+  const eosPayloadLowres = {
     fields: ['sunElevation', 'cloudCoverage', 'sceneID', 'date', 'path', 'storedInCollection', 'productID', 'sensor', 'row', 'dataCoveragePercentage'],
-    limit: eos_limit,
-    page: eos_page_idx,
+    limit: EOS_LIMIT,
+    page: eosPageIdx,
     search: {
       satellites: ['sentinel2', 'landsat8', 'naip'], // , 'modis', 'cbers4', 'sentinel1', 'landsat7', 'landsat5', 'landsat4'],
       // 'date': {'from': '2019-08-01', 'to': '2020-06-01'},
-      date: { from: search_settings.startDate.toISOString().substring(0, 10), to: search_settings.endDate.toISOString().substring(0, 10) },
-      cloudCoverage: { from: 0, to: search_settings.cloudCoverage },
-      sunElevation: { from: search_settings.sunElevation[0], to: search_settings.sunElevation[1] },
+      date: { from: searchSettings.startDate.toISOString().substring(0, 10), to: searchSettings.endDate.toISOString().substring(0, 10) },
+      cloudCoverage: { from: 0, to: searchSettings.cloudCoverage },
+      sunElevation: { from: searchSettings.sunElevation[0], to: searchSettings.sunElevation[1] },
       shape: {
         type: 'Polygon',
-        coordinates: search_settings.coordinates,
+        coordinates: searchSettings.coordinates,
       },
     },
-  };
+  }
 
-  const search_results_json = await ky
-    .post(eos_search_lowres_url + `?api_key=${eos_apikey}`, {
-      json: eos_payload_lowres,
+  const searchResultsJson = await ky
+    .post(EOS_SEARCH_LOWRES_URL + `?api_key=${eosApikey}`, {
+      json: eosPayloadLowres,
     })
-    .json();
-  log('EOS PAYLOAD: \n', eos_payload_lowres, '`n', 'EOS search results: \n', search_results_json);
+    .json()
+  log('EOS PAYLOAD: \n', eosPayloadLowres, '`n', 'EOS search results: \n', searchResultsJson)
   return {
-    search_results_json,
-  };
-};
+    searchResultsJson,
+  }
+}
 
-export default search_eos_highres;
+export default searchEosHighres

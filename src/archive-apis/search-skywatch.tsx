@@ -1,130 +1,130 @@
 // Code for searching SkyWatch API
 
-import ky from 'ky';
-import { Providers } from './search-utilities';
-import { log } from '../utilities';
+import ky from 'ky'
+import { Providers } from './search-utilities'
+import { log } from '../utilities'
 
 /* -------------- */
 /*    SKYWATCH    */
 /* -------------- */
 // Skywatch: https://dashboard.skywatch.co/account/profile
 
-const skywatch_search_url = 'https://api.skywatch.co/earthcache/archive/search';
-const skywatch_search_url_jwt = 'https://api.skywatch.co/auth0-jwt/earthcache/archive/search';
-const perform_skywatch_search = async (skywatch_apikey, searchId) =>
-  skywatch_apikey.includes('Bearer')
-    ? await ky.get(`${skywatch_search_url_jwt}/${searchId.data.id}/search_results`, {
-        headers: { authorization: skywatch_apikey },
+const SKYWATCH_SEARCH_URL = 'https://api.skywatch.co/earthcache/archive/search'
+const SKYWATCH_SEARCH_URL_JWT = 'https://api.skywatch.co/auth0-jwt/earthcache/archive/search'
+const performSkywatchSearch = async (skywatchApikey, searchId): Promise<any> =>
+  skywatchApikey.includes('Bearer')
+    ? await ky.get(`${SKYWATCH_SEARCH_URL_JWT}/${searchId.data.id as string}/search_results`, {
+        headers: { authorization: skywatchApikey },
       })
-    : await ky.get(`${skywatch_search_url}/${searchId.data.id}/search_results`, {
-        headers: { 'x-api-key': skywatch_apikey },
-      });
+    : await ky.get(`${SKYWATCH_SEARCH_URL}/${searchId.data.id as string}/search_results`, {
+        headers: { 'x-api-key': skywatchApikey },
+      })
 
-const max_query_count = 8;
+const MAX_QUERY_COUNT = 8
 
-const search_skywatch = async (search_settings, skywatch_apikey, searchPolygon = null, setters = null) => {
-  if (skywatch_apikey === '') {
-    skywatch_apikey = process.env.SKYWATCH_APIKEY;
+const searchSkywatch = async (searchSettings, skywatchApikey, searchPolygon = null, setters = null): Promise<any> => {
+  if (skywatchApikey === '') {
+    skywatchApikey = process.env.SKYWATCHAPIKEY
   }
-  const resolution_array = []; // ['low', 'medium', 'high']
-  if (search_settings.gsd.min <= 0.5) resolution_array.push('very_high');
-  if (search_settings.gsd.min <= 1) resolution_array.push('high');
-  if (search_settings.gsd.max >= 5) resolution_array.push('low');
-  if ((search_settings.gsd.min <= 1.5 && search_settings.gsd.max >= 1.5) || (search_settings.gsd.min <= 5 && search_settings.gsd.max >= 5)) resolution_array.push('medium');
+  const resolutionArray: string[] = [] // ['low', 'medium', 'high']
+  if (searchSettings.gsd.min <= 0.5) resolutionArray.push('very_high')
+  if (searchSettings.gsd.min <= 1) resolutionArray.push('high')
+  if (searchSettings.gsd.max >= 5) resolutionArray.push('low')
+  if ((searchSettings.gsd.min <= 1.5 && searchSettings.gsd.max >= 1.5) || (searchSettings.gsd.min <= 5 && searchSettings.gsd.max >= 5)) resolutionArray.push('medium')
 
-  const skywatch_payload = {
+  const skywatchPayload = {
     location: {
       type: 'Polygon',
-      coordinates: search_settings.coordinates,
+      coordinates: searchSettings.coordinates,
     },
-    start_date: search_settings.startDate.toISOString().substring(0, 10),
-    end_date: search_settings.endDate.toISOString().substring(0, 10),
-    resolution: resolution_array,
-    coverage: search_settings.aoiCoverage,
-    cloud_cover_percentage: search_settings.cloudCoverage,
+    start_date: searchSettings.startDate.toISOString().substring(0, 10),
+    end_date: searchSettings.endDate.toISOString().substring(0, 10),
+    resolution: resolutionArray,
+    coverage: searchSettings.aoiCoverage,
+    cloud_cover_percentage: searchSettings.cloudCoverage,
     interval_length: 0,
     order_by: ['resolution', 'date', 'cost'],
-    // "cloudCoverage": search_settings.cloudCoverage // not working
-  };
-  // console.log('SKYWATCH PAYLOAD: \n', skywatch_payload, '\n')
+    // "cloudCoverage": searchSettings.cloudCoverage // not working
+  }
+  // console.log('SKYWATCH PAYLOAD: \n', skywatchPayload, '\n')
 
-  const searchId = skywatch_apikey.includes('Bearer')
+  const searchId = skywatchApikey.includes('Bearer')
     ? await ky
-        .post(skywatch_search_url_jwt, {
+        .post(SKYWATCH_SEARCH_URL_JWT, {
           headers: {
-            authorization: skywatch_apikey,
-            'content-length': `${JSON.stringify(skywatch_payload).length}`,
+            authorization: skywatchApikey,
+            'content-length': `${JSON.stringify(skywatchPayload).length}`,
           },
-          json: skywatch_payload,
+          json: skywatchPayload,
         })
         .json()
     : await ky
-        .post(skywatch_search_url, {
-          headers: { 'x-api-key': skywatch_apikey },
-          json: skywatch_payload,
+        .post(SKYWATCH_SEARCH_URL, {
+          headers: { 'x-api-key': skywatchApikey },
+          json: skywatchPayload,
         })
-        .json();
-  log('SKYWATCH searchId: \n', searchId, '\n');
+        .json()
+  log('SKYWATCH searchId: \n', searchId, '\n')
 
-  let search_results_raw;
-  let n_queries = 0;
-  let retry_delay = 1000;
-  while (n_queries++ < max_query_count) {
-    const search_query_response = await perform_skywatch_search(skywatch_apikey, searchId);
-    console.log('n_queries', n_queries, 'retry_delay', retry_delay / 1000, 'sec. response status', search_query_response.status, search_query_response);
-    if (search_query_response.status == 202) {
+  let searchResultsRaw
+  let nQueries = 0
+  let retryDelay = 1000
+  while (nQueries++ < MAX_QUERY_COUNT) {
+    const searchQueryResponse = await performSkywatchSearch(skywatchApikey, searchId)
+    console.log('nQueries', nQueries, 'retryDelay', retryDelay / 1000, 'sec. response status', searchQueryResponse.status, searchQueryResponse)
+    if (searchQueryResponse.status === 202) {
       // Wait for some delay before querying again search api
-      await new Promise((resolve) => setTimeout(resolve, retry_delay));
-      retry_delay *= 2;
+      await new Promise((resolve) => setTimeout(resolve, retryDelay))
+      retryDelay *= 2
     } else {
-      search_results_raw = await search_query_response.json();
-      n_queries = max_query_count;
+      searchResultsRaw = await searchQueryResponse.json()
+      nQueries = MAX_QUERY_COUNT
     }
   }
 
-  if (search_results_raw) {
-    const search_results_json = format_skywatch_results(search_results_raw, search_settings);
-    log('SKYWATCH PAYLOAD: \n', skywatch_payload, '\nRAW SKYWATCH search results: \n', search_results_raw, '\nJSON SKYWATCH search results: \n', search_results_json);
-    return { search_results_json };
+  if (searchResultsRaw) {
+    const searchResultsJson = formatSkywatchResults(searchResultsRaw, searchSettings)
+    log('SKYWATCH PAYLOAD: \n', skywatchPayload, '\nRAW SKYWATCH search results: \n', searchResultsRaw, '\nJSON SKYWATCH search results: \n', searchResultsJson)
+    return { searchResultsJson }
   }
 
   // Return Empty Feature Collection if search requests timed-out after all retries, and notice user via snackbar
-  console.log('Returning empty FeatureCollection');
+  console.log('Returning empty FeatureCollection')
   if (setters.setSnackbarOptions) {
     setters.setSnackbarOptions({
       open: false,
       message: '',
-    });
+    })
     setters.setSnackbarOptions({
       open: true,
-      message: `Search Results Request timed-out on Skywatch after ${n_queries} tries and final delay of ${retry_delay / 1000}s`,
-    });
+      message: `Search Results Request timed-out on Skywatch after ${nQueries} tries and final delay of ${retryDelay / 1000}s`,
+    })
   }
   return {
-    search_results_json: {
+    searchResultsJson: {
       features: [],
       type: 'FeatureCollection',
     },
-  };
-};
+  }
+}
 
-const format_skywatch_results = (skywatch_results_raw, search_settings) => {
+const formatSkywatchResults = (skywatchResultsRaw, searchSettings): GeoJSON.FeatureCollection => {
   // 'pagination': { 'per_page': 0, 'total': 0, 'count': 0, 'cursor': {},}
   return {
     type: 'FeatureCollection',
-    features: skywatch_results_raw.data
-      // .filter(r => r.result_cloud_cover_percentage <= search_settings.cloudCoverage)
+    features: skywatchResultsRaw.data
+      // .filter(r => r.result_cloud_cover_percentage <= searchSettings.cloudCoverage)
       .map((r) => ({
         geometry: r.location,
         properties: {
           providerPlatform: `${Providers.SKYWATCH}`,
-          provider: `${Providers.SKYWATCH}/${r.source}`,
+          provider: `${Providers.SKYWATCH}/${r.source as string}`,
           id: r.product_name,
           skywatch_id: r.id,
           acquisitionDate: r.start_time, // or end_time '2019-03-23T10:24:03.000Z',
           resolution: r.resolution,
           cloudCoverage: r.result_cloud_cover_percentage,
-          constellation: `${r.source}`,
+          constellation: `${r.source as string}`,
 
           // Other interesting properties on EOS results
           // skywatch.thumbnail_uri, skywatch.preview_uri, skywatch.provider, skywatch.product
@@ -146,7 +146,7 @@ const format_skywatch_results = (skywatch_results_raw, search_settings) => {
         },
         type: 'Feature',
       })),
-  };
-};
+  }
+}
 
-export default search_skywatch;
+export default searchSkywatch
