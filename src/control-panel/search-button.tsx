@@ -4,12 +4,13 @@ import { Box, Button, CircularProgress } from '@mui/material'
 import area from '@turf/area'
 import { v4 as uuidv4 } from 'uuid'
 import { shapeIntersection, Providers, filterFeaturesWithSearchParams } from '../archive-apis/search-utilities'
+import PropTypes from 'prop-types'
 
 // import {searchUp42, searchEosHighres, searchSkywatch, searchHead, searchMaxar} from './search-apis'
 import searchUp42 from '../archive-apis/search-up42'
 import searchHead from '../archive-apis/search-head'
 import searchMaxar from '../archive-apis/search-maxar'
-import searchEosHighres from '../archive-apis/search-eos'
+import { searchEosHighres } from '../archive-apis/search-eos'
 import searchSkywatch from '../archive-apis/search-skywatch'
 import searchSkyfi from '../archive-apis/search-skyfi'
 import searchOpenaerialmap from '../archive-apis/search-openaerialmap'
@@ -23,13 +24,22 @@ import searchStac from '../archive-apis/search-stac'
 const productionMode = !process.env.NODE_ENV || process.env.NODE_ENV === 'production'
 
 /* Search Button */
-function SearchButton(props) {
-  const handleLoadingButtonClick = () => {
+SearchButton.propTypes = {
+  polygons: PropTypes.any,
+  searchSettings: PropTypes.any,
+  apiKeys: PropTypes.any,
+  setters: PropTypes.arrayOf(PropTypes.func),
+  providersTreeviewDataSelection: PropTypes.any,
+  loadingResults: PropTypes.bool,
+  theme: PropTypes.any,
+}
+function SearchButton(props): React.ReactElement {
+  const handleLoadingButtonClick = async (): void => {
     log('SearchButton props.providersTreeviewDataSelection', props.providersTreeviewDataSelection)
     // if (!props.loadingResults) {
-    // props.search_imagery()
+    // props.searchImagery()
     // }
-    search_imagery(props.polygons, props.searchSettings, props.apiKeys, props.setters, props.providersTreeviewDataSelection)
+    await searchImagery(props.polygons, props.searchSettings, props.apiKeys, props.setters, props.providersTreeviewDataSelection)
   }
   const buttonDisabled = props.loadingResults || (productionMode && !(props.polygons?.length > 0))
   return (
@@ -60,7 +70,7 @@ function SearchButton(props) {
 //     SEARCH API LOGIC
 // -----------------------------------
 
-const providers_search = {
+const providersSearch = {
   [Providers.UP42]: searchUp42,
   [Providers.HEADAEROSPACE]: searchHead,
   [Providers.MAXAR_DIGITALGLOBE]: searchMaxar,
@@ -79,14 +89,14 @@ const emptyFeatureCollection = {
   type: 'FeatureCollection',
 }
 const hideSearchDelay = 10000
-const search_imagery = async (polygons, searchSettings, apiKeys, setters, providersTreeviewDataSelection): Promise<any> => {
+const searchImagery = async (polygons, searchSettings, apiKeys, setters, providersTreeviewDataSelection): Promise<any> => {
   setters.setLoadingResults(true)
   const searchResultsOutput = JSON.parse(JSON.stringify(emptyFeatureCollection)) // Deep Copy
 
   // ONLY TAKE FIRST POLYGON, flat does not work with up42 search, it considers next polygons as holes rather than union
-  let coordinates = null
+  let coordinates: any = null
   if (polygons?.length) {
-    if (polygons.length == 1) {
+    if (polygons.length === 1) {
       coordinates = polygons.map((p) => p.geometry.coordinates)[0] // .flat()
     } else if (polygons.length >= 1) {
       console.log('\n\nCAUTION, USE A SINGLE POLYGON\n\n')
@@ -109,7 +119,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
     } else {
       // dev code
       console.log('\n\nCAUTION, USING DEFAULT COORDINATES FOR TESTING ONLY\n\n')
-      ;(coordinates = [
+      coordinates = [
         [
           [2.3155246324913605, 48.882101638838435],
           [2.3730642712838232, 48.882101638838435],
@@ -117,11 +127,11 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
           [2.3155246324913605, 48.831624620496],
           [2.3155246324913605, 48.882101638838435],
         ],
-      ]),
-        setters.setSnackbarOptions({
-          open: true,
-          message: 'WARNING ! Default Polygon (Paris area) used since no rectangle polygon has been drawn !',
-        })
+      ]
+      setters.setSnackbarOptions({
+        open: true,
+        message: 'WARNING ! Default Polygon (Paris area) used since no rectangle polygon has been drawn !',
+      })
       // return {output: emptyFeatureCollection}
     }
   }
@@ -166,7 +176,7 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
     })
   }
 
-  const search_settings = {
+  const searchSettingsObj = {
     coordinates,
     // startDate, endDate,
     ...searchSettings,
@@ -176,35 +186,35 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
       max: GSD_STEPS[searchSettings.gsdIndex[1]],
     },
   }
-  console.log(`SEARCH PARAMETERS: \n`, 'search_settings:', search_settings, '\n', `GSD: ${search_settings.gsdIndex.map(GSDFromIndex)}\n`)
+  console.log(`SEARCH PARAMETERS: \n`, 'searchSettingsObj:', searchSettingsObj, '\n', `GSD: ${searchSettingsObj.gsdIndex.map(GSDFromIndex) as string}\n`)
 
-  function update_search_results(new_results) {
-    if (new_results) {
+  function updateSearchResults(newResults): void {
+    if (newResults) {
       // console.log('length before push', searchResults.output.features.length)
       // The below two lines commented out wont work because no change in shallow equality check
-      // searchResults.output.features.push(...new_results.features)
+      // searchResults.output.features.push(...newResults.features)
       // setters.setSearchResults(searchResults)
       setters.setSearchResults({
         input: searchResults.input, // either ...searchResults, or input: searchResults.input, or simply
         output: {
           type: 'FeatureCollection',
-          features: [...searchResults.output.features, ...new_results.features],
+          features: [...searchResults.output.features, ...newResults.features],
         },
       })
-      searchResults.output.features.push(...new_results.features)
+      searchResults.output.features.push(...newResults.features)
       // console.log('length after push', searchResults.output.features.length)
     }
   }
-  // update_search_results(searchPolygon)
+  // updateSearchResults(searchPolygon)
 
   // Filter only selected search APIs
-  const filtered_providers_search = providersTreeviewDataSelection ? Object.fromEntries(Object.entries(providers_search).filter(([key]) => providersTreeviewDataSelection.some((treeId) => treeId.includes(key)))) : providers_search
-  // console.log('before/after filtered_providers_search', providers_search, filtered_providers_search)
+  const filteredProvidersSearch = providersTreeviewDataSelection ? Object.fromEntries(Object.entries(providersSearch).filter(([key]) => providersTreeviewDataSelection.some((treeId) => treeId.includes(key)))) : providersSearch
+  // console.log('before/after filteredProvidersSearch', providersSearch, filteredProvidersSearch)
 
   // PROMISES FOR EACH SEARCH API
-  const search_promises = Object.fromEntries(
+  const searchPromises = Object.fromEntries(
     // build a dict from a dict via an array of key-value pairs
-    Object.keys(filtered_providers_search).map((provider) => {
+    Object.keys(filteredProvidersSearch).map((provider) => {
       return [
         provider,
         {
@@ -214,19 +224,16 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
           errorOnFetch: false,
           promise: new Promise(async (resolve) => {
             let searchResultsJson, errorOnFetch
-            // const { searchResultsJson, errorOnFetch } = await filtered_providers_search[provider]
-            //   (search_settings, apiKeys[provider], searchPolygon, setters)
-            await filtered_providers_search[provider](search_settings, apiKeys[provider], searchPolygon, setters)
-              .then((search_result_obj) => {
-                console.log('a', search_result_obj)
-                if (!search_result_obj || search_result_obj.errorOnFetch || !search_result_obj.searchResultsJson) {
+            // const { searchResultsJson, errorOnFetch } = await filteredProvidersSearch[provider]
+            //   (searchSettingsObj, apiKeys[provider], searchPolygon, setters)
+            await filteredProvidersSearch[provider](searchSettingsObj, apiKeys[provider], searchPolygon, setters)
+              .then((searchResultObj) => {
+                if (!searchResultObj || searchResultObj.errorOnFetch || !searchResultObj.searchResultsJson) {
                   throw new Error('Search had an error or led to not well formatted search_results object')
                 }
-                console.log('b')
-                ;({ searchResultsJson, errorOnFetch } = search_result_obj)
-                search_promises[provider].errorOnFetch = errorOnFetch ?? false
+                ;({ searchResultsJson, errorOnFetch } = searchResultObj)
+                searchPromises[provider].errorOnFetch = errorOnFetch ?? false
 
-                console.log('c')
                 // Compute AOI shape intersection / coverage percent
                 searchResultsJson.features
                   .filter((f) => !f.properties.shapeIntersection)
@@ -235,16 +242,13 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
                     f.properties.shapeIntersection = shapeIntersection(f.geometry, searchPolygon)
                     // console.log('f.properties.shapeIntersection', f.properties.shapeIntersection,  searchPolygon.properties.shapeIntersection,  (f.properties.shapeIntersection ?? 100) >= searchPolygon.properties.shapeIntersection)
                   })
-                console.log('d')
 
                 // Filter out results not matching resquest
-                // searchResultsJson.features = searchResultsJson.features.filter(
-                //   f => filterFeaturesWithSearchParams(f, searchPolygon)
-                // )
+                searchResultsJson.features = searchResultsJson.features.filter((f) => filterFeaturesWithSearchParams(f, searchPolygon))
               })
               .catch((error) => {
                 console.error('Error during search', error)
-                search_promises[provider].errorOnFetch = true
+                searchPromises[provider].errorOnFetch = true
                 // TODO: could use notistack provider to handle multiple snackbar messages at once
                 setters.setSnackbarOptions({
                   open: true,
@@ -257,25 +261,25 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
               })
 
             // Once search promise await ok, resolve promise, modify state, and edit timeout
-            update_search_results(searchResultsJson)
+            updateSearchResults(searchResultsJson)
             resolve(searchResultsJson)
-            search_promises[provider].searchFinished = true
-            // setters.setSearchPromises(search_promises)
+            searchPromises[provider].searchFinished = true
+            // setters.setSearchPromises(searchPromises)
             setters.setSearchPromises({
-              ...search_promises,
+              ...searchPromises,
               [provider]: {
-                ...search_promises[provider],
+                ...searchPromises[provider],
                 searchFinished: true,
               },
             })
 
             setTimeout(() => {
-              search_promises[provider].searchFinishedForMoreThanDelay = true
-              // setters.setSearchPromises(search_promises)
+              searchPromises[provider].searchFinishedForMoreThanDelay = true
+              // setters.setSearchPromises(searchPromises)
               setters.setSearchPromises({
-                ...search_promises,
+                ...searchPromises,
                 [provider]: {
-                  ...search_promises[provider],
+                  ...searchPromises[provider],
                   searchFinishedForMoreThanDelay: true,
                 },
               })
@@ -285,9 +289,9 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
       ]
     })
   )
-  setters.setSearchPromises(search_promises)
-  log('Search API Requests Promises', search_promises)
-  Promise.all(Object.values(search_promises).map(async (o) => await o.promise)).then((results) => {
+  setters.setSearchPromises(searchPromises)
+  log('Search API Requests Promises', searchPromises)
+  await Promise.all(Object.values(searchPromises).map(async (o) => await o.promise)).then((results) => {
     setters.setLoadingResults(false)
     setters.setSettingsCollapsed(true)
     console.log('FINISHED requests for all Providers promises!', results)
@@ -301,8 +305,8 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
 //         loadingResults={loadingResults}
 //         setSearchResults= {props.setSearchResults}
 //         polygons= {polygons}
-//         search_imagery={() =>
-//           search_imagery(polygons, searchSettings, apiKeys, setters)
+//         searchImagery={() =>
+//           searchImagery(polygons, searchSettings, apiKeys, setters)
 //         }
 //       />
 //     )

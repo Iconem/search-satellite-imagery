@@ -170,4 +170,4 @@ const searchEosLowres = async (searchSettings, eosApikey: string, eosPageIdx = 1
   }
 }
 
-export default searchEosHighres
+export { searchEosHighres, searchEosLowres }

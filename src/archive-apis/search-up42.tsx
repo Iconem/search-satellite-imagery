@@ -2,7 +2,7 @@
 
 import ky from 'ky'
 import { encode as base64_encode } from 'base-64'
-import { shapeIntersection, getImageryPrice, up42ConstellationDict, providersDict, Providers, up42ProducersNames } from './search-utilities'
+import { getImageryPrice, up42ConstellationDict, providersDict, Providers, up42ProducersNames } from './search-utilities'
 import { v4 as uuidv4 } from 'uuid'
 import { log } from '../utilities'
 
@@ -208,7 +208,7 @@ const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, sett
         ]
       })
     )
-    const thing = await Promise.all(Object.values(searchPromises).map((o) => o.promise)).then((results) => {
+    await Promise.all(Object.values(searchPromises).map((o) => o.promise)).then((results) => {
       log('finished requests for all hosts promises', results)
       const requestsFeaturesFlat = results.map((res) => res?.features).flat()
       up42ResultsRaw = {
