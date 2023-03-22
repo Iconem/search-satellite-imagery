@@ -37,7 +37,7 @@ function checkUnknown(x: number, suffix: string): string {
   return x || x === 0 ? `${Math.round(x)}${suffix}` : '-'
 }
 
-const NO_IMAGE_FALLBACK_URL = 'https://via.placeholder.com/300x300.webp/FFFFFF/000000?text=No+Preview+Available' // './no_image_fallback.jpg'
+// const NO_IMAGE_FALLBACK_URL = 'https://via.placeholder.com/300x300.webp/FFFFFF/000000?text=No+Preview+Available' // './no_image_fallback.jpg'
 
 const datagridColumns: GridColDef[] = [
   {

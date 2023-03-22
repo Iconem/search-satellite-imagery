@@ -3,7 +3,8 @@ import * as React from 'react'
 // Utility to get react state from localStorage if exists
 // From https://www.robinwieruch.de/local-storage-react/
 const useLocalStorage = (storageKey, fallbackState, compareTypes = true): any => {
-  let initValue = JSON.parse(localStorage.getItem(storageKey) ?? '') ?? fallbackState
+  const storedItem = localStorage.getItem(storageKey)
+  let initValue = storedItem ? JSON.parse(storedItem) : fallbackState
 
   // If fallbackState is not null, then: if it has a type, check localStorage value has same type / or if type is object (and arrays are objects), check they have the same signature
   if (fallbackState && compareTypes) {

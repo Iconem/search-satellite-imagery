@@ -144,7 +144,7 @@ function TimelineComponent(props): React.ReactElement {
                     <Annotation dataKey={'Selected Result'} datum={props.footprintFeatures} dx={0} dy={20}>
                       <AnnotationCircleSubject stroke={theme.palette.text.primary} />
                       <AnnotationLabel
-                        title={`${accessors.xAccessor(props.footprintFeatures)?.toISOString().split('T')[0]}`}
+                        title={`${accessors.xAccessor(props.footprintFeatures)?.toISOString().split('T')[0] as string}`}
                         subtitle={''}
                         showAnchorLine={false}
                         backgroundProps={{

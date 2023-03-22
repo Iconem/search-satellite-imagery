@@ -45,10 +45,10 @@ const sourcesTreeviewInitialSelection = (): string[] =>
     })
     .flat()
 
-interface IMyProps {
-  setProvidersTreeviewDataSelection: any // Function
-  providersTreeviewDataSelection: any
-}
+// interface IMyProps {
+//   setProvidersTreeviewDataSelection: any // Function
+//   providersTreeviewDataSelection: any
+// }
 
 RecursiveTreeView.propTypes = {
   providersTreeviewDataSelection: PropTypes.any,

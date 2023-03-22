@@ -20,28 +20,28 @@ const lookForNextPage = true
 const skyfiApiKey = 'eh6qPPge7f88EJPp'
 
 // Not useful at the moment
-const getSkyfiBearer = (apikey): string => {
-  const skyfiOauthJson = {
-    name: '',
-    iss: 'https://securetoken.google.com/skyfi-prod',
-    aud: 'skyfi-prod',
-    auth_time: 1674556045,
-    user_id: 'bqZ0B6WZPihZ6jwnjC0nnFu2qKI2',
-    sub: 'bqZ0B6WZPihZ6jwnjC0nnFu2qKI2',
-    iat: 1674559757,
-    exp: 1674563357,
-    email: '',
-    email_verified: false,
-    firebase: {
-      identities: {
-        email: [''],
-      },
-      sign_in_provider: 'password',
-    },
-  }
-  const skyfiBearerJson = `Bearer ${skyfiOauthJson.sub}`
-  return skyfiBearerJson
-}
+// const getSkyfiBearer = (apikey): string => {
+//   const skyfiOauthJson = {
+//     name: '',
+//     iss: 'https://securetoken.google.com/skyfi-prod',
+//     aud: 'skyfi-prod',
+//     auth_time: 1674556045,
+//     user_id: 'bqZ0B6WZPihZ6jwnjC0nnFu2qKI2',
+//     sub: 'bqZ0B6WZPihZ6jwnjC0nnFu2qKI2',
+//     iat: 1674559757,
+//     exp: 1674563357,
+//     email: '',
+//     email_verified: false,
+//     firebase: {
+//       identities: {
+//         email: [''],
+//       },
+//       sign_in_provider: 'password',
+//     },
+//   }
+//   const skyfiBearerJson = `Bearer ${skyfiOauthJson.sub}`
+//   return skyfiBearerJson
+// }
 
 const searchSkyfi = async (searchSettings, skyfiApikey, searchPolygon = null, setters = null, pageIdx = 0): Promise<any> => {
   const resolutionArray: string[] = []
