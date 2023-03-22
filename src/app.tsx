@@ -78,10 +78,10 @@ const App: React.FC = (props) => {
   const [drawFeatures, setDrawFeatures] = React.useState({})
   // Local Storage Version of some state params
   const [searchResults, setSearchResults] = useLocalStorage('searchResults', null)
-  const [basemapStyle, setBasemapStyle]: [string, any] = useLocalStorage('basemapStyle', 'satellite-streets-v11')
-  const [rasterOpacity, setRasterOpacity] = useLocalStorage('rasterOpacity', 0.8)
-  const [splitPanelSizesPercent, setSplitPanelSizesPercent] = useLocalStorage('splitPanelSizesPercent', [75, 25])
-  const [viewState, setViewState] = useLocalStorage('viewState', defaultViewStateNaturalearth, false)
+  const [basemapStyle, setBasemapStyle]: [string, any] = useLocalStorage('UI_map_basemapStyle', 'satellite-streets-v11')
+  const [rasterOpacity, setRasterOpacity] = useLocalStorage('UI_rasterOpacity', 0.8)
+  const [splitPanelSizesPercent, setSplitPanelSizesPercent] = useLocalStorage('UI_splitPanelSizesPercent', [75, 25])
+  const [viewState, setViewState] = useLocalStorage('UI_map_viewState', defaultViewStateNaturalearth, false)
 
   // Edit map center when split panel modified
   const prevSplitPanelSizesPercent = usePrevious(splitPanelSizesPercent)
@@ -246,7 +246,7 @@ const App: React.FC = (props) => {
 }
 
 function ThemedApp(): React.ReactElement {
-  const [themePaletteMode, setThemePaletteMode] = useLocalStorage('themePaletteMode', 'dark')
+  const [themePaletteMode, setThemePaletteMode] = useLocalStorage('UI_app_themePaletteMode', 'dark')
   const theme = createTheme(getDesignTokens(themePaletteMode))
   // const theme = React.useMemo(() => createTheme(a), [themePaletteMode]);
   return (

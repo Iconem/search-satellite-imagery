@@ -201,7 +201,7 @@ SatelliteImagerySourcesTreeview.propTypes = {
 
 function SatelliteImagerySourcesTreeview(props): React.ReactElement {
   // const [advancedSettingsCollapsed, setAdvancedSettingsCollapsed] = React.useState(true) // true
-  const [advancedSettingsCollapsed, setAdvancedSettingsCollapsed] = useLocalStorage('satelliteImagerySourcesTreeviewCollapsed', true)
+  const [advancedSettingsCollapsed, setAdvancedSettingsCollapsed] = useLocalStorage('UI_collapsed_satelliteImagerySourcesTreeview', false)
 
   return (
     <>

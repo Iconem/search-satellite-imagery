@@ -160,7 +160,7 @@ AdvancedSettingsComponent.propTypes = {
 }
 function AdvancedSettingsComponent(props): React.ReactElement {
   // const [advancedSettingsCollapsed, setAdvancedSettingsCollapsed] = React.useState(true)
-  const [advancedSettingsCollapsed, setAdvancedSettingsCollapsed] = useLocalStorage('advancedSettingsCollapsed', true)
+  const [advancedSettingsCollapsed, setAdvancedSettingsCollapsed] = useLocalStorage('UI_collapsed_advancedSettings', true)
   return (
     <>
       <Typography variant="subtitle2" onClick={() => setAdvancedSettingsCollapsed(!advancedSettingsCollapsed)} sx={{ cursor: 'pointer', zIndex: 10 }}>

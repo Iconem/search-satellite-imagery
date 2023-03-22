@@ -15,7 +15,7 @@ APIRequestsStatuses.propTypes = {
 }
 function APIRequestsStatuses(props): React.ReactElement {
   // const [apiRequestsStatusesCollapsed, setApiRequestsStatusesCollapsed] = React.useState(false)
-  const [apiRequestsStatusesCollapsed, setApiRequestsStatusesCollapsed] = useLocalStorage('apiRequestsStatusesCollapsed', false)
+  const [apiRequestsStatusesCollapsed, setApiRequestsStatusesCollapsed] = useLocalStorage('UI_collapsed_apiRequestsStatuses', false)
 
   const textColor = (o): any => (!o.searchFinished ? props.theme.palette.text.primary : o.errorOnFetch ? props.theme.palette.error.light : props.theme.palette.success.light)
 

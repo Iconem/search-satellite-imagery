@@ -148,7 +148,7 @@ function ControlPanel(props): React.ReactElement {
   const [searchPromises, setSearchPromises] = React.useState([])
 
   // const [settingsCollapsed, setSettingsCollapsed] = React.useState(false);
-  const [settingsCollapsed, setSettingsCollapsed] = useLocalStorage('settingsCollapsed', false)
+  const [settingsCollapsed, setSettingsCollapsed] = useLocalStorage('UI_collapsed_settings', false)
   const [snackbarOptions, setSnackbarOptions] = React.useState({
     open: false,
     message: '',
