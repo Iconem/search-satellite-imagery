@@ -34,8 +34,8 @@ function KmlInput(props): React.ReactElement {
     console.log('props in handleKMLUpload', props)
     const reader = new FileReader()
     reader.onload = async (e) => {
-      const kmlContent = e.target?.result
-      const xmlDoc = new DOMParser().parseFromString(kmlContent as string, 'text/xml')
+      const kmlContent: string = e.target?.result as string
+      const xmlDoc = new DOMParser().parseFromString(kmlContent, 'text/xml')
       const geojsonFeatures = kml(xmlDoc)
       console.log('geojsonFeatures from kml', geojsonFeatures)
 

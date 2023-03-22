@@ -39,7 +39,7 @@ jobs:
     - name: 📦 Get LFTP
       run: sudo apt install lftp
     - name: 🛠️ Configure LFTP
-      run: mkdir ~/.lftp && echo "set ssl:verify-certificate false; && set ftp:passive-mode off;" >> ~/.lftp/rc
+      run: mkdir ~/.lftp && echo "set ftp:ssl-allow off; && set ssl:verify-certificate false; && set ftp:passive-mode off;" >> ~/.lftp/rc
     # - name: 🔑 Load Secrets
     #   run: echo "machine ${{ secrets.FTP_HOSTNAME }} login ${{ secrets.FTP_USERNAME }} password ${{ secrets.FTP_PASSWORD }}" > ~/.netrc
     # - name: 📄 Upload File

@@ -10,7 +10,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronDown, faChevronUp, faChevronRight, faSatellite } from '@fortawesome/free-solid-svg-icons'
 import { useLocalStorage } from '../utilities'
 
-import { providers_dict, constellation_dict } from '../archive-apis/search-utilities'
+import { providersDict, constellationDict } from '../archive-apis/search-utilities'
 import PropTypes from 'prop-types'
 
 interface RenderTree {
@@ -25,12 +25,12 @@ const treeviewRootId = 'treeview-provider-root'
 const treeviewData: RenderTree = {
   id: treeviewRootId,
   name: 'Satellite Sources',
-  children: Object.keys(providers_dict).map((providerKey: string) => ({
+  children: Object.keys(providersDict).map((providerKey: string) => ({
     id: `treeview-provider-${providerKey}`,
     name: providerKey,
-    children: providers_dict[providerKey].map((constellationKey: string) => ({
+    children: providersDict[providerKey].map((constellationKey: string) => ({
       id: `treeview-constellation-${providerKey}-${constellationKey}`,
-      name: `${constellationKey} - ${100 * constellation_dict[constellationKey]?.gsd}cm`,
+      name: `${constellationKey} - ${100 * constellationDict[constellationKey]?.gsd}cm`,
       disabled: true,
     })),
   })),

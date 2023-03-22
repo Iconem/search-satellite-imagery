@@ -6,7 +6,6 @@ import { useControl, type MarkerProps, type ControlPosition } from 'react-map-gl
 import type * as React from 'react'
 
 import MapboxGeocoder, { type GeocoderOptions } from '@mapbox/mapbox-gl-geocoder'
-import PropTypes from 'prop-types'
 
 type GeocoderControlProps = Omit<GeocoderOptions, 'accessToken' | 'mapboxgl' | 'marker'> & {
   mapboxAccessToken: string

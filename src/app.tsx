@@ -78,7 +78,7 @@ const App: React.FC = (props) => {
   const [drawFeatures, setDrawFeatures] = React.useState({})
   // Local Storage Version of some state params
   const [searchResults, setSearchResults] = useLocalStorage('searchResults', null)
-  const [basemapStyle, setBasemapStyle] = useLocalStorage('basemapStyle', 'satellite-streets-v11')
+  const [basemapStyle, setBasemapStyle]: [string, any] = useLocalStorage('basemapStyle', 'satellite-streets-v11')
   const [rasterOpacity, setRasterOpacity] = useLocalStorage('rasterOpacity', 0.8)
   const [splitPanelSizesPercent, setSplitPanelSizesPercent] = useLocalStorage('splitPanelSizesPercent', [75, 25])
   const [viewState, setViewState] = useLocalStorage('viewState', defaultViewStateNaturalearth, false)
@@ -168,7 +168,7 @@ const App: React.FC = (props) => {
         // }}
         ref={mapRef}
         hash={true}
-        mapStyle={`mapbox://styles/mapbox/${(basemapStyle || 'satellite-streets-v12') as string}`}
+        mapStyle={`mapbox://styles/mapbox/${basemapStyle || 'satellite-streets-v12'}`}
         mapboxAccessToken={MAPBOX_TOKEN}
         renderWorldCopies={false}
         dragRotate={false}

@@ -139,8 +139,8 @@ function handleKMLUpload2(event, _this, thisChangeMode): void {
   const reader = new FileReader()
   reader.onload = async (e) => {
     console.log(e)
-    const kmlContent = e.target.result
-    const xmlDoc = new DOMParser().parseFromString(kmlContent as string, 'text/xml')
+    const kmlContent = e.target.result as string
+    const xmlDoc = new DOMParser().parseFromString(kmlContent, 'text/xml')
     const geojsonFeatures = kml(xmlDoc)
     console.log('geojsonFeatures from kml', geojsonFeatures)
 

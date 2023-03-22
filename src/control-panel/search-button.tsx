@@ -3,22 +3,22 @@ import * as React from 'react'
 import { Box, Button, CircularProgress } from '@mui/material'
 import area from '@turf/area'
 import { v4 as uuidv4 } from 'uuid'
-import { shapeIntersection, Providers, filter_features_with_search_params } from '../archive-apis/search-utilities'
+import { shapeIntersection, Providers, filterFeaturesWithSearchParams } from '../archive-apis/search-utilities'
 
-// import {search_up42, search_eos_highres, search_skywatch, search_head, search_maxar} from './search-apis'
-import search_up42 from '../archive-apis/search-up42'
-import search_head from '../archive-apis/search-head'
-import search_maxar from '../archive-apis/search-maxar'
-import search_eos_highres from '../archive-apis/search-eos'
-import search_skywatch from '../archive-apis/search-skywatch'
-import search_skyfi from '../archive-apis/search-skyfi'
-import search_openaerialmap from '../archive-apis/search-openaerialmap'
-import search_arlula from '../archive-apis/search-arlula'
-import search_apollo from '../archive-apis/search-apollo'
+// import {searchUp42, searchEosHighres, searchSkywatch, searchHead, searchMaxar} from './search-apis'
+import searchUp42 from '../archive-apis/search-up42'
+import searchHead from '../archive-apis/search-head'
+import searchMaxar from '../archive-apis/search-maxar'
+import searchEosHighres from '../archive-apis/search-eos'
+import searchSkywatch from '../archive-apis/search-skywatch'
+import searchSkyfi from '../archive-apis/search-skyfi'
+import searchOpenaerialmap from '../archive-apis/search-openaerialmap'
+import searchArlula from '../archive-apis/search-arlula'
+import searchApollo from '../archive-apis/search-apollo'
 
 import { GSD_STEPS, GSDFromIndex, log } from '../utilities'
 
-import search_stac from '../archive-apis/search-stac'
+import searchStac from '../archive-apis/search-stac'
 
 const productionMode = !process.env.NODE_ENV || process.env.NODE_ENV === 'production'
 
@@ -61,17 +61,17 @@ function SearchButton(props) {
 // -----------------------------------
 
 const providers_search = {
-  [Providers.UP42]: search_up42,
-  [Providers.HEADAEROSPACE]: search_head,
-  [Providers.MAXAR_DIGITALGLOBE]: search_maxar,
-  [Providers.EOS]: search_eos_highres,
-  [Providers.SKYWATCH]: search_skywatch,
-  [Providers.SKYFI]: search_skyfi,
-  [Providers.OAM]: search_openaerialmap,
-  [Providers.ARLULA]: search_arlula,
-  [Providers.APOLLO]: search_apollo,
+  [Providers.UP42]: searchUp42,
+  [Providers.HEADAEROSPACE]: searchHead,
+  [Providers.MAXAR_DIGITALGLOBE]: searchMaxar,
+  [Providers.EOS]: searchEosHighres,
+  [Providers.SKYWATCH]: searchSkywatch,
+  [Providers.SKYFI]: searchSkyfi,
+  [Providers.OAM]: searchOpenaerialmap,
+  [Providers.ARLULA]: searchArlula,
+  [Providers.APOLLO]: searchApollo,
 
-  [Providers.STAC]: search_stac,
+  [Providers.STAC]: searchStac,
 }
 
 const emptyFeatureCollection = {
@@ -79,7 +79,7 @@ const emptyFeatureCollection = {
   type: 'FeatureCollection',
 }
 const hideSearchDelay = 10000
-const search_imagery = async (polygons, searchSettings, apiKeys, setters, providersTreeviewDataSelection) => {
+const search_imagery = async (polygons, searchSettings, apiKeys, setters, providersTreeviewDataSelection): Promise<any> => {
   setters.setLoadingResults(true)
   const searchResultsOutput = JSON.parse(JSON.stringify(emptyFeatureCollection)) // Deep Copy
 
@@ -213,29 +213,33 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
           searchFinishedForMoreThanDelay: false,
           errorOnFetch: false,
           promise: new Promise(async (resolve) => {
-            let search_results_json, errorOnFetch
-            // const { search_results_json, errorOnFetch } = await filtered_providers_search[provider]
+            let searchResultsJson, errorOnFetch
+            // const { searchResultsJson, errorOnFetch } = await filtered_providers_search[provider]
             //   (search_settings, apiKeys[provider], searchPolygon, setters)
             await filtered_providers_search[provider](search_settings, apiKeys[provider], searchPolygon, setters)
               .then((search_result_obj) => {
-                if (!search_result_obj || search_result_obj.errorOnFetch || !search_result_obj.search_results_json) {
+                console.log('a', search_result_obj)
+                if (!search_result_obj || search_result_obj.errorOnFetch || !search_result_obj.searchResultsJson) {
                   throw new Error('Search had an error or led to not well formatted search_results object')
                 }
-                ;({ search_results_json, errorOnFetch } = search_result_obj)
+                console.log('b')
+                ;({ searchResultsJson, errorOnFetch } = search_result_obj)
                 search_promises[provider].errorOnFetch = errorOnFetch ?? false
 
+                console.log('c')
                 // Compute AOI shape intersection / coverage percent
-                search_results_json.features
+                searchResultsJson.features
                   .filter((f) => !f.properties.shapeIntersection)
                   .forEach((f) => {
                     // console.log('recompute shapeIntersection for ', f)
                     f.properties.shapeIntersection = shapeIntersection(f.geometry, searchPolygon)
                     // console.log('f.properties.shapeIntersection', f.properties.shapeIntersection,  searchPolygon.properties.shapeIntersection,  (f.properties.shapeIntersection ?? 100) >= searchPolygon.properties.shapeIntersection)
                   })
+                console.log('d')
 
                 // Filter out results not matching resquest
-                // search_results_json.features = search_results_json.features.filter(
-                //   f => filter_features_with_search_params(f, searchPolygon)
+                // searchResultsJson.features = searchResultsJson.features.filter(
+                //   f => filterFeaturesWithSearchParams(f, searchPolygon)
                 // )
               })
               .catch((error) => {
@@ -246,15 +250,15 @@ const search_imagery = async (polygons, searchSettings, apiKeys, setters, provid
                   open: true,
                   message: `Failure during search with ${provider}, request resulted in error - requires Allow-CORS plugin, cors-proxy or requestly to edit header origin, host or referer`,
                 })
-                search_results_json = {
+                searchResultsJson = {
                   features: [],
                   type: 'FeatureCollection',
                 }
               })
 
             // Once search promise await ok, resolve promise, modify state, and edit timeout
-            update_search_results(search_results_json)
-            resolve(search_results_json)
+            update_search_results(searchResultsJson)
+            resolve(searchResultsJson)
             search_promises[provider].searchFinished = true
             // setters.setSearchPromises(search_promises)
             setters.setSearchPromises({

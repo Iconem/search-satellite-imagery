@@ -274,10 +274,10 @@ const datagridColumns: GridColDef[] = [
 ]
 
 // displays id ok for up42 (properties.id), head (r.identifier), maxar (f.attributes.image_identifier), skywatch (r.product_name) and eos (r.sceneID)
-
+const getRowIdFromProps = (properties): string => `${properties.provider as string}/${properties.id as string}`
 const handleRowHover = (e, searchResults, setFootprintFeatures): void => {
-  const rowId = e.target.parentElement.dataset.id
-  const row = searchResults.features.find((el) => el.properties.id === rowId)
+  const rowId = e.target.parentElement.dataset.id // provider/id
+  const row = searchResults.features.find((el) => getRowIdFromProps(el.properties) === rowId)
   // setFootprintFeatures(row?.geometry)
   setFootprintFeatures(row)
 }
@@ -289,7 +289,7 @@ const handleRowClick = (
   mapRef,
   searchResults
 ): void => {
-  const featureGeom = searchResults.features.find((el) => el.properties.id === params.id)
+  const featureGeom = searchResults.features.find((el) => getRowIdFromProps(el.properties) === params.id)
   console.log('rowClick params', params, featureGeom)
   const bounds = bbox(featureGeom)
   const [minLng, minLat, maxLng, maxLat] = bounds
@@ -344,7 +344,7 @@ function SearchResultsComponent(props): React.ReactElement {
               //     handleRowClick ({id: rowId}, null, null, props.mapRef, searchResults)
               //   }
               // }}
-
+              getRowId={(row: any) => getRowIdFromProps(row)}
               density="compact"
               autoPageSize={true}
               sortingOrder={['desc', 'asc']}

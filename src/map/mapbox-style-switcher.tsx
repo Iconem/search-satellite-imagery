@@ -33,7 +33,7 @@ function MapboxStyleSwitcher(props): React.ReactElement {
     // 'light-v10'
   ].map((styleId) => ({
     styleId,
-    url: `https://api.mapbox.com/styles/v1/mapbox/${styleId}/static` + `/${centerLng},${centerLat},${centerZoom},${bearing},${pitch}` + `/${width}x${height}@2x?access_token=${props.mapboxAccessToken as string}&attribution=false`, // {@2x}
+    url: `https://api.mapbox.com/styles/v1/mapbox/${styleId}/static/${centerLng},${centerLat},${centerZoom},${bearing},${pitch}/${width}x${height}@2x?access_token=${props.mapboxAccessToken as string}&attribution=false`, // {@2x}
   }))
   return !styleSwitcherOpen ? (
     <div className="mapboxgl-ctrl mapboxgl-ctrl-group">
