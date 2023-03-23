@@ -78,7 +78,7 @@ function KmlInput(props): React.ReactElement {
       />
       <button
         type="button"
-        title="Upload KML AOI"
+        title="Upload KML AOI (will just zoom to it, not load it)"
         onClick={() => {
           document.getElementById('kmlUploadInput')?.click()
         }}

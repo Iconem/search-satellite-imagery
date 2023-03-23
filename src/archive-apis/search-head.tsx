@@ -81,7 +81,8 @@ const searchHead = async (searchSettings, headApiKey: string | undefined = '', s
     maxscenes: `${HEAD_API_LIMIT}`, // max indicated is 50
     datestart: `${new Date(searchSettings.startDate - 1).toISOString().substring(0, 10)}`,
     dateend: `${new Date(searchSettings.endDate - 1).toISOString().substring(0, 10)}`,
-    cloudmax: `${searchSettings.cloudCoverage as string}`,
+    // cloudmax: `${searchSettings.cloudCoverage as string}`,
+    cloudmax: `100`, // Cloud Coverage filter seems broken for the moment in HEAD API
     offnadirmax: `${maxAbs(searchSettings.offNadirAngle)}`,
     overlapmin: `${searchSettings.aoiCoverage as string}`,
     scenename: ``,
