@@ -12,7 +12,7 @@ import { log } from '../utilities'
 const SKYWATCH_SEARCH_URL = 'https://api.skywatch.co/earthcache/archive/search'
 const SKYWATCH_SEARCH_URL_JWT = 'https://api.skywatch.co/auth0-jwt/earthcache/archive/search'
 const performSkywatchSearch = async (skywatchApikey, searchId): Promise<any> =>
-  skywatchApikey.includes('Bearer')
+  skywatchApikey?.includes('Bearer')
     ? await ky.get(`${SKYWATCH_SEARCH_URL_JWT}/${searchId.data.id as string}/search_results`, {
         headers: { authorization: skywatchApikey },
       })
@@ -23,8 +23,8 @@ const performSkywatchSearch = async (skywatchApikey, searchId): Promise<any> =>
 const MAX_QUERY_COUNT = 8
 
 const searchSkywatch = async (searchSettings, skywatchApikey, searchPolygon = null, setters = null): Promise<any> => {
-  if (skywatchApikey === '') {
-    skywatchApikey = process.env.SKYWATCHAPIKEY
+  if (!skywatchApikey || skywatchApikey === '') {
+    skywatchApikey = process.env.SKYWATCH_APIKEY
   }
   const resolutionArray: string[] = [] // ['low', 'medium', 'high']
   if (searchSettings.gsd.min <= 0.5) resolutionArray.push('very_high')
@@ -48,7 +48,7 @@ const searchSkywatch = async (searchSettings, skywatchApikey, searchPolygon = nu
   }
   // console.log('SKYWATCH PAYLOAD: \n', skywatchPayload, '\n')
 
-  const searchId = skywatchApikey.includes('Bearer')
+  const searchId = skywatchApikey?.includes('Bearer')
     ? await ky
         .post(SKYWATCH_SEARCH_URL_JWT, {
           headers: {

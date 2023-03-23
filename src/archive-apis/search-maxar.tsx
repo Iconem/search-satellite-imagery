@@ -99,7 +99,7 @@ const formatMaxarResults = (maxarResultsRaw, searchPolygon): GeoJSON.FeatureColl
           provider: `${Providers.MAXAR_DIGITALGLOBE}/${f.attributes.vehicle_name as string}`,
           // 'id': f.attributes.image_identifier || randomUUID(), uuid
           resolution: f.attributes.pan_resolution_avg, // multi_resolution_avg
-          cloudCoverage: f.attributes.area_cloud_cover_percentage,
+          cloudCoverage: f.attributes.cloud_cover_percentage, // area_cloud_cover_percentage
           preview_uri: f.attributes.browse_url,
           thumbnail_uri: f.attributes.browse_url, // no dedicated thumbnail uri, and browse is pretty big.
 

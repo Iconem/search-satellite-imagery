@@ -28,7 +28,7 @@ SearchButton.propTypes = {
   polygons: PropTypes.any,
   searchSettings: PropTypes.any,
   apiKeys: PropTypes.any,
-  setters: PropTypes.arrayOf(PropTypes.func),
+  setters: PropTypes.any,
   providersTreeviewDataSelection: PropTypes.any,
   loadingResults: PropTypes.bool,
   theme: PropTypes.any,

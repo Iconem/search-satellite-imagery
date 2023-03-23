@@ -349,7 +349,7 @@ function SearchResultsComponent(props): React.ReactElement {
       {/* height: 600, */}
       <div style={{ width: '100%', flex: '1 1 auto', minHeight: '320px', overflow: 'auto' }}>
         <div style={{ display: 'flex', height: '100%' }}>
-          <div style={{ flexGrow: 1 }}>
+          <div style={{ /* flexGrow: 1 */ width: '100%' }}>
             <GlobalStyles
               styles={{
                 '& .MuiDataGrid-panelWrapper': {
