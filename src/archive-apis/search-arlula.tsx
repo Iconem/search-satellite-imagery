@@ -55,6 +55,7 @@ const formatArlulaResults = (arlulaResultsRaw): GeoJSON.FeatureCollection => {
   return {
     features: arlulaResultsRaw.results.map((r) => {
       // const parsedJwt = parseJwt(r.orderingID)
+      const imagePrice = r.bundles?.length > 0 && Math.min(...r.bundles.map((o) => o.price / 100))
       return {
         geometry: {
           coordinates: r.bounding, // r.overlap.polygon,
@@ -64,7 +65,7 @@ const formatArlulaResults = (arlulaResultsRaw): GeoJSON.FeatureCollection => {
         properties: {
           id: r.sceneID ?? uuidv4(), // or orderingID
           // constellation: arlula_constellationDict[r.properties.constellation]?.constellation || r.properties.constellation,
-          price: r.bundles?.length > 0 && Math.min(...r.bundles.map((o) => o.price / 100))[0],
+          price: imagePrice,
           // 'price': parsedJwt.ordering?.length > 0 && Math.min(...parsedJwt.ordering.map(o => o.price / 100)),
           providerPlatform: `${Providers.ARLULA}`,
           provider: `${Providers.ARLULA}/${r.supplier as string}-${r.platform as string}`,
