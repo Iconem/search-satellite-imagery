@@ -30,13 +30,13 @@ const _headSatellitesSel =
     .join('$') +
   '$'
 
-const headSatellitesSel = '$SuperView-NEO$Jilin-GF04$GFMM$SuperView-2$SuperView$EarthScanner-KF1$GaoFen-7$Jilin-GXA$DailyVision1m-JLGF3$Jilin-GF02A/B$GaoFen-2$'
+const headSatellitesSelOld = '$SuperView-NEO$Jilin-GF04$GFMM$SuperView-2$SuperView$EarthScanner-KF1$GaoFen-7$Jilin-GXA$DailyVision1m-JLGF3$Jilin-GF02A/B$GaoFen-2$'
 
 // Sat names:
 // https://api-01.eoproc.com/cat-01/group-configs/satsel-setup-for-all.js
 const headSearchSatSel = ['SuperView', 'EarthScanner-KF1', 'DailyVision1m-JLGF3', 'Jilin-GXA', 'Jilin-GF02A/B', 'GaoFen-2', 'NIGHTVISION / VIDEO', 'SuperView-NEO', 'GFMM', 'NaturEYE 2m', 'ZY-Tri-Stereo', 'HyperScan-GP1/2', 'NaturEYE 16m', 'Jilin-GF04', 'SuperView-2', 'GaoFen-7', 'HiSea-1 Radar']
 
-const headSatellitesSelNew = `$${headSearchSatSel.join('$')}$`
+const headSatellitesSel = `$${headSearchSatSel.join('$')}$`
 
 // in https://headfinder.head-aerospace.eu/cat-01/_ML-lib-01.js?2021-12-27
 // in https://headfinder.head-aerospace.eu/cat-01/V-073.js?2022-05-11
