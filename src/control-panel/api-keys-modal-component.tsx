@@ -79,6 +79,13 @@ function ApiKeysModalComponent(props): React.ReactElement {
                 </Typography>
               </ListItem>
             </List>
+            <ListItem sx={{ display: 'list-item' }}>
+              <Typography variant="h6">
+                <Link href="https://discover.maxar.com/" target="_blank">
+                  Maxar Discover
+                </Link>
+              </Typography>
+            </ListItem>
 
             <Divider variant="middle" />
 
@@ -167,13 +174,6 @@ function ApiKeysModalComponent(props): React.ReactElement {
                   type="search"
                   sx={{ width: '50%' }}
                 />
-              </ListItem>
-              <ListItem sx={{ display: 'list-item' }}>
-                <Typography variant="h6">
-                  <Link href="https://discover.maxar.com/" target="_blank">
-                    Maxar Discover
-                  </Link>
-                </Typography>
               </ListItem>
 
               <ListItem sx={{ display: 'list-item' }}>

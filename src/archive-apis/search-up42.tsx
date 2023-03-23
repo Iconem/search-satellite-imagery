@@ -235,6 +235,23 @@ const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, sett
     }
   })
 
+  // Get pricing using UP42 API
+  getUp42PricesAsync(searchResultsJson, searchPolygon, up42BearerJson)
+    .then((results) => {
+      if (setters) {
+        const searchResults = {
+          input: searchPolygon,
+          output: results,
+        }
+        log('UP42 prices have been retrieved, setting react state')
+        setters.setSearchResults(searchResults)
+      }
+    })
+    .catch((error) => {
+      log('UP42 error during prices retrieval, setting react state anyway')
+      setters.setSearchResults(searchResults)
+    })
+
   return {
     searchResultsJson,
     up42BearerJson,
@@ -274,6 +291,55 @@ const getUp42PreviewsAsync = async (up42Results, up42BearerJson): Promise<void> 
   })
 }
 
+// Docs: https://docs.up42.com/developers/api-archive/api-data-estimation
+// Painful, needs one request per item for which we want to estimate pricing
+const ESTIMATE_URL = `https://api.up42.com/workspaces/${process.env.UP42_WORKSPACE_ID as string}/orders/estimate`
+const DATA_PRODUCT_AIRBUS_ANALYTICS = '4f1b2f62-98df-4c74-81f4-5dce45deee99'
+const DATA_PRODUCT_AIRBUS_DISPLAY = '647780db-5a06-4b61-b525-577a8b68bb54'
+const DATA_PRODUCT_21AT_8BIT = '2398d8f5-5f7f-4596-884d-345c0b07af14'
+const DATA_PRODUCT_21AT_16BIT = '37c26f4d-f6a9-47c9-ae4d-a095569ab8bc'
+const DATA_PRODUCT_CAPELLA_SPACE = '1f2b0d7f-d3e2-4b3d-96b7-e7c184df7952'
+
+const dataProductForFeature = {
+  oneatlas: DATA_PRODUCT_AIRBUS_DISPLAY,
+  '21at': DATA_PRODUCT_21AT_8BIT,
+  capellaspace: DATA_PRODUCT_CAPELLA_SPACE,
+}
+async function estimateCreditCost(feature, searchPolygon, up42BearerJson): Promise<number> {
+  const estimatePayload = {
+    dataProduct: dataProductForFeature[feature.properties.providerName],
+    params: {
+      id: feature.properties.id, // '2b21b708-4d32-498f-8400-a5a41241ed25', //
+      aoi: searchPolygon.geometry,
+    },
+  }
+
+  const estimateJson: any = await ky
+    .post(ESTIMATE_URL, {
+      headers: {
+        Authorization: up42BearerJson,
+        'Content-Type': 'application/json',
+        'Content-Length': `${JSON.stringify(estimatePayload).length}`,
+        // Host: 'https://api.up42.com/',
+      },
+      timeout: 20_000,
+      json: estimatePayload,
+    })
+    .json()
+  console.log('yo up42 price result', estimateJson)
+
+  // 1euro = 100 credits
+  const price = estimateJson.error ? 0 : estimateJson.data.credits / 100
+  return price
+}
+
+const getUp42PricesAsync = async (up42Results, searchPolygon, up42BearerJson): Promise<void> => {
+  up42Results.features.forEach(async (feature) => {
+    const price = await estimateCreditCost(feature, searchPolygon, up42BearerJson)
+    feature.properties.price = price
+  })
+}
+
 const formatUp42Results = (up42ResultsRaw, searchPolygon): GeoJSON.FeatureCollection => {
   // meta':{'limit':1,'page':1,'found':15},
   return {
@@ -283,7 +349,7 @@ const formatUp42Results = (up42ResultsRaw, searchPolygon): GeoJSON.FeatureCollec
         // ...feature.properties,
         id: feature.properties.sceneId ?? uuidv4(),
         constellation: up42ConstellationDict[feature.properties.constellation]?.constellation || feature.properties.constellation,
-        price: getUp42Price(feature),
+        price: null, // getUp42Price(feature),
         shapeIntersection: null,
         providerPlatform: `${Providers.UP42}`,
         provider: `${Providers.UP42}/${feature.properties.producer as string}-${feature.properties.constellation as string}`, // /${feature.properties.providerName}
