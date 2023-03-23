@@ -224,7 +224,7 @@ const formatHeadResults = (headResultsRaw, headApiKey: string | null = null): Ge
         },
         type: 'Feature',
       }
-      feature.properties.price = getHeadPrice(feature)
+      // feature.properties.price = getHeadPrice(feature)
 
       // Set preview uri by tapping into the TMS tiles (no other way, pretty bad)
       // const tileExt = r.sensor.includes('SV') && false ? 'png' : 'jpg'
