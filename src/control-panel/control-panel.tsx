@@ -120,6 +120,7 @@ function ControlPanel(props): React.ReactElement {
     [Providers.EOS]: '',
     [Providers.SKYWATCH]: '',
     [Providers.MAXAR_DIGITALGLOBE]: '',
+    [Providers.HEADAEROSPACE]: '',
     [Providers.ARLULA]: {
       apiKey: '',
       apiSecurity: '',

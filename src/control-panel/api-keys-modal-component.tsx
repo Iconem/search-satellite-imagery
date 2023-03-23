@@ -59,34 +59,23 @@ function ApiKeysModalComponent(props): React.ReactElement {
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <Typography variant="h6">
-                  {' '}
                   <Link href="https://map.openaerialmap.org/" target="_blank">
                     Open Aerial Map
-                  </Link>{' '}
+                  </Link>
                 </Typography>
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <Typography variant="h6">
-                  {' '}
-                  <Link href="https://headfinder.head-aerospace.eu/sales" target="_blank">
-                    Head Aerospace Finder
-                  </Link>{' '}
-                </Typography>
-              </ListItem>
-              <ListItem sx={{ display: 'list-item' }}>
-                <Typography variant="h6">
-                  {' '}
                   <Link href="https://app.skyfi.com/explore" target="_blank">
                     SkyFi App
-                  </Link>{' '}
+                  </Link>
                 </Typography>
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <Typography variant="h6">
-                  {' '}
                   <Link href="https://imagehunter.apollomapping.com/" target="_blank">
                     Apollo Mapping Image Hunter
-                  </Link>{' '}
+                  </Link>
                 </Typography>
               </ListItem>
             </List>
@@ -99,7 +88,6 @@ function ApiKeysModalComponent(props): React.ReactElement {
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <Link href="https://console.up42.com/catalog/" target="_blank">
-                  {' '}
                   <Typography variant="h6"> UP42 Console </Typography>
                 </Link>
               </ListItem>
@@ -140,10 +128,9 @@ function ApiKeysModalComponent(props): React.ReactElement {
 
               <ListItem sx={{ display: 'list-item' }}>
                 <Typography variant="h6">
-                  {' '}
                   <Link href="https://eos.com/landviewer/" target="_blank">
                     EOS Landviewer
-                  </Link>{' '}
+                  </Link>
                 </Typography>
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
@@ -162,10 +149,9 @@ function ApiKeysModalComponent(props): React.ReactElement {
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <Typography variant="h6">
-                  {' '}
                   <Link href="https://console.earthcache.com/search-archive/" target="_blank">
                     Skywatch Earthcache
-                  </Link>{' '}
+                  </Link>
                 </Typography>
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
@@ -184,11 +170,32 @@ function ApiKeysModalComponent(props): React.ReactElement {
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <Typography variant="h6">
-                  {' '}
                   <Link href="https://discover.maxar.com/" target="_blank">
                     Maxar Discover
-                  </Link>{' '}
+                  </Link>
                 </Typography>
+              </ListItem>
+
+              <ListItem sx={{ display: 'list-item' }}>
+                <Typography variant="h6">
+                  <Link href="https://headfinder.head-aerospace.eu/sales" target="_blank">
+                    Head Aerospace Finder
+                  </Link>
+                </Typography>
+              </ListItem>
+              <ListItem sx={{ display: 'list-item' }}>
+                <TextField
+                  value={props.apiKeys[Providers.HEADAEROSPACE]}
+                  onChange={(event) =>
+                    props.setApiKeys({
+                      ...props.apiKeys,
+                      [Providers.HEADAEROSPACE]: event.target.value,
+                    })
+                  }
+                  label="HEAD Aerospace API key"
+                  type="search"
+                  sx={{ width: '50%' }}
+                />
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <TextField
@@ -206,7 +213,6 @@ function ApiKeysModalComponent(props): React.ReactElement {
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <Link href="https://api.arlula.com/" target="_blank">
-                  {' '}
                   <Typography variant="h6"> ARLULA </Typography>
                 </Link>
               </ListItem>
@@ -250,23 +256,23 @@ function ApiKeysModalComponent(props): React.ReactElement {
             {/* <List sx={{listStyleType: 'disc' }}> */}
             <List>
               <ListItem sx={{ display: 'list-item' }}>
-                UP42: Project ID and Project API Key can be found in the Developers section of the selected project, on the{' '}
+                UP42: Project ID and Project API Key can be found in the Developers section of the selected project, on the
                 <Link href="https://console.up42.com/" target="_blank">
                   console
                 </Link>
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
-                EOS api key can be found on your{' '}
+                EOS api key can be found on your
                 <Link href="https://api-connect.eos.com/user-dashboard/" target="_blank">
                   user dashboard
                 </Link>
-                . See the{' '}
+                . See the
                 <Link href="https://doc.eos.com/api/#authorization-api" target="_blank">
                   API section of the docs
                 </Link>
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
-                Skywatch API key can be found on your user{' '}
+                Skywatch API key can be found on your user
                 <Link href="https://dashboard.skywatch.co/account/profile" target="_blank">
                   account profile
                 </Link>

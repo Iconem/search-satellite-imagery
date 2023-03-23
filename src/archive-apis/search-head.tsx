@@ -15,6 +15,9 @@ import { log } from '../utilities'
 
 const HEAD_LIMIT = 300
 const HEAD_BASE_URL = 'https://headfinder.head-aerospace.eu/satcat-db02/'
+
+const HEAD_API_LIMIT = 200
+const HEAD_API_BASE_URL = 'https://headfinder.head-aerospace.eu/search-ext-01'
 // const headSatellitesSel = '$SuperView$EarthScanner-KF1$Jilin-GXA$Jilin-GF02A/B$GaoFen-2$NightVision/Video$DailyVision1m-JLGF3$'
 
 const unique = (value, index, self): boolean => self.indexOf(value) === index
@@ -28,6 +31,12 @@ const _headSatellitesSel =
   '$'
 
 const headSatellitesSel = '$SuperView-NEO$Jilin-GF04$GFMM$SuperView-2$SuperView$EarthScanner-KF1$GaoFen-7$Jilin-GXA$DailyVision1m-JLGF3$Jilin-GF02A/B$GaoFen-2$'
+
+// Sat names:
+// https://api-01.eoproc.com/cat-01/group-configs/satsel-setup-for-all.js
+const headSearchSatSel = ['SuperView', 'EarthScanner-KF1', 'DailyVision1m-JLGF3', 'Jilin-GXA', 'Jilin-GF02A/B', 'GaoFen-2', 'NIGHTVISION / VIDEO', 'SuperView-NEO', 'GFMM', 'NaturEYE 2m', 'ZY-Tri-Stereo', 'HyperScan-GP1/2', 'NaturEYE 16m', 'Jilin-GF04', 'SuperView-2', 'GaoFen-7', 'HiSea-1 Radar']
+
+const headSatellitesSelNew = `$${headSearchSatSel.join('$')}$`
 
 // in https://headfinder.head-aerospace.eu/cat-01/_ML-lib-01.js?2021-12-27
 // in https://headfinder.head-aerospace.eu/cat-01/V-073.js?2022-05-11
@@ -55,7 +64,65 @@ const defaultHEADSearchParams = {
   catalogue: `PU`,
   catconfigid: `HEAD-wc37`,
 }
-const searchHead = async (searchSettings, apikey = '', searchPolygon = null, setters = null): Promise<any> => {
+const searchHead = async (searchSettings, headApiKey: string | undefined = '', searchPolygon = null, setters = null): Promise<any> => {
+  if (!headApiKey || headApiKey === '') {
+    headApiKey = process.env.HEAD_APIKEY
+  }
+
+  const polygonStr = JSON.stringify(searchSettings.coordinates.map((c) => c.slice(0, -1).map((xy) => [xy[1], xy[0]])))
+  const polygonCoords = polygonStr.replaceAll('[', '(').replaceAll(']', ')')
+
+  // const headSearchUrl = new URL(HEAD_API_BASE_URL)
+  const headSearchParams = new URLSearchParams({
+    req: 'd01',
+    category: 'searchapi-01',
+    user: headApiKey as string,
+    aoi: `polygon${polygonCoords}`,
+    maxscenes: `${HEAD_API_LIMIT}`, // max indicated is 50
+    datestart: `${new Date(searchSettings.startDate - 1).toISOString().substring(0, 10)}`,
+    dateend: `${new Date(searchSettings.endDate - 1).toISOString().substring(0, 10)}`,
+    cloudmax: `${searchSettings.cloudCoverage as string}`,
+    offnadirmax: `${maxAbs(searchSettings.offNadirAngle)}`,
+    overlapmin: `${searchSettings.aoiCoverage as string}`,
+    scenename: ``,
+    satellites: `${headSatellitesSel}&`,
+  }) as any
+
+  const decodedSearchParams = decodeURIComponent(headSearchParams)
+  const headSearchUrl = `${HEAD_API_BASE_URL}?${decodedSearchParams}`
+  // console.log('\n\nHEAD SEARCH URL COMPARISON\n', headSearchUrl, '\n', headSearchUrl_old, '\n\n')
+
+  const result = await processHeadSearch(headSearchUrl, headApiKey, setters)
+  return result
+}
+
+async function processHeadSearch(headSearchUrl, headApiKey, setters): Promise<any> {
+  const resText = await ky.get(headSearchUrl).text()
+  if (!resText.includes('ERROR: APP failed')) {
+    const payloadStr = resText.substring(resText.indexOf('jsonscenelist=') + 14, resText.lastIndexOf(']') + 1)
+    const searchResultsRaw = JSON.parse(payloadStr).slice(1)
+
+    if (searchResultsRaw) {
+      const searchResultsJson = formatHeadResults(searchResultsRaw, headApiKey)
+      log('HEAD Search URL: \n', headSearchUrl, '\nRAW HEAD search results: \n', searchResultsRaw, '\nJSON HEAD search results: \n', searchResultsJson)
+      return { searchResultsJson }
+    }
+  }
+  console.log('Probable failure in HEAD request, ', headSearchUrl, ' with resText', resText, 'probably because search was beyond their 3 most recent months public limitation')
+  setters.setSnackbarOptions({
+    open: true,
+    message: 'Probable failure in HEAD request resulted in error, probably because search was beyond their 3 most recent months public limitation',
+  })
+  return {
+    searchResultsJson: {
+      features: [],
+      type: 'FeatureCollection',
+    },
+    errorOnFetch: true,
+  }
+}
+
+const searchHeadReverseEngineered = async (searchSettings, apikey = '', searchPolygon = null, setters = null): Promise<any> => {
   const polygonStr = JSON.stringify(searchSettings.coordinates.map((c) => c.slice(0, -1).map((xy) => [xy[1], xy[0]])))
   const polygonCoords = polygonStr.replaceAll('[', '(').replaceAll(']', ')')
 
@@ -80,32 +147,12 @@ const searchHead = async (searchSettings, apikey = '', searchPolygon = null, set
         satellites: `${headSatellitesSel}&`,
       }).toString()
     )
-  const headSearchUrl = `${HEAD_BASE_URL}?req=d01-nl-&category=${searchParams}&user=_${crc32(searchParams.toLowerCase()) as string}&`
+  const userStr = crc32(searchParams.toLowerCase())
+  const headSearchUrl = `${HEAD_BASE_URL}?req=d01-nl-&category=${searchParams}&user=_${userStr as string}&`
   // console.log('\n\nHEAD SEARCH URL COMPARISON\n', headSearchUrl, '\n', headSearchUrl_old, '\n\n')
 
-  const resText = await ky.get(headSearchUrl).text()
-  if (!resText.includes('ERROR: APP failed')) {
-    const payloadStr = resText.substring(resText.indexOf('jsonscenelist=') + 14, resText.lastIndexOf(']') + 1)
-    const searchResultsRaw = JSON.parse(payloadStr).slice(1)
-
-    if (searchResultsRaw) {
-      const searchResultsJson = formatHeadResults(searchResultsRaw, searchPolygon)
-      log('HEAD Search URL: \n', headSearchUrl, '\nRAW HEAD search results: \n', searchResultsRaw, '\nJSON HEAD search results: \n', searchResultsJson)
-      return { searchResultsJson }
-    }
-  }
-  console.log('Probable failure in HEAD request, ', headSearchUrl, ' with resText', resText, 'probably because search was beyond their 3 most recent months public limitation')
-  setters.setSnackbarOptions({
-    open: true,
-    message: 'Probable failure in HEAD request resulted in error, probably because search was beyond their 3 most recent months public limitation',
-  })
-  return {
-    searchResultsJson: {
-      features: [],
-      type: 'FeatureCollection',
-    },
-    errorOnFetch: true,
-  }
+  const result = await processHeadSearch(headSearchUrl, userStr, setters)
+  return result
 }
 
 // Payload for request for invoice: https://api-01.eoproc.com/api-01/?&-xdebug-step-&category=satcat-make-rq-html
@@ -124,6 +171,8 @@ const getWebmercatorTileIdx = (pt, zoomShift = 0): any => {
     zoom,
   }
 }
+const headPreviewUrl = (userStr: string, sceneName: string): string => `https://headfinder.head-aerospace.eu/cat-01-tiles/?req=d01&category=getpreview-jpg-01&user=${userStr}&scenename=${sceneName}`
+
 const getWebmercatorTileCovering = (polygon, zoomShift = 0): any => {
   const bounds = bbox(polygon)
   const [minLng, minLat, maxLng, maxLat] = bounds
@@ -139,7 +188,7 @@ const getWebmercatorTileCovering = (polygon, zoomShift = 0): any => {
   return tileIdx
 }
 
-const formatHeadResults = (headResultsRaw, searchPolygon = null): GeoJSON.FeatureCollection => {
+const formatHeadResults = (headResultsRaw, headApiKey: string | null = null): GeoJSON.FeatureCollection => {
   // 'pagination': { 'per_page': 0, 'total': 0, 'count': 0, 'cursor': {},}
   const headResults = {
     type: 'FeatureCollection',
@@ -179,18 +228,35 @@ const formatHeadResults = (headResultsRaw, searchPolygon = null): GeoJSON.Featur
 
       // Set preview uri by tapping into the TMS tiles (no other way, pretty bad)
       // const tileExt = r.sensor.includes('SV') && false ? 'png' : 'jpg'
-      const tileExt = 'jpg'
+      let tileExt = 'png'
       let zoomShift = 1
       if (r.sensor.includes('SV')) {
         // For a few portion of SV images, extension is png
         zoomShift = 0
       }
       const tileCoords = getWebmercatorTileCovering(feature, zoomShift)
-      feature.properties.preview_uri = headTileUrl(r, tileCoords.zoom, tileCoords.tileX, tileCoords.tileY, tileExt)
+      // feature.properties.preview_uri = headTileUrl(r, tileCoords.zoom, tileCoords.tileX, tileCoords.tileY, tileExt)
+      feature.properties.preview_uri = headPreviewUrl(headApiKey, r.identifier)
+
+      let minzoom = (tileCoords.zoom as number) - 2
+      let maxzoom = (tileCoords.zoom as number) + 2
+      const tilesArr = r.tiles
+      if (tilesArr) {
+        minzoom = tilesArr.findIndex((tilesAtZoom) => tilesAtZoom[0].length > 0)
+        maxzoom =
+          tilesArr.length -
+          tilesArr
+            .slice()
+            .reverse()
+            .findIndex((tilesAtZoom) => tilesAtZoom[0].length > 0)
+        // console.log('a', minzoom, maxzoom, tilesArr)
+        const tilesArrFlat = tilesArr.flat(2)
+        tileExt = tilesArrFlat && tilesArrFlat.length > 0 && tilesArrFlat[0]?.slice(-1) === 'P' ? 'png' : 'jpg'
+      }
       feature.properties.providerProperties.preview_uri_tiles = {
-        url: headTileUrl(r, '{z}', '{x}', '{y}', 'png'),
-        minzoom: (tileCoords.zoom as number) - 2,
-        maxzoom: (tileCoords.zoom as number) + 2,
+        url: headTileUrl(r, '{z}', '{x}', '{y}', tileExt),
+        minzoom,
+        maxzoom,
       }
       feature.properties.thumbnail_uri = feature.properties.preview_uri
 
