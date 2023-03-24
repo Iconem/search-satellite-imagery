@@ -60,4 +60,6 @@ function log(...logArgs): void {
   }
 }
 
+const unique = (value, index, self): boolean => self.indexOf(value) === index
+
 export { useLocalStorage, GSD_STEPS, GSDFromIndex, parseJwt, log }

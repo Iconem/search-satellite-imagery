@@ -18,25 +18,46 @@ const HEAD_BASE_URL = 'https://headfinder.head-aerospace.eu/satcat-db02/'
 
 const HEAD_API_LIMIT = 200
 const HEAD_API_BASE_URL = 'https://headfinder.head-aerospace.eu/search-ext-01'
-// const headSatellitesSel = '$SuperView$EarthScanner-KF1$Jilin-GXA$Jilin-GF02A/B$GaoFen-2$NightVision/Video$DailyVision1m-JLGF3$'
-
-const unique = (value, index, self): boolean => self.indexOf(value) === index
-const _headSatellitesSel =
-  '$' +
-  providersDict[Providers.HEADAEROSPACE]
-    .map((constellation) => constellationDict[constellation].satellites.map((sat) => headSearchNames[sat]))
-    .flat()
-    .filter(unique)
-    .join('$') +
-  '$'
-
-const headSatellitesSelOld = '$SuperView-NEO$Jilin-GF04$GFMM$SuperView-2$SuperView$EarthScanner-KF1$GaoFen-7$Jilin-GXA$DailyVision1m-JLGF3$Jilin-GF02A/B$GaoFen-2$'
 
 // Sat names:
-// https://api-01.eoproc.com/cat-01/group-configs/satsel-setup-for-all.js
-const headSearchSatSel = ['SuperView', 'EarthScanner-KF1', 'DailyVision1m-JLGF3', 'Jilin-GXA', 'Jilin-GF02A/B', 'GaoFen-2', 'NIGHTVISION / VIDEO', 'SuperView-NEO', 'GFMM', 'NaturEYE 2m', 'ZY-Tri-Stereo', 'HyperScan-GP1/2', 'NaturEYE 16m', 'Jilin-GF04', 'SuperView-2', 'GaoFen-7', 'HiSea-1 Radar']
+const SATSEL_SCRIPT_URL = 'https://api-01.eoproc.com/cat-01/group-configs/satsel-setup-for-all.js'
+// To update this, use the below code to retrieve the satsel HEAD object and add additional mappings from request sensor property to satsel search string values
+async function fetchHeadSatsel(): Promise<void> {
+  await fetch(SATSEL_SCRIPT_URL)
+    .then(async (response) => await response.text())
+    .then((txt) => {
+      // DANGEROUS, so use it in browser rather than code itself: eval(txt + '\nconst satsel = {} \n setsatsel(satsel) \n console.log("YOUHOU", satsel)')
+      // eslint-disable-next-line no-eval
+      const setsatsel = eval('(' + txt + ')')
+      const satsel: any = {}
+      setsatsel(satsel)
+    })
+}
+const satsel = {
+  sensor_mapping_added_by_iconem: ['SV-1', 'JL1KF01-PMS', 'JL1GF03-PMS', 'JL101A', 'JL1GF02-PMS', 'GF-2', '', 'SV-NEO', 'GFMM', 'GF-1-PMS', 'ZY-3-TLC', 'JL1GP-PMS', 'GF-1-WFV', 'JL1GF04-PMS', 'SV-2', 'GF-7', ''],
+  satname: ['SuperView', 'EarthScanner-KF1', 'DailyVision', 'Jilin-GXA', 'Jilin-GF02A/B/D/F', 'GaoFen-2', 'NightVision / Video', 'SuperView-NEO', 'GFMM (SV2)', 'NaturEYE', 'ZY-Tri-Stereo', 'HyperScan-GP1/2', 'NaturEYE', 'Jilin-GF04', 'SuperView-2', 'GaoFen-7', 'HiSea-1 Radar'],
+  search: ['SuperView', 'EarthScanner-KF1', 'DailyVision1m-JLGF3', 'Jilin-GXA', 'Jilin-GF02A/B', 'GaoFen-2', 'NIGHTVISION / VIDEO', 'SuperView-NEO', 'GFMM', 'NaturEYE 2m', 'ZY-Tri-Stereo', 'HyperScan-GP1/2', 'NaturEYE 16m', 'Jilin-GF04', 'SuperView-2', 'GaoFen-7', 'HiSea-1 Radar'],
+  gsd: ['50 cm', '50 cm', '75 cm', '72 cm', '75 cm', '80 cm', '92 cm', '30 cm', '40 cm', '2.00 m', '2.10 m', '5 m', '16 m', '30 cm', '40 cm', '65 cm', '1-20 m'],
+}
+const headSatellitesSel = `$${satsel?.search.join('$')}$`
+function parseGsd(gsdStr): number {
+  return parseFloat(gsdStr) * (gsdStr.endsWith('cm') ? 0.01 : 1)
+}
+const gsdFromSensor = Object.fromEntries(satsel.gsd.map((gsd, idx) => [satsel.sensor_mapping_added_by_iconem[idx], parseGsd(gsd)]))
+// console.log(satsel, headSatellitesSelProg, gsdFromSensor)
 
-const headSatellitesSel = `$${headSearchSatSel.join('$')}$`
+// const _headSatellitesSel =
+//   '$' +
+//   providersDict[Providers.HEADAEROSPACE]
+//     .map((constellation) => constellationDict[constellation].satellites.map((sat) => headSearchNames[sat]))
+//     .flat()
+//     .filter(unique)
+//     .join('$') +
+//   '$'
+// const headSatellitesSel = '$SuperView$EarthScanner-KF1$Jilin-GXA$Jilin-GF02A/B$GaoFen-2$NightVision/Video$DailyVision1m-JLGF3$'
+// const headSatellitesSelOld = '$SuperView-NEO$Jilin-GF04$GFMM$SuperView-2$SuperView$EarthScanner-KF1$GaoFen-7$Jilin-GXA$DailyVision1m-JLGF3$Jilin-GF02A/B$GaoFen-2$'
+// const headSearchSatSel = ['SuperView', 'EarthScanner-KF1', 'DailyVision1m-JLGF3', 'Jilin-GXA', 'Jilin-GF02A/B', 'GaoFen-2', 'NIGHTVISION / VIDEO', 'SuperView-NEO', 'GFMM', 'NaturEYE 2m', 'ZY-Tri-Stereo', 'HyperScan-GP1/2', 'NaturEYE 16m', 'Jilin-GF04', 'SuperView-2', 'GaoFen-7', 'HiSea-1 Radar']
+// const headSatellitesSel = `$${headSearchSatSel.join('$')}$`
 
 // in https://headfinder.head-aerospace.eu/cat-01/_ML-lib-01.js?2021-12-27
 // in https://headfinder.head-aerospace.eu/cat-01/V-073.js?2022-05-11
@@ -204,7 +225,8 @@ const formatHeadResults = (headResultsRaw, headApiKey: string | null = null): Ge
           provider: `${Providers.HEADAEROSPACE}/${(headConstellationDict[r.sensor]?.constellation || r.sensor) as string}`,
           id: r.identifier,
           acquisitionDate: `${r.acquisitiontime.replace(' ', 'T') as string}.0003Z`, // or new Date(r.datedir).toISOString()
-          resolution: constellationDict[headConstellationDict[r.sensor]?.constellation]?.gsd || null,
+          // resolution: constellationDict[headConstellationDict[r.sensor]?.constellation]?.gsd || null,
+          resolution: gsdFromSensor[r.sensor] || null,
           cloudCoverage: parseFloat(r.cloudcover),
           constellation: `${(headConstellationDict[r.sensor]?.constellation || r.sensor) as string}`,
           sensor: r.sensor,
