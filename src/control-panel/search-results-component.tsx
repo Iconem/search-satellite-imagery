@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { Tooltip, Typography, GlobalStyles, Box } from '@mui/material'
-import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton, GridToolbarDensitySelector, type GridRowHeightParams, type GridColDef, GridFooterContainer, GridPagination, gridPageCountSelector, useGridApiContext, useGridSelector, GridAutoSizer } from '@mui/x-data-grid'
+import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton, GridToolbarDensitySelector, type GridRowHeightParams, type GridColDef, GridFooterContainer, GridPagination, gridPageCountSelector, useGridApiContext, useGridSelector, getGridStringOperators, GridFilterInputValue, type GridFilterItem, GridPreferencePanelsValue } from '@mui/x-data-grid'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCloudSun, faSquarePollHorizontal, faSatellite, faBolt, faVectorSquare } from '@fortawesome/free-solid-svg-icons'
 import bbox from '@turf/bbox'
@@ -74,6 +74,20 @@ function checkUnknown(x: number, suffix: string): string {
 
 // const NO_IMAGE_FALLBACK_URL = 'https://via.placeholder.com/300x300.webp/FFFFFF/000000?text=No+Preview+Available' // './no_image_fallback.jpg'
 
+// See a no-contain filter operator on datagrid https://github.com/mui/mui-x/issues/1165
+const customStringFilterOperators = [
+  ...getGridStringOperators(),
+  {
+    value: 'noContain',
+    InputComponent: GridFilterInputValue,
+    getApplyFilterFn: (filterItem: GridFilterItem, column: GridColDef): any => {
+      return ({ value }): boolean => {
+        return filterItem?.value == null || filterItem?.value === '' || (filterItem?.value && !value.toLowerCase().includes(filterItem.value.toLowerCase()))
+      }
+    },
+  },
+]
+
 const datagridColumns: GridColDef[] = [
   {
     field: 'acquisitionDate',
@@ -139,6 +153,7 @@ const datagridColumns: GridColDef[] = [
         </Tooltip>
       )
     },
+    filterOperators: customStringFilterOperators,
   },
   {
     field: 'cloudCoverage',
@@ -338,6 +353,13 @@ function SearchResultsComponent(props): React.ReactElement {
   const searchResults = props.searchResults
   const [autoPageSizeBool, setAutoPageSizeBool] = React.useState(false)
 
+  const selectionModel = props.footprintFeatures?.properties && [getRowIdFromProps(props.footprintFeatures?.properties)]
+  // console.log('selectionModel', selectionModel)
+
+  // const filterModel = {
+  //   items: [{ field: 'provider', operator: 'noContain', value: 'APOLLO' }],
+  // }
+
   const rows = searchResults.features.map((feature) => feature.properties)
   return (
     <>
@@ -365,7 +387,7 @@ function SearchResultsComponent(props): React.ReactElement {
                   setAutoPageSizeBool(false)
                 }
               }}
-              selectionModel={[props.footprintFeatures?.properties?.id || null]}
+              rowSelectionModel={selectionModel}
               // Fired when selction changed from datagrid
               // onSelectionModelChange={(newSelectionModel) => {
               //   console.log('newSelectionModel', newSelectionModel)
@@ -457,6 +479,10 @@ function SearchResultsComponent(props): React.ReactElement {
                   },
                 },
               }}
+              localeText={{
+                filterOperatorNoContain: 'does not contain',
+              }}
+              // filterModel={filterModel}
             />
           </div>
         </div>
