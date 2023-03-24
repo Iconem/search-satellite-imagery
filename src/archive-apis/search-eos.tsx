@@ -17,7 +17,7 @@ import type GeoJSON from 'react-map-gl'
 // Deep Link: could use https://eos.com/landviewer/?lat=48.93459&lng=2.24469&z=16&preset=highResolutionSensors&purchase-scene=895ca42a077b1087f53cf9c6a2ac71da
 // Or could POST to cart with id: https://eos.com/landviewer/reselling/cart/ with payload [{ "scene": { "sceneID": "MSC_220528074952_84497_01201367BN19", "dataGeometry": { ... }, ...}, "price": 137, "licenses": 1 }]
 
-const EOS_LIMIT = 100
+const EOS_LIMIT = 1000
 const EOS_TIMEOUT_MS = 20_000
 
 // let eosSearchHighresUrl = 'https://api.eos.com/api/v5/allsensors'

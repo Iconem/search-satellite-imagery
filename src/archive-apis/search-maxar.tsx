@@ -113,7 +113,7 @@ const formatMaxarResults = (maxarResultsRaw, searchPolygon): GeoJSON.FeatureColl
         },
         type: 'Feature',
       }
-      feature.properties.price = getMaxarPrice(feature)
+      // feature.properties.price = getMaxarPrice(feature)
       return feature
     }),
     type: 'FeatureCollection',

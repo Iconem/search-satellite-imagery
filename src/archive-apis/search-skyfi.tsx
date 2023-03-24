@@ -68,12 +68,21 @@ const searchSkyfi = async (searchSettings, skyfiApikey, searchPolygon = null, se
   }
   log('skyfi PAYLOAD: \n', skyfiPayload)
 
+  const contentLength = `${JSON.stringify(skyfiPayload).length}`
+  console.log('contentLength', contentLength, skyfiPayload, JSON.stringify(skyfiPayload), JSON.stringify(skyfiPayload).length)
   const skyfiResultsRaw = await ky
     .post(SKYFI_SEARCH_URL, {
       headers: {
-        'skyfi-api-key': skyfiApiKey,
-        'content-length': `${JSON.stringify(skyfiPayload).length}`,
-        // 'Authorization': skyfiBearerJson,
+        // 'skyfi-api-key': skyfiApiKey,
+        'skyfi-api-key': ' eh6qPPge7f88EJPp',
+        'content-length': contentLength,
+
+        origin: ' https://app.skyfi.com',
+        referer: ' https://app.skyfi.com/explore/',
+        accept: ' application/json',
+        'cache-control': ' no-cache',
+        'content-type': ' application/json',
+        'skyfi-client-agent': ' DESKTOP-1.8.0',
       },
       json: skyfiPayload,
     })
