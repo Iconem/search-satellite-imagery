@@ -68,6 +68,7 @@ Resources:
 - [vercel serverless api routes](https://blog.logrocket.com/serverless-deployments-vercel-node-js/)
 - next.js 8 blog post on [serverless](https://nextjs.org/blog/next-8#serverless-nextjs)
 - See how to deploy serverless next-js on [azure functions](https://learn.microsoft.com/en-us/azure/static-web-apps/deploy-nextjs-hybrid) or also [here](https://www.erwinsmit.com/nextjs-on-azure-functions/)
+- [Vercel Serverless on Vite framework](https://vercel.com/docs/frameworks/vite#serverless-functions)
 
 ### Long Term
 
