@@ -35,7 +35,7 @@ const producerList = [
 */
 const producerList = providersDict[Providers.UP42].map((constellation) => up42ProducersNames[constellation])
 const useDeprecatedApi = false
-const excludeHosts = ['airbus', 'iceye', 'intermap', 'spectra', 'airbus-elevation']
+const excludeHosts = ['airbus', 'iceye', 'intermap', 'spectra', 'airbus-elevation', 'satellogic', 'head-aerospace', 'hexagon']
 
 /*
 https://api.up42.com/catalog/oneatlas/image/cccc4352-ed18-433e-b18d-0b132af3face/thumbnail
@@ -208,15 +208,22 @@ const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, sett
         ]
       })
     )
-    await Promise.all(Object.values(searchPromises).map((o) => o.promise)).then((results) => {
-      log('finished requests for all hosts promises', results)
-      const requestsFeaturesFlat = results.map((res) => res?.features).flat()
+    console.log('yoyoyoyoyo before Promise.allSettled')
+    await Promise.allSettled(Object.values(searchPromises).map((o) => o.promise)).then((results) => {
+      log('finished UP42 requests for all hosts promises', results)
+      const requestsFeaturesFlat = results.map((res) => res?.value?.features).flat() // .value
       up42ResultsRaw = {
         features: requestsFeaturesFlat,
       }
       log('results_flat', up42ResultsRaw)
       return up42ResultsRaw
     })
+    // .catch((error) => {
+    //   log('Error on promise', error)
+    // })
+    // .finally(() => {
+    //   log('All UP42 promises settled, either success or error')
+    // })
   }
 
   // TODO: TEST next
@@ -224,6 +231,7 @@ const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, sett
   log('UP42 PAYLOAD: \n', up42Payload, '\nRAW UP42 search results: \n', up42ResultsRaw, '\nJSON UP42 search results: \n', searchResultsJson)
 
   // Initiate search for previews/thumbnails
+  /*
   getUp42PreviewsAsync(searchResultsJson, up42BearerJson).then((results) => {
     if (setters) {
       const searchResults = {
@@ -251,6 +259,7 @@ const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, sett
       log('UP42 error during prices retrieval, setting react state anyway')
       setters.setSearchResults(searchResults)
     })
+    */
 
   return {
     searchResultsJson,
