@@ -74,7 +74,7 @@ const formatArlulaResults = (arlulaResultsRaw): GeoJSON.FeatureCollection => {
           resolution: r.gsd,
           acquisitionDate: r.date,
           cloudCoverage: r.cloud,
-          shapeIntersection: r.overlap.percent.scene,
+          shapeIntersection: r.overlap.percent.search,
           providerProperties: {
             azimuthAngle: r.offNadir, // or incidenceAngle
           },
