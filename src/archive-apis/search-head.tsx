@@ -130,10 +130,10 @@ async function processHeadSearch(headSearchUrl, headApiKey, setters): Promise<an
       return { searchResultsJson }
     }
   }
-  console.log('Probable failure in HEAD request, ', headSearchUrl, ' with resText', resText, 'probably because search was beyond their 3 most recent months public limitation')
+  console.log('Probable failure in HEAD request, ', headSearchUrl, ' with resText', resText, 'probably because AOI area is too small or search was beyond their 3 most recent months public limitation')
   setters.setSnackbarOptions({
     open: true,
-    message: 'Probable failure in HEAD request resulted in error, probably because search was beyond their 3 most recent months public limitation',
+    message: 'Probable failure in HEAD request resulted in error, probably because AOI area is too small or search was beyond their 3 most recent months public limitation',
   })
   return {
     searchResultsJson: {
