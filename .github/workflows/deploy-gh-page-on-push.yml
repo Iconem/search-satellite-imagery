@@ -43,6 +43,8 @@ jobs:
 #           cache: npm
           
       - name: Build
+        env: 
+          ENV_FILE_CONTENT: ${{ secrets.ENV_FILE_CONTENT }}
         # npm ci
         run: |
           npm i 
