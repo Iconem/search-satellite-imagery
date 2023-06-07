@@ -27,9 +27,10 @@ jobs:
         with:
           node-version: 16
       - name: Build
+        # npm ci
         run: |
           echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
-          npm ci 
+          npm i 
           npm run build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
