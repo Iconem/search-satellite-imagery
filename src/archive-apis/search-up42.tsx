@@ -35,7 +35,8 @@ const producerList = [
 */
 const producerList = providersDict[Providers.UP42].map((constellation) => up42ProducersNames[constellation])
 const useDeprecatedApi = false
-const excludeHosts = ['airbus', 'iceye', 'intermap', 'spectra', 'airbus-elevation', 'satellogic', 'head-aerospace', 'hexagon']
+const excludeHosts = ['airbus-elevation', 'intermap', 'airbus'] // 'hexagon', 'head-aerospace', 'satellogic', 'iceye', 'spectra']
+// Worlddem from Airbus, Intermap Nextmap are DEMs, airbus is not needed since host oneatlas returns pleiades+neo
 
 /*
 https://api.up42.com/catalog/oneatlas/image/cccc4352-ed18-433e-b18d-0b132af3face/thumbnail
@@ -189,41 +190,48 @@ const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, sett
         return [
           hostname,
           {
-            promise: new Promise(async (resolve) => {
+            promise: new Promise(async (resolve, reject) => {
               const up42SearchHostUrl = `https://api.up42.com/catalog/hosts/${hostname}/stac/search` // nextUrl !== '' ? nextUrl : up42SearchUrl
-              const up42ResultsRaw = (await ky
-                .post(up42SearchHostUrl, {
-                  headers: { Authorization: up42BearerJson },
-                  json: up42Payload,
-                })
-                .json()) as any
-              log(`Host ${hostname} results: `, up42ResultsRaw)
-
-              // Should update up42ResultsRaw.features
-              await searchForNextPage(up42ResultsRaw, searchSettings, up42Apikey, searchPolygon, setters, up42BearerJson)
-
-              resolve(up42ResultsRaw)
-            }),
+              try {
+                const up42ResultsRaw = (await ky
+                  .post(up42SearchHostUrl, {
+                    headers: { Authorization: up42BearerJson },
+                    json: up42Payload,
+                  })
+                  .json()) as any
+                log(`Host ${hostname} results: `, up42ResultsRaw)
+                // Should update up42ResultsRaw.features
+                // await searchForNextPage(up42ResultsRaw, searchSettings, up42Apikey, searchPolygon, setters, up42BearerJson)
+                resolve(up42ResultsRaw)
+              } catch (error) {
+                const errorMsg = `Error on ky post for host ${hostname}: ${error.toString()}`
+                log(errorMsg)
+                reject(errorMsg)
+              }
+            }) /*.catch(function (error) {
+              throw new Error('Whoops!')
+            })*/,
           },
         ]
       })
     )
-    console.log('yoyoyoyoyo before Promise.allSettled')
-    await Promise.allSettled(Object.values(searchPromises).map((o) => o.promise)).then((results) => {
-      log('finished UP42 requests for all hosts promises', results)
-      const requestsFeaturesFlat = results.map((res) => res?.value?.features).flat() // .value
-      up42ResultsRaw = {
-        features: requestsFeaturesFlat,
-      }
-      log('results_flat', up42ResultsRaw)
-      return up42ResultsRaw
-    })
-    // .catch((error) => {
-    //   log('Error on promise', error)
-    // })
-    // .finally(() => {
-    //   log('All UP42 promises settled, either success or error')
-    // })
+
+    await Promise.allSettled(Object.values(searchPromises).map((o) => o.promise))
+      .then((results) => {
+        log('\nFinished UP42 requests for all hosts promises\n', results)
+        const requestsFeaturesFlat = results
+          .filter((r) => r.status == 'fulfilled')
+          .map((res) => res?.value?.features)
+          .flat() // .value
+        up42ResultsRaw = {
+          features: requestsFeaturesFlat,
+        }
+        log('results_flat', up42ResultsRaw)
+        return up42ResultsRaw
+      })
+      .catch((error) => {
+        log('Error on promise', error)
+      })
   }
 
   // TODO: TEST next
@@ -231,7 +239,6 @@ const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, sett
   log('UP42 PAYLOAD: \n', up42Payload, '\nRAW UP42 search results: \n', up42ResultsRaw, '\nJSON UP42 search results: \n', searchResultsJson)
 
   // Initiate search for previews/thumbnails
-  /*
   getUp42PreviewsAsync(searchResultsJson, up42BearerJson).then((results) => {
     if (setters) {
       const searchResults = {
@@ -257,9 +264,10 @@ const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, sett
     })
     .catch((error) => {
       log('UP42 error during prices retrieval, setting react state anyway')
-      setters.setSearchResults(searchResults)
+      // setters.setSearchResults(searchResults)
     })
-    */
+  /*
+   */
 
   return {
     searchResultsJson,
