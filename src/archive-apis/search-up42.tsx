@@ -23,6 +23,7 @@ import { log } from '../utilities'
 
 const UP42_LIMIT = 500 // can be 500
 const lookForNextPage = true
+const UP42_TIMEOUT_MS = 20_000
 
 /*
 const producerList = [
@@ -197,6 +198,7 @@ const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, sett
                   .post(up42SearchHostUrl, {
                     headers: { Authorization: up42BearerJson },
                     json: up42Payload,
+                    timeout: UP42_TIMEOUT_MS,
                   })
                   .json()) as any
                 log(`Host ${hostname} results: `, up42ResultsRaw)
@@ -208,9 +210,7 @@ const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, sett
                 log(errorMsg)
                 reject(errorMsg)
               }
-            }) /*.catch(function (error) {
-              throw new Error('Whoops!')
-            })*/,
+            }),
           },
         ]
       })

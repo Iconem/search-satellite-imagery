@@ -16,7 +16,11 @@ const useLocalStorage = (storageKey, fallbackState, compareTypes = true): any =>
   const [value, setValue] = React.useState(initValue)
 
   React.useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify(value))
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(value))
+    } catch (e) {
+      console.log('Local Storage is full, Cannot update storage key', storageKey)
+    }
   }, [value, storageKey])
 
   return [value, setValue]
