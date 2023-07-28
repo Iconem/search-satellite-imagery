@@ -149,4 +149,9 @@ const formatSkyfiResults = (skyfiResultsRaw, searchPolygon): GeoJSON.FeatureColl
   }
 }
 
+const get_aggregator_permalink = (feature, searchPolygon) => {
+  // https://app.skyfi.com/explore/crop/cd1a2c12-9266-44ca-9211-cd15a28598be?aoi=POLYGON%28%28-97.65035587767008+30.191975017380607%2C-97.47871005826741+30.191975017380607%2C-97.47871005826741+30.340856714206836%2C-97.65035587767008+30.340856714206836%2C-97.65035587767008+30.191975017380607%29%29
+  return `https://app.skyfi.com/explore/crop/${feature.archiveId}?aoi=${escape(wkt_stringify(searchPolygon))}`
+}
+
 export default searchSkyfi

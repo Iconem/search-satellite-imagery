@@ -137,6 +137,12 @@ const formatEosResults = (eosResultsRaw): GeoJSON.FeatureCollection => {
   }
 }
 
+// Permalink: `https://eos.com/landviewer/?lat=46.48496&lng=30.75310&z=14&preset=highResolutionSensors&purchase-scene=5f4d7c60f9c79365dce364137bb920cc`
+// With purchase-scene=${hash} where hash includes id of archive feature as well as AOI polygon
+const get_aggregator_permalink = (feature) => {
+  return `https://eos.com/landviewer/?preset=highResolutionSensors&purchase-scene=${feature.hash}`
+}
+
 /* -------------- */
 /*   EOS LOWRES   */
 /* -------------- */

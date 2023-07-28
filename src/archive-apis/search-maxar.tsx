@@ -121,6 +121,35 @@ const formatMaxarResults = (maxarResultsRaw, searchPolygon): GeoJSON.FeatureColl
 }
 
 // For deeplink, could store whole scenes selected with post request on https://api.discover.digitalglobe.com/v1/store
+const get_aggregator_permalink = async (feature, searchPolygon, maxarApikey) => {
+  if (maxarApikey === '') {
+    maxarApikey = process.env.MAXAR_DIGITALGLOBE_APIKEY
+  }
+  const maxarPayload = {
+    'Filter Criteria': { availableProductTypes: ['Core Imagery', 'In Track Stereo', 'Mosaic Products'], productType: 'Core Imagery', selectedProductLines: 'Vivid Basic', availableBands: ['PAN', '4-BANDS', '8-BANDS', 'SWIR'], selectedBands: ['4-BANDS', '8-BANDS'], availableGSDValues: ['Any resolution', 'Less than 40cm', 'Less than 50cm', 'Less than 60cm', 'Less than 70cm'], resolutionGSD: 'Any resolution', autoAlgorithm: 'By most current', startDate: '07-28-2021', endDate: '07-28-2023', cloudCover: 20, offNadir: 30, sunElevation: 0, isHighDefinitionSelected: false, maxOffNadir: 90, minSunElevation: 0 },
+    'Map Options': { selectedFootprintsOption: 'clip' },
+    'Area of Interests': {
+      type: 'FeatureCollection',
+      features: [searchPolygon],
+    },
+    stripsOrder: [{ id: feature.id, aoiId: 0, rank: 0 }],
+  }.toString()
+
+  const headers = {
+    'x-api-key': maxarApikey,
+    'Content-Type': 'application/x-www-form-urlencoded',
+    'content-length': maxarPayload.length.toString(),
+    'Transfer-Encoding': 'compress',
+  }
+
+  const storeObject = await ky
+    .post('https://api.discover.digitalglobe.com/v1/store', {
+      headers,
+      body: maxarPayload,
+    })
+    .json()
+  return `https://discover.maxar.com/${(storeObject as any).id}`
+}
 
 // For thumbnail, could have a look at https://api.discover.digitalglobe.com/v1/services/ImageServer/exportImage with form data payload as bbox=2.2686767578125004%2C48.86832824998009%2C2.2741699218750004%2C48.87194147722911&size=256%2C256&bboxSR=4326&imageSR=102100&format=png8&f=image&pixelType=U8&noDataInterpretation=esriNoDataMatchAny&interpolation=RSP_BilinearInterpolation&mosaicRule=%7B%20%22mosaicMethod%22%3A%20%22esriMosaicLockRaster%22%2C%20%22lockRasterIds%22%3A%20%5B13423329%2C13308451%5D%2C%20%22ascending%22%3A%20%22true%22%2C%20%22mosaicOperation%22%3A%20%22MT_FIRST%22%20%7D
 

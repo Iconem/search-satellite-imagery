@@ -51,6 +51,7 @@ Search satellite Imagery Archive on aggregators via their respective APIs (offic
 - Cleanup: search-utilities, make each search extends a search object class, polygon aoi be a single feature search param, each geojson feature be a real geojson feature (search input, results)
 - Put API search in its own ts module, eventually yield results the way loaders.gl does it
 - Use CloudFlare Proxy to avoid bandwidth usage to go up. See the [official doc](https://vercel.com/guides/using-cloudflare-with-vercel) or [here](https://akashrajpurohit.com/blog/how-to-setup-cloudflare-proxy-for-your-website-hosted-on-vercel-or-netlify/)
+- Set notification (define aoi and receive weekly notifications, or as soon as result appears). Would require user accounts and db and not be purely client-side.
 
 #### Serverless Proxy server - STAC conversion
 
@@ -72,7 +73,8 @@ Resources:
 
 ### Long Term
 
-- Helps order making/deep-links when available (no deep-links for any platform when checked unfortunately): make selection, export requests email with scene IDs
+- Helps order making/deep-links when available (no deep-links for any platform when checked unfortunately): make selection, export requests email with scene IDs, permalinks. Maxar sends post request to https://api.discover.digitalglobe.com/v1/store
+  , head-aerospace is not very clean. EOS has clean permalinks.
 - Order archive imagery via API (no tasking)
 - Not really useful: Offer ability to Cancel ongoing request/promise. Promise resolve will always execute after ky get/post request finally resolves
 - Not really useful: intro-js or react-joyride guided steps walkthrough
