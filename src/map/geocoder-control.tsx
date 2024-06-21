@@ -4,6 +4,7 @@
 import { useState } from 'react'
 import { useControl, type MarkerProps, type ControlPosition } from 'react-map-gl'
 import type * as React from 'react'
+import mapboxgl from 'mapbox-gl'
 
 import MapboxGeocoder, { type GeocoderOptions } from '@mapbox/mapbox-gl-geocoder'
 
@@ -25,24 +26,87 @@ type GeocoderControlProps = Omit<GeocoderOptions, 'accessToken' | 'mapboxgl' | '
 //   mapRef: PropTypes.any,
 // }
 
+
+
 // export default function GeocoderControl(props): React.ReactComponent {
 export default function GeocoderControl(props: GeocoderControlProps): React.ReactElement {
   const [marker, setMarker] = useState(null)
+  const coordinatesGeocoder = function (query) {
+    // Match anything which looks like
+    // decimal degrees coordinate pair.
+    const matches = query.match(
+        /^[ ]*(?:Lat: )?(-?\d+\.?\d*)[, ]+(?:Lng: )?(-?\d+\.?\d*)[ ]*$/i
+    );
+    if (!matches) {
+        return null;
+    }
+
+    function coordinateFeature(lng:any, lat:any) {
+        return {
+            center: [lng, lat],
+            geometry: {
+                type: 'Point',
+                coordinates: [lng, lat]
+            },
+            place_name: 'Lat: ' + lat + ' Lng: ' + lng,
+            place_type: ['coordinate'],
+            properties: {},
+            type: 'Feature'
+        };
+    }
+
+    const coord1 = Number(matches[1]);
+    const coord2 = Number(matches[2]);
+    const geocodes:any = [];
+    if (coord1 < -90 || coord1 > 90) {
+        // must be lng, lat
+        geocodes.push(coordinateFeature(coord1, coord2));
+    }
+
+    if (coord2 < -90 || coord2 > 90) {
+        // must be lat, lng
+        geocodes.push(coordinateFeature(coord2, coord1));
+    }
+
+    if (geocodes.length === 0) {
+        // else could be either lng, lat or lat, lng
+        geocodes.push(coordinateFeature(coord1, coord2));
+        geocodes.push(coordinateFeature(coord2, coord1));
+    }
+    // console.log('geocodes', geocodes[geocodes.length -1].center)
+    return geocodes;
+  };
 
   const geocoder = useControl<MapboxGeocoder>(
     () => {
       const ctrl = new MapboxGeocoder({
         ...props,
+        localGeocoder: coordinatesGeocoder,
+        zoom: 12,
         marker: false,
         accessToken: props.mapboxAccessToken,
-        flyTo: { duration: 0 },
-      })
+        flyTo: { duration: 100 },
+      });
       //   ctrl.on('loading', props.onLoading);
       //   ctrl.on('results', props.onResults);
       ctrl.on('result', (evt) => {
         console.log('RESULT', evt)
+        console.log('bbox', evt?.result)
         // props.onResult(evt)
-        props.mapRef?.current?.fitBounds(evt?.result?.bbox, {
+        // console.log('geocodes', {
+        //   lng: geocodes[geocodes.length -1].center[0],
+        //   lat: geocodes[geocodes.length -1].center[1]})
+        let bounds = evt?.result?.bbox ? evt?.result?.bbox : new mapboxgl.LngLatBounds(
+          {
+          lng: evt?.result.center[0] - 0.25,
+          lat: evt?.result.center[1] -0.25
+          }, 
+          {
+            lng: evt?.result.center[0] + 0.25,
+            lat: evt?.result.center[1] + 0.25
+          }
+        );
+        props.mapRef?.current?.fitBounds(bounds, {
           padding: 0,
           center: evt?.result?.center,
         })
