@@ -174,7 +174,7 @@ function App(props): React.ReactElement {
         mapboxAccessToken={MAPBOX_TOKEN}
         renderWorldCopies={false}
         dragRotate={false}
-        projection={'naturalEarth'} // globe mercator naturalEarth equalEarth  // TODO: eventually make projection controllable
+        projection={'mercator'} // globe mercator naturalEarth equalEarth  // TODO: eventually make projection controllable
 
         // bounds= {[-180, -80, 180, 80]} // overrides longitude, latitude, zoom
         // fitBoundsOptions={{padding: 150}}

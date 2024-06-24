@@ -7,6 +7,7 @@ import type * as React from 'react'
 import mapboxgl from 'mapbox-gl'
 
 import MapboxGeocoder, { type GeocoderOptions } from '@mapbox/mapbox-gl-geocoder'
+import { ScaleControl } from 'react-map-gl'
 
 type GeocoderControlProps = Omit<GeocoderOptions, 'accessToken' | 'mapboxgl' | 'marker'> & {
   mapboxAccessToken: string
@@ -82,7 +83,8 @@ export default function GeocoderControl(props: GeocoderControlProps): React.Reac
       const ctrl = new MapboxGeocoder({
         ...props,
         localGeocoder: coordinatesGeocoder,
-        zoom: 12,
+        addressAccuracy: 'place',
+        zoom: 15,
         marker: false,
         accessToken: props.mapboxAccessToken,
         flyTo: { duration: 100 },
@@ -93,9 +95,7 @@ export default function GeocoderControl(props: GeocoderControlProps): React.Reac
         console.log('RESULT', evt)
         console.log('bbox', evt?.result)
         // props.onResult(evt)
-        // console.log('geocodes', {
-        //   lng: geocodes[geocodes.length -1].center[0],
-        //   lat: geocodes[geocodes.length -1].center[1]})
+
         let bounds = evt?.result?.bbox ? evt?.result?.bbox : new mapboxgl.LngLatBounds(
           {
           lng: evt?.result.center[0] - 0.25,
