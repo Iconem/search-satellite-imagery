@@ -51,7 +51,14 @@ Search satellite Imagery Archive on aggregators via their respective APIs (offic
 - Cleanup: search-utilities, make each search extends a search object class, polygon aoi be a single feature search param, each geojson feature be a real geojson feature (search input, results)
 - Put API search in its own ts module, eventually yield results the way loaders.gl does it
 - Use CloudFlare Proxy to avoid bandwidth usage to go up. See the [official doc](https://vercel.com/guides/using-cloudflare-with-vercel) or [here](https://akashrajpurohit.com/blog/how-to-setup-cloudflare-proxy-for-your-website-hosted-on-vercel-or-netlify/)
+
+### Long Term
+
+- Helps order making/deep-links when available (no deep-links for any platform when checked unfortunately): make selection, export requests email with scene IDs, permalinks. Maxar sends post request to https://api.discover.digitalglobe.com/v1/store , head-aerospace is not very clean. EOS has clean permalinks.
+- Not really useful: Offer ability to Cancel ongoing request/promise cancellation. Promise resolve will always execute after ky get/post request finally resolves
+- Not really useful: [intro-js](https://github.com/usablica/intro.js) or [reactour](https://reactour.vercel.app/) (or react-joyride) guided steps walkthrough/onboarding guides
 - Set notification (define aoi and receive weekly notifications, or as soon as result appears). Would require user accounts and db and not be purely client-side.
+- Order archive imagery via API (no tasking)
 
 #### Serverless Proxy server - STAC conversion
 
@@ -70,14 +77,6 @@ Resources:
 - next.js 8 blog post on [serverless](https://nextjs.org/blog/next-8#serverless-nextjs)
 - See how to deploy serverless next-js on [azure functions](https://learn.microsoft.com/en-us/azure/static-web-apps/deploy-nextjs-hybrid) or also [here](https://www.erwinsmit.com/nextjs-on-azure-functions/)
 - [Vercel Serverless on Vite framework](https://vercel.com/docs/frameworks/vite#serverless-functions)
-
-### Long Term
-
-- Helps order making/deep-links when available (no deep-links for any platform when checked unfortunately): make selection, export requests email with scene IDs, permalinks. Maxar sends post request to https://api.discover.digitalglobe.com/v1/store
-  , head-aerospace is not very clean. EOS has clean permalinks.
-- Order archive imagery via API (no tasking)
-- Not really useful: Offer ability to Cancel ongoing request/promise. Promise resolve will always execute after ky get/post request finally resolves
-- Not really useful: intro-js or react-joyride guided steps walkthrough
 
 Never
 

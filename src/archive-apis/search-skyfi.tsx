@@ -10,6 +10,7 @@ import { parse as wkt_parse, stringify as wkt_stringify } from 'wellknown'
 /* -------------- */
 /*      SKYFI     */
 /* -------------- */
+// API Docs: https://app.skyfi.com/platform-api/redoc
 // App: https://app.skyfi.com/explore
 // POST on https://app.skyfi.com/api/archive-available
 // Payload: {"clientType":"DESKTOP","fromDate":"2018-12-31T23:00:00.000Z","toDate":"2023-01-24T10:21:44.465Z","maxCloudCoveragePercent":20,"resolutions":["VERY HIGH","HIGH"],"sensors":["DAY","NIGHT","MULTISPECTRAL"],"imageCropping":{"wktString":"POLYGON((-77.05679665567264 38.899388312735795,-77.02040942302703 38.899388312735795,-77.02040942302703 38.92503663542644,-77.05679665567264 38.92503663542644,-77.05679665567264 38.899388312735795))"},"page":0,"pageSize":25}

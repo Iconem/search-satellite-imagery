@@ -17,6 +17,8 @@ import { log } from '../utilities'
 
 const MAXAR_LIMIT = 500
 const MAXAR_SEARCH_URL = 'https://api.discover.digitalglobe.com/v1/services/ImageServer/query'
+// SecureWatch being sunset and replaced by MGP (free/pro) https://xpress.maxar.com/
+//Url with Bearer auth header https://api.maxar.com/discovery/v1/search?collections=ge01,wv02,wv03-vnir&bbox=2.331694939750504,48.84547226270402,2.3702118182411462,48.86031571777056&datetime=2021-08-03T00%3A00%3A00Z%2F2023-08-03T23%3A59%3A59Z&where=eo%3Acloud_cover%20%3C%3D%2020%20and%20view%3Aoff_nadir%20%3C%3D%2030%20and%20view%3Asun_elevation_max%20%3E%3D%200&orderby=datetime%20DESC&limit=50&page=1
 
 // CORS needed to reach maxar api server
 const searchMaxar = async (searchSettings, maxarApikey, searchPolygon = null, setters = null, maxarBearerJson = null, maxarNextLinks = null): Promise<any> => {
