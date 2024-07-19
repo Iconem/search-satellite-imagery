@@ -83,8 +83,14 @@ function App(props): React.ReactElement {
   const [basemapStyle, setBasemapStyle]: [string, any] = useLocalStorage('UI_map_basemapStyle', 'satellite-streets-v11')
   const [rasterOpacity, setRasterOpacity] = useLocalStorage('UI_rasterOpacity', 0.8)
   const [splitPanelSizesPercent, setSplitPanelSizesPercent] = useLocalStorage('UI_splitPanelSizesPercent', [75, 25])
-  const [viewState, setViewState] = useLocalStorage('UI_map_viewState', defaultViewStateNaturalearth, false)
-  
+  // const [viewState, setViewState] = useLocalStorage('UI_map_viewState', defaultViewStateNaturalearth, false)
+  const [viewState, setViewState] = React.useState({
+    zoom: 3,
+    latitude: 0,
+    longitude: 0,
+    pitch: 0,
+  });
+
   React.useEffect( () => {
     const hash = window.location.hash;
     let hashed_viewstate = hash
