@@ -84,6 +84,24 @@ function App(props): React.ReactElement {
   const [rasterOpacity, setRasterOpacity] = useLocalStorage('UI_rasterOpacity', 0.8)
   const [splitPanelSizesPercent, setSplitPanelSizesPercent] = useLocalStorage('UI_splitPanelSizesPercent', [75, 25])
   const [viewState, setViewState] = useLocalStorage('UI_map_viewState', defaultViewStateNaturalearth, false)
+  
+  React.useEffect( () => {
+    const hash = window.location.hash;
+    let hashed_viewstate = hash
+      .substring(1)
+      .split("/")
+      .map((x) => parseFloat(x));
+    if (hashed_viewstate.length !== 3) {
+      hashed_viewstate = [3, 10, 0];
+    }
+    setViewState({
+      zoom: hashed_viewstate[0],
+      latitude: hashed_viewstate[1],
+      longitude: hashed_viewstate[2],
+      pitch: 0,
+    })
+  }, [])
+
 
   // Edit map center when split panel modified
   const prevSplitPanelSizesPercent = usePrevious(splitPanelSizesPercent)
