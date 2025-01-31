@@ -177,27 +177,6 @@ function ApiKeysModalComponent(props): React.ReactElement {
               </ListItem>
 
               <ListItem sx={{ display: 'list-item' }}>
-                <Typography variant="h6">
-                  <Link href="https://headfinder.head-aerospace.eu/sales" target="_blank">
-                    Head Aerospace Finder
-                  </Link>
-                </Typography>
-              </ListItem>
-              <ListItem sx={{ display: 'list-item' }}>
-                <TextField
-                  value={props.apiKeys[Providers.HEADAEROSPACE]}
-                  onChange={(event) =>
-                    props.setApiKeys({
-                      ...props.apiKeys,
-                      [Providers.HEADAEROSPACE]: event.target.value,
-                    })
-                  }
-                  label="HEAD Aerospace API key"
-                  type="search"
-                  sx={{ width: '50%' }}
-                />
-              </ListItem>
-              <ListItem sx={{ display: 'list-item' }}>
                 <TextField
                   value={props.apiKeys[Providers.MAXAR_DIGITALGLOBE]}
                   onChange={(event) =>
