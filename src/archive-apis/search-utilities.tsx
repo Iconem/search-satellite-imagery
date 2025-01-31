@@ -116,7 +116,6 @@ enum Constellation {
 
 enum Providers {
   UP42 = 'UP42',
-  HEADAEROSPACE = 'HEAD',
   MAXAR_DIGITALGLOBE = 'MAXAR',
   EOS = 'EOS',
   SKYWATCH = 'SKYWATCH',
@@ -138,7 +137,6 @@ const providersDict = {
     // Constellation.NearMap,
     // Constellation.HxGN,
   ],
-  [Providers.HEADAEROSPACE]: [Constellation.Superview1, Constellation.Superview2, Constellation.EarthScanner, Constellation.Gaofen2, Constellation.Gaofen7, Constellation.DailyVision],
   [Providers.MAXAR_DIGITALGLOBE]: [Constellation.GeoEye, Constellation.WorldView_1_2, Constellation.WorldView_3_4, Constellation.QuickBird2, Constellation.Ikonos1],
   [Providers.EOS]: [Constellation.Superview1, Constellation.Superview2, Constellation.Kompsat3, Constellation.Kompsat2, Constellation.Gaofen1],
   [Providers.SKYWATCH]: [Constellation.PlanetSkysat, Constellation.TripleSat, Constellation.Pleiades, Constellation.PleiadesNeo, Constellation.Kompsat3, Constellation.Kompsat2],
