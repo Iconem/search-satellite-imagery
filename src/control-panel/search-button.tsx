@@ -6,9 +6,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { shapeIntersection, Providers, filterFeaturesWithSearchParams } from '../archive-apis/search-utilities'
 import PropTypes from 'prop-types'
 
-// import {searchUp42, searchEosHighres, searchSkywatch, searchHead, searchMaxar} from './search-apis'
+// import {searchUp42, searchEosHighres, searchSkywatch, searchMaxar} from './search-apis'
 import searchUp42 from '../archive-apis/search-up42'
-import searchHead from '../archive-apis/search-head'
 import searchMaxar from '../archive-apis/search-maxar'
 import { searchEosHighres } from '../archive-apis/search-eos'
 import searchSkywatch from '../archive-apis/search-skywatch'
@@ -72,7 +71,6 @@ function SearchButton(props): React.ReactElement {
 
 const providersSearch = {
   [Providers.UP42]: searchUp42,
-  [Providers.HEADAEROSPACE]: searchHead,
   [Providers.MAXAR_DIGITALGLOBE]: searchMaxar,
   [Providers.EOS]: searchEosHighres,
   [Providers.SKYWATCH]: searchSkywatch,
