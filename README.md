@@ -18,14 +18,6 @@ Search satellite Imagery Archive on aggregators via their respective APIs (offic
   - [SKYFI](https://app.skyfi.com/explore)
   - [ApolloMapping ImageHunter](http://imagehunter.apollomapping.com/), pricing not available
 
-We're currently evaluating adding the following (complete list [here](https://github.com/Iconem/search-satellite-imagery/issues/3)):
-
-* [Geopera](https://portal.geopera.com/) 
-* [Pixxel Space Aurora](https://aurora.pixxel.space/iconem) 
-* [Maxar Xpress](https://xpress.maxar.com/)
-* [Satellogic Aleph](https://aleph.satellogic.com/) 
-* [Birdi.io](https://www.birdi.io)
-
 ![Screenshot](screenshot.jpg)
 
 ## Features
@@ -46,23 +38,24 @@ We're currently evaluating adding the following (complete list [here](https://gi
 
 #### New agregations:
 
-- Integrate already aggregated constellations directly if authorized to do so, like [Planet](https://developers.planet.com/docs/apis/data/reference/#tag/Item-Search/operation/ListSearches) or [Airbus OneAtlas Pleiades directly](https://api.oneatlas.airbus.com/guides/oneatlas-data/g-search/) (would then indicate unknown price since often under NDA),[Vexcel API](https://vexcel.atlassian.net/wiki/spaces/APIDOCS/pages/2131886750/FindImagesInPolygon+Service+-+v1.4),
-- Integrate other satellite imagery providers in the list: (requires paid account for high-res search and api), Umbra space SAR [Canopy](https://docs.canopy.umbra.space/reference/search_search_get). BlackSky requires NDA for API access, [GeoCento](https://imagery.geocento.com/) uses GWT RPC internally, also offers API access, [AxelGlobe](https://axelglobe.com/) (Hard. use upcoming stac search endpoint if apikey gated access allows it (on selected aoi) or harder, possible via graphql request to get tiles spatial-identifiers covering polygon and then count tiles overlapping a region from spatial id and time range), Not yet publicly available and access requested: [Satellogic Aleph](https://aleph.satellogic.com/) (early access to platform seem closed now), [Albedo](https://albedo.com/product-specs) 10cm visible will have a STAC endpoint delivering COGs, Pixxel [Early adopters program](https://www.pixxel.space/early-adopter-program) 5m hyperspectral 300bands,
+We're currently evaluating adding the following (complete list [here](https://github.com/Iconem/search-satellite-imagery/issues/3)):
+
+- [Geopera](https://portal.geopera.com/) 
+- [Pixxel Space Aurora](https://aurora.pixxel.space/iconem) 
+- [Maxar Xpress](https://xpress.maxar.com/)
+- [Satellogic Aleph](https://aleph.satellogic.com/) 
 
 #### New Features/Fixes
 
 - Search any new STAC catalog (UP42 is one): Give it the STAC API URL, parse results and columns to display in datagrid. Could use existing STAC js tooling like [m-mohr/stac-js](https://github.com/m-mohr/stac-js) , but there does not seem to be any JS search client library - only full-fledged apps like [stac-server](https://github.com/stac-utils/stac-server) or [leaflet layer](https://github.com/stac-utils/stac-layer) and [stac-search](https://github.com/radiantearth/stac-browser/) (to deploy a stac, these are the go-to resource: [stac-fastapi](https://github.com/stac-utils/stac-fastapi) and pystac)
 - Cleanup: search-utilities, make each search extends a search object class, polygon aoi be a single feature search param, each geojson feature be a real geojson feature (search input, results)
 - Put API search in its own ts module, eventually yield results the way loaders.gl does it
-- Use CloudFlare Proxy to avoid bandwidth usage to go up. See the [official doc](https://vercel.com/guides/using-cloudflare-with-vercel) or [here](https://akashrajpurohit.com/blog/how-to-setup-cloudflare-proxy-for-your-website-hosted-on-vercel-or-netlify/)
+- Use CloudFlare Proxy to deal with Cross-Proxy. See the [official doc](https://vercel.com/guides/using-cloudflare-with-vercel) or [here](https://akashrajpurohit.com/blog/how-to-setup-cloudflare-proxy-for-your-website-hosted-on-vercel-or-netlify/)
 
 ### Long Term
 
 - Helps order making/deep-links when available (no deep-links for any platform when checked unfortunately): make selection, export requests email with scene IDs, permalinks. Maxar sends post request to https://api.discover.digitalglobe.com/v1/store , head-aerospace is not very clean. EOS has clean permalinks.
-- Not really useful: Offer ability to Cancel ongoing request/promise cancellation. Promise resolve will always execute after ky get/post request finally resolves
 - Not really useful: [intro-js](https://github.com/usablica/intro.js) or [reactour](https://reactour.vercel.app/) (or react-joyride) guided steps walkthrough/onboarding guides
-- Set notification (define aoi and receive weekly notifications, or as soon as result appears). Would require user accounts and db and not be purely client-side.
-- Order archive imagery via API (no tasking)
 
 #### Serverless Proxy server - STAC conversion
 
