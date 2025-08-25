@@ -7,7 +7,7 @@ Search satellite Imagery Archive on aggregators via their respective APIs (offic
 - Open-data:
 
   - [OpenAerialMap](https://map.openaerialmap.org/), free and open-data
-  - [STAC](https://stacspec.org/en) catalogs in dev mode for now (catalog endpoint not editbale through UI yet, need to edit search-API file)
+  - [STAC](https://stacspec.org/en) search endpoint for landsat/sentinel on EarthSearch. In dev mode for now, catalog endpoint not editbale through UI yet, need to edit search-API file. 
 
 - Commercial Agregators:
 
@@ -16,11 +16,15 @@ Search satellite Imagery Archive on aggregators via their respective APIs (offic
   - [SKYWATCH EarthCache](https://console.earthcache.com/search-archive)
   - [ARLULA Catalog](https://api.arlula.com/catalog)
   - [SKYFI](https://app.skyfi.com/explore)
-  - [HEAD Aerospace](https://headfinder.head-aerospace.eu/sales), pricing not available
   - [ApolloMapping ImageHunter](http://imagehunter.apollomapping.com/), pricing not available
 
-- Constellation/Providers:
-  - [MAXAR](https://discover.maxar.com)
+We're currently evaluating adding the following (complete list [here](https://github.com/Iconem/search-satellite-imagery/issues/3)):
+
+* [Geopera](https://portal.geopera.com/) 
+* [Pixxel Space Aurora](https://aurora.pixxel.space/iconem) 
+* [Maxar Xpress](https://xpress.maxar.com/)
+* [Satellogic Aleph](https://aleph.satellogic.com/) 
+* [Birdi.io](https://www.birdi.io)
 
 ![Screenshot](screenshot.jpg)
 
