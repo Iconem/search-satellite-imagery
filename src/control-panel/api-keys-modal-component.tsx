@@ -48,7 +48,13 @@ function ApiKeysModalComponent(props): React.ReactElement {
         }}
       >
         <Fade in={infoModalOpen}>
-          <Box sx={infoModalStyle}>
+          <Box
+            sx={{
+              ...infoModalStyle,
+              maxHeight: '100vh',
+              overflowY: 'auto',
+            }}
+          >
             <Typography variant="h5" component="h2">
               API Keys for satellite archive retrieval
             </Typography>
@@ -100,34 +106,34 @@ function ApiKeysModalComponent(props): React.ReactElement {
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <TextField
-                  value={props.apiKeys[Providers.UP42].projectId}
+                  value={props.apiKeys[Providers.UP42].up42Email}
                   onChange={(event) =>
                     props.setApiKeys({
                       ...props.apiKeys,
                       [Providers.UP42]: {
                         ...props.apiKeys[Providers.UP42],
-                        projectId: event.target.value,
+                        up42Email: event.target.value,
                       },
                     })
                   }
-                  label="UP42 Project ID"
+                  label="Email"
                   type="search"
                   sx={{ width: '50%' }}
                 />
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <TextField
-                  value={props.apiKeys[Providers.UP42].projectApiKey}
+                  value={props.apiKeys[Providers.UP42].up42Password}
                   onChange={(event) =>
                     props.setApiKeys({
                       ...props.apiKeys,
                       [Providers.UP42]: {
                         ...props.apiKeys[Providers.UP42],
-                        projectApiKey: event.target.value,
+                        up42Password: event.target.value,
                       },
                     })
                   }
-                  label="UP42 Project API key"
+                  label="Password"
                   type="search"
                   sx={{ width: '50%' }}
                 />

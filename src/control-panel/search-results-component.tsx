@@ -127,7 +127,8 @@ const datagridColumns: GridColDef[] = [
     width: 80,
     valueGetter: (params) => parseFloat(params.row?.price),
     renderCell: (params) => {
-      return <p>{`${checkUnknown(params.value, ' $')}`}</p> // USD EURO
+      const value = params.value;
+      return <p>{value === null ? '-' : `${checkUnknown(value, ' $')}`}</p>;// USD EURO
     },
     renderHeader: () => <strong>Price</strong>,
   },
@@ -256,7 +257,7 @@ const datagridColumns: GridColDef[] = [
         }}
         alt=""
         src={params.value}
-        // onerror={"this.src='alternative.jpg';"}
+      // onerror={"this.src='alternative.jpg';"}
       />
     ),
     valueGetter: (params) => params.row?.thumbnail_uri, // thumbnail_uri or preview_uri
@@ -482,7 +483,7 @@ function SearchResultsComponent(props): React.ReactElement {
               localeText={{
                 filterOperatorNoContain: 'does not contain',
               }}
-              // filterModel={filterModel}
+            // filterModel={filterModel}
             />
           </div>
         </div>

@@ -15,17 +15,15 @@ import * as React from 'react'
 import { Snackbar, Alert, Collapse, Box, Grid, Stack, Typography, Link } from '@mui/material'
 
 // Other imports
-import { useLocalStorage, GSD_STEPS } from '../utilities'
+import { useLocalStorage, GSD_STEPS, log } from '../utilities'
 import area from '@turf/area'
 // FontAwesome icons https://fontawesome.com/icons
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronDown, faChevronUp, faDrawPolygon, faSliders, faEarthEurope } from '@fortawesome/free-solid-svg-icons'
 import { faTwitter, faGithub } from '@fortawesome/free-brands-svg-icons'
-// import { solid, brands } from '@fortawesome/fontawesome-svg-core/import.macro'
-
-import { Providers } from '../archive-apis/search-utilities'
+import { getUp42Bearer, getDataCollections } from '../archive-apis/search-up42'
+import { Providers, providersDict as initialProvidersDict, constellationDict as initialConstellationDict, extractUp42HostsWithGsd } from '../archive-apis/search-utilities'
 import PropTypes from 'prop-types'
-
 import DateRangeComponent from './date-range-component'
 import SettingsComponent from './settings-component'
 import SearchResultsComponent from './search-results-component'
@@ -33,10 +31,9 @@ import ApiKeysModalComponent from './api-keys-modal-component'
 import SearchButton from './search-button'
 import ExportButton from './export-button'
 import APIRequestsStatuses from './api-requests-statuses'
-import { sourcesTreeviewInitialSelection } from './satellite-imagery-sources-treeview'
-
-// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-// import { solid, regular, brands, icon } from '@fortawesome/fontawesome-svg-core/import.macro' // <-- import styles to be used
+import { sourcesTreeviewInitialSelection, buildTreeviewData } from './satellite-imagery-sources-treeview'
+import { useState } from 'react'
+import isEqual from 'lodash/isEqual'
 
 /* Display COMPONENTS */
 /* AOI area COMPONENT */
@@ -74,11 +71,6 @@ function AOIComponent(props): React.ReactElement {
 /* COMPONENTS DEFINITION */
 /* CONTROL PANEL */
 /* -------------------- */
-// const handleSlider = (state_property) => (event: Event, newValue: number | number[]) =>
-// setSearchSettings({
-//   ...searchSettings,
-//   [state_property]: newValue
-// })
 const millisecondsPerDay = 24 * 60 * 60 * 1000
 ControlPanel.propTypes = {
   polygons: PropTypes.any,
@@ -89,12 +81,21 @@ ControlPanel.propTypes = {
   mapRef: PropTypes.any,
   theme: PropTypes.any,
 }
-function ControlPanel(props): React.ReactElement {
+
+interface ControlPanelProps {
+  polygons?: any;
+  searchResults?: any;
+  setSearchResults?: (value: any) => void;
+  footprintFeatures?: any;
+  setFootprintFeatures?: (value: any) => void;
+  mapRef?: any;
+  theme?: any;
+}
+function ControlPanel(props: ControlPanelProps): React.ReactElement {
   const polygons = props.polygons
   // Fit all search settings in a single react state object
   const today = new Date()
   const [searchSettings, setSearchSettings] = useLocalStorage('searchSettings', {
-    // polygon: null,
     startDate: new Date(today.getTime() - 1200 * millisecondsPerDay), // 30
     endDate: today,
     gsdIndex: [0, 4],
@@ -114,8 +115,8 @@ function ControlPanel(props): React.ReactElement {
 
   const [apiKeys, setApiKeys] = useLocalStorage('apiKeys', {
     [Providers.UP42]: {
-      projectId: '',
-      projectApiKey: '',
+      up42Email: '',
+      up42Password: '',
     },
     [Providers.EOS]: '',
     [Providers.SKYWATCH]: '',
@@ -146,8 +147,6 @@ function ControlPanel(props): React.ReactElement {
 
   const [loadingResults, setLoadingResults] = React.useState(false)
   const [searchPromises, setSearchPromises] = React.useState([])
-
-  // const [settingsCollapsed, setSettingsCollapsed] = React.useState(false);
   const [settingsCollapsed, setSettingsCollapsed] = useLocalStorage('UI_collapsed_settings', false)
   const [snackbarOptions, setSnackbarOptions] = React.useState({
     open: false,
@@ -163,6 +162,68 @@ function ControlPanel(props): React.ReactElement {
     })
   }
 
+  //get Bearer and datacollection for UP42
+  const [token, setToken] = useState<string | null>(null);
+  const [dataCollection, setDataCollection] = useLocalStorage(
+    "dataCollection",
+    []
+  )
+  const [providersTreeviewDataSelection, setProvidersTreeviewDataSelection] = useLocalStorage(
+    'providersTreeviewDataSelection',
+    []
+  )
+
+  React.useEffect(() => {
+    (async () => {
+      const { up42Email, up42Password } = apiKeys[Providers.UP42];
+      const newToken = await getUp42Bearer(up42Email, up42Password);
+      setToken((prev) => (prev === newToken ? prev : newToken));
+
+      const data = await getDataCollections(newToken, up42Email, up42Password);
+      setDataCollection((prev) => {
+        if (isEqual(prev, data)) {
+          return prev;
+        }
+        return data;
+      });
+    })();
+  }, [apiKeys[Providers.UP42].up42Email, apiKeys[Providers.UP42].up42Password]);
+
+  const { providersDict, constellationDict } = React.useMemo(() => {
+    if (dataCollection.length === 0) {
+      return { providersDict: {}, constellationDict: {} };
+    }
+
+    const up42Hosts = extractUp42HostsWithGsd(dataCollection);
+
+    const newProvidersDict = {
+      ...initialProvidersDict,
+      [Providers.UP42]: up42Hosts.map(host => host.title)
+    };
+    const newConstellationDict: Record<string, any> = {};
+    up42Hosts.forEach(host => {
+      newConstellationDict[host.title] = {
+        satellites: host.satellites,
+        gsd: host.gsd
+      };
+    });
+
+    return { providersDict: newProvidersDict, constellationDict: newConstellationDict };
+  }, [dataCollection]);
+
+  const treeviewData = React.useMemo(
+    () => (dataCollection.length ? buildTreeviewData(providersDict, constellationDict) : null),
+    [dataCollection, providersDict, constellationDict]
+  );
+
+  // Initialize selection when treeviewData is ready and selection is empty
+  React.useEffect(() => {
+    if (treeviewData && providersTreeviewDataSelection.length === 0) {
+      const initialSelection = sourcesTreeviewInitialSelection(treeviewData)
+      setProvidersTreeviewDataSelection(initialSelection)
+    }
+  }, [treeviewData])
+
   const setters = {
     setSearchResults: props.setSearchResults,
     setSearchPromises,
@@ -170,18 +231,10 @@ function ControlPanel(props): React.ReactElement {
     setSettingsCollapsed,
     setSnackbarOptions,
   }
-
-  const [providersTreeviewDataSelection, setProvidersTreeviewDataSelection] = useLocalStorage('providersTreeviewDataSelection', sourcesTreeviewInitialSelection())
   const theme = props.theme
 
   return (
     <>
-      {/* 
-      <Container sx={{
-        background: theme.palette.background.default,
-        color: theme.palette.text.primary}}>TOTO</Container> 
-      */}
-
       <div
         className="control-panel"
         style={{
@@ -190,11 +243,7 @@ function ControlPanel(props): React.ReactElement {
           width: '100%',
           height: '100%',
           pointerEvents: 'auto',
-          // minWidth: '400px',
-
-          // position: 'absolute',
           right: 0,
-          // maxWidth: '480px',
           boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
           padding: '12px 24px',
           outline: 'none',
@@ -225,7 +274,6 @@ function ControlPanel(props): React.ReactElement {
                 <Link href="https://github.com/Iconem/search-satellite-imagery/" title={'Github Repo'} target="_blank" color={'inherit'}>
                   <FontAwesomeIcon icon={faGithub} />
                 </Link>
-                {/* <Link href="https://github.com/Iconem/search-satellite-imagery/" title={'Github Repo'} target="_blank" color={"inherit"}><FontAwesomeIcon icon={brands('twitter')} /></Link> */}
               </Typography>
             </Grid>
           </Grid>
@@ -252,7 +300,14 @@ function ControlPanel(props): React.ReactElement {
             }}
           >
             <Stack spacing={2}>
-              <SettingsComponent searchSettings={searchSettings} setSearchSettings={setSearchSettings} GSD_STEPS={GSD_STEPS} setProvidersTreeviewDataSelection={setProvidersTreeviewDataSelection} providersTreeviewDataSelection={providersTreeviewDataSelection} />
+              <SettingsComponent
+                searchSettings={searchSettings}
+                setSearchSettings={setSearchSettings}
+                GSD_STEPS={GSD_STEPS}
+                setProvidersTreeviewDataSelection={setProvidersTreeviewDataSelection}
+                providersTreeviewDataSelection={providersTreeviewDataSelection}
+                treeviewData={treeviewData}
+              />
 
               <ApiKeysModalComponent apiKeys={apiKeys} setApiKeys={setApiKeys} />
             </Stack>
@@ -261,7 +316,18 @@ function ControlPanel(props): React.ReactElement {
           {/*  SEARCH BUTTON  */}
           <Grid container spacing={2}>
             <Grid item xs={11}>
-              <SearchButton theme={props.theme} setters={setters} /* among which the important setSearchResults */ polygons={polygons} searchSettings={searchSettings} apiKeys={apiKeys} loadingResults={loadingResults} providersTreeviewDataSelection={providersTreeviewDataSelection} />
+              <SearchButton
+                theme={props.theme}
+                setters={setters} /* among which the important setSearchResults */
+                polygons={polygons}
+                searchSettings={searchSettings}
+                apiKeys={apiKeys}
+                loadingResults={loadingResults}
+                providersTreeviewDataSelection={providersTreeviewDataSelection}
+                token={token}
+                dataCollection={dataCollection}
+
+              />
             </Grid>
             <Grid item xs={1}>
               <ExportButton searchResults={props.searchResults} />
@@ -272,7 +338,6 @@ function ControlPanel(props): React.ReactElement {
             open={snackbarOptions.open}
             autoHideDuration={5000}
             onClose={handleSnackbarClose}
-            // message={snackbarOptions.message}
           >
             <Alert onClose={handleSnackbarClose} severity="warning" sx={{ width: '100%' }}>
               {snackbarOptions.message}

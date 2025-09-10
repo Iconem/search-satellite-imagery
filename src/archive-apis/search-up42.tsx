@@ -1,8 +1,7 @@
-// Code for searching UP42 STAC API
+// Code for searching UP42 STAC APIpost
 
 import ky from 'ky'
-import { encode as base64_encode } from 'base-64'
-import { getImageryPrice, up42ConstellationDict, providersDict, Providers, up42ProducersNames } from './search-utilities'
+import { getImageryPrice, up42ConstellationDict, providersDict, Providers, up42ProducersNames, processInChunks, extractUp42HostsWithGsd } from './search-utilities'
 import { v4 as uuidv4 } from 'uuid'
 import { log } from '../utilities'
 
@@ -21,19 +20,9 @@ import { log } from '../utilities'
 // host among [nearspacelabs, 21at, oneatlas, airbus, capellaspace, iceye, spectra, airbus, intermap]
 // https://api.up42.com/catalog/hosts/${hostname}/stac/search
 
-const UP42_LIMIT = 500 // can be 500
+const UP42_LIMIT = 100 // can be 500
 const lookForNextPage = true
 const UP42_TIMEOUT_MS = 20_000
-
-/*
-const producerList = [
-  'Airbus', // Pleiades and Neo
-  'ESA',    // probably SPOT
-  // 'CAPELLA_SPACE', // radar
-  'TWENTY_ONE_AT',    // TripleSat
-  'NEAR_SPACE_LABS'   // stratospheric balloons
-]
-*/
 const producerList = providersDict[Providers.UP42].map((constellation) => up42ProducersNames[constellation])
 const useDeprecatedApi = false
 const excludeHosts = ['airbus-elevation', 'intermap', 'airbus'] // 'hexagon', 'head-aerospace', 'satellogic', 'iceye', 'spectra']
@@ -50,46 +39,79 @@ returns a base64 image
 */
 
 const UP42_SEARCH_URL = 'https://api.up42.com/catalog/stac/search'
-const getUp42Bearer = async (up42Apikey): Promise<string> => {
-  if (up42Apikey.projectId === '' || up42Apikey.projectApiKey === '') {
-    up42Apikey = {
-      projectId: process.env.UP42_PROJECT_ID,
-      projectApiKey: process.env.UP42_PROJECT_APIKEY,
-    }
-  }
-  const up42ProjectApi = base64_encode(`${up42Apikey.projectId as string}:${up42Apikey.projectApiKey as string}`) as string
-  const up42OauthJson = await ky
-    .post(`https://api.up42.com/oauth/token`, {
-      headers: {
-        Authorization: `Basic ${up42ProjectApi}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: 'grant_type=client_credentials',
-    })
-    .json()
 
-  const up42BearerJson = `Bearer ${(up42OauthJson as any).access_token as string}`
-  // console.log(`UP42 API KEY (projectId:projectApiKey): ${up42Apikey.projectId}:${up42Apikey.projectApiKey}`)
-  // console.log('up42BearerJson', {up42_bearer: up42BearerJson})
-  return up42BearerJson
-}
+const getUp42Bearer = async (
+  email?: string,
+  password?: string
+): Promise<string> => {
+  const username = email && email.trim() !== "" ? email : process.env.REACT_APP_UP42_ACCOUNT_EMAIL;
+  const pwd = password && password.trim() !== "" ? password : process.env.REACT_APP_UP42_ACCOUNT_PASSWORD;
+  const formData = new URLSearchParams();
+  if (!username || !pwd) {
+    throw new Error("Missing credentials: email or password is undefined");
+  }
+  formData.append("username", username);
+  formData.append("password", pwd);
+  formData.append('grant_type', 'password');
+  formData.append('client_id', 'up42-api');
+
+  try {
+    const up42OauthJson = await ky
+      .post('https://auth.up42.com/realms/public/protocol/openid-connect/token', {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString(),
+      })
+      .json();
+
+    const up42BearerJson = `Bearer ${(up42OauthJson as any).access_token}`;
+    return up42BearerJson;
+  } catch (err: any) {
+    console.error("Failed to authenticate UP42", err);
+    return ""; // ou null
+  }
+};
+
 function getUp42Price(feature): number | null {
   return getImageryPrice(feature, feature.properties.constellation, up42ConstellationDict)
 }
 
-const getUp42Hosts = async (up42Apikey, up42BearerJson: string | null = null): Promise<any> => {
+const getDataCollections = async (up42BearerJson: string | null = null, email: string, password: string): Promise<any> => {
   if (!up42BearerJson) {
-    up42BearerJson = await getUp42Bearer(up42Apikey)
+    up42BearerJson = await getUp42Bearer(email, password)
   }
-  const hostsReq = await ky
-    .get('https://api.up42.com/hosts', {
+  const collectionsReq = await ky
+    .get('https://api.up42.com/v2/collections', {
       headers: { Authorization: up42BearerJson },
+      searchParams: {
+        type: 'ARCHIVE',
+        size: '50',
+      }
     })
     .json()
-  const hostsList = (hostsReq as any).data
-  // const hostnames_list = hostsList.map(h => h.name)
-  return hostsList
+
+  const collectionsList = (collectionsReq as any).content
+  const collectionsListFiltered = collectionsList.filter(
+    (c) => c.metadata?.productType === 'OPTICAL'
+  );
+
+
+  return collectionsListFiltered
 }
+
+// Get data products, filter OPTICAL + ARCHIVE, and then get all providers that have this
+//METHODE1
+// https://api.up42.com/v2/providers?size=100  
+//METHODE2
+// https://api.up42.com/v2/data-products?size=300&includeHidden=true 
+// f = data_products.content.filter(o => o.collection.type == 'ARCHIVE').filter(o => o.collection?.metadata?.productType == 'OPTICAL')
+// (new Set(f.map(o => o.collection?.providers.map(p => p.name || "")).flat()))
+//METHODE3
+
+// https://api.up42.com/v2/collections?type=ARCHIVE&integrations=SEARCH_AVAILABLE&size=100
+// new Set(collections.content.filter(c => c.metadata.productType == 'OPTICAL').map(c => c.providers.map(p => p.name)).flat())
+
 
 async function searchForNextPage(up42ResultsRaw, searchSettings, up42Apikey, searchPolygon, setters, up42BearerJson): Promise<any> {
   if (lookForNextPage) {
@@ -99,25 +121,17 @@ async function searchForNextPage(up42ResultsRaw, searchSettings, up42Apikey, sea
       const nextResults = await searchUp42(searchSettings, up42Apikey, searchPolygon, setters, up42BearerJson, up42NextHref)
 
       up42ResultsRaw?.features.push(...nextResults?.searchResultsJson?.features)
-      // console.log('length', up42ResultsRaw?.features?.length)
-      // // Reverse engineer the next URL:
-      // const up42_nexturl_suffix = up42NextHref.substring(up42NextHref?.lastIndexOf('/'))
-      // const up42_next_token = up42_nexturl_suffix.substring('/search?next='.length).replaceAll('%3D', '=')
-      // const up42_next_object = JSON.parse(window.atob(up42_next_token))
-      // const up42_next_offset = up42_next_object?.nextOffset
-      // console.log('Looking for UP42 next page results with page next token ', up42_next_token, up42_next_object, up42_next_offset, '\n\n\n\n\n')
-      // // Could as well encode it this way:
-      // // const next = window.btoa(JSON.stringify({"providerName":"oneatlas","nextOffset":200}    ))
     }
   }
   return up42ResultsRaw
 }
-
-// const searchUp42 = async (searchSettings, up42Apikey, searchPolygon=null, setSnackbarOptions=null, up42BearerJson=null, up42NextLinks=null) => {
+// Up42 hosts listing
+let hostsList = []
 const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, setters = null, up42BearerJson: string | null = null, nextUrl = ''): Promise<any> => {
+
   if (!up42BearerJson) {
     try {
-      up42BearerJson = await getUp42Bearer(up42Apikey)
+      up42BearerJson = await getUp42Bearer(up42Apikey.up42Email, up42Apikey.up42Password)
     } catch (error) {
       const errorStr = 'Could not get UP42 Auth token, probably because you did not use the Allow-CORS plugin '
       setTimeout(
@@ -133,19 +147,13 @@ const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, sett
     }
   }
 
-  // Up42 hosts listing
-
   const up42Payload = {
-    // 'datetime': '2019-01-01T00:00:00Z/2022-02-01T23:59:59Z',
     datetime: `${searchSettings.startDate.toISOString() as string}/${searchSettings.endDate.toISOString() as string}`,
     intersects: {
       type: 'Polygon',
       coordinates: searchSettings.coordinates,
     },
     limit: UP42_LIMIT,
-    // 'collections': [
-    //   'PHR'
-    // ],
     query: {
       cloudCoverage: {
         lte: searchSettings.cloudCoverage,
@@ -153,12 +161,6 @@ const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, sett
       resolution: {
         gte: searchSettings.gsd.min,
         lte: searchSettings.gsd.max,
-      },
-      'up42:usageType': {
-        in: ['DATA'],
-      },
-      producer: {
-        in: producerList,
       },
     },
   }
@@ -171,44 +173,49 @@ const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, sett
         json: up42Payload,
       })
       .json()
-    // console.log('up42ResultsRaw.features.length', up42ResultsRaw.features.length)
+
     await searchForNextPage(up42ResultsRaw, searchSettings, up42Apikey, searchPolygon, setters, up42BearerJson)
   } else {
-    let hostsList = await getUp42Hosts(up42Apikey, up42BearerJson)
-    log(
-      'UP42 Hosts list',
-      hostsList.map((h) => h.name),
-      hostsList,
-      '\n\n'
-    )
-    hostsList = hostsList.filter((host) => !excludeHosts.includes(host.name))
-    // hostsList.
+
+    hostsList = await getDataCollections(up42BearerJson, up42Apikey.up42Email, up42Apikey.up42Password)
 
     const searchPromises = Object.fromEntries(
       // build a dict from a dict via an array of key-value pairs
       hostsList.map((host) => {
-        const hostname: string = host.name
+        const payloadForThisHost = {
+          ...up42Payload,
+          collections: [host.name],    // to add a collection field
+        };
+        const hostname: string = host.providers[0].name
         return [
           hostname,
           {
             promise: new Promise(async (resolve, reject) => {
-              const up42SearchHostUrl = `https://api.up42.com/catalog/hosts/${hostname}/stac/search` // nextUrl !== '' ? nextUrl : up42SearchUrl
+              const up42SearchHostUrl = `https://api.up42.com/catalog/hosts/${hostname}/stac/search`
               try {
                 const up42ResultsRaw = (await ky
                   .post(up42SearchHostUrl, {
                     headers: { Authorization: up42BearerJson },
-                    json: up42Payload,
+                    json: payloadForThisHost,
                     timeout: UP42_TIMEOUT_MS,
                   })
                   .json()) as any
                 log(`Host ${hostname} results: `, up42ResultsRaw)
                 // Should update up42ResultsRaw.features
                 // await searchForNextPage(up42ResultsRaw, searchSettings, up42Apikey, searchPolygon, setters, up42BearerJson)
-                resolve(up42ResultsRaw)
+                resolve({
+                  hostname,
+                  ...up42ResultsRaw
+                });
               } catch (error) {
-                const errorMsg = `Error on ky post for host ${hostname}: ${error.toString()}`
-                log(errorMsg)
-                reject(errorMsg)
+                let errorMsg = `Error on ky post for host ${hostname}: ${error.toString()}`
+                try {
+                  const errorJson = await error.response?.json();
+                  if (errorJson?.error?.message) {
+                    errorMsg = `Host ${hostname}: ${errorJson.error.message}`;
+                  }
+                } catch (_) { }
+                resolve({ __error: errorMsg });
               }
             }),
           },
@@ -220,13 +227,18 @@ const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, sett
       .then((results) => {
         log('\nFinished UP42 requests for all hosts promises\n', results)
         const requestsFeaturesFlat = results
-          .filter((r) => r.status == 'fulfilled')
-          .map((res) => res?.value?.features)
-          .flat() // .value
+          .filter((r) => r.status == 'fulfilled' && r.value?.features)
+          .map(res => res.value.features.map(f => ({ ...f, hostname: res.value.hostname })))
+          .flat()
         up42ResultsRaw = {
           features: requestsFeaturesFlat,
         }
         log('results_flat', up42ResultsRaw)
+
+        results
+          .filter(r => r.status === "fulfilled" && r?.value?.__error)
+          .forEach(r => log('Handled error for user:', r?.value?.__error));
+
         return up42ResultsRaw
       })
       .catch((error) => {
@@ -236,38 +248,15 @@ const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, sett
 
   // TODO: TEST next
   const searchResultsJson = formatUp42Results(up42ResultsRaw, searchPolygon)
+  if (setters) setters.setSearchResults(searchResultsJson)
   log('UP42 PAYLOAD: \n', up42Payload, '\nRAW UP42 search results: \n', up42ResultsRaw, '\nJSON UP42 search results: \n', searchResultsJson)
 
-  // Initiate search for previews/thumbnails
-  getUp42PreviewsAsync(searchResultsJson, up42BearerJson).then((results) => {
-    if (setters) {
-      const searchResults = {
-        input: searchPolygon,
-        output: results,
-      }
-      log('UP42 search previews have been retrieved, setting react state')
-      setters.setSearchResults(searchResults)
-    }
-  })
 
-  // Get pricing using UP42 API
-  getUp42PricesAsync(searchResultsJson, searchPolygon, up42BearerJson)
-    .then((results) => {
-      if (setters) {
-        const searchResults = {
-          input: searchPolygon,
-          output: results,
-        }
-        log('UP42 prices have been retrieved, setting react state')
-        setters.setSearchResults(searchResults)
-      }
-    })
-    .catch((error) => {
-      log('UP42 error during prices retrieval, setting react state anyway')
-      // setters.setSearchResults(searchResults)
-    })
-  /*
-   */
+
+  // Initiate search for previews/thumbnails
+  getUp42PreviewsAsync(searchResultsJson, up42BearerJson, 5, setters, searchPolygon);
+
+  getUp42PricesAsync(searchResultsJson, up42BearerJson, 5, setters, searchPolygon);
 
   return {
     searchResultsJson,
@@ -275,42 +264,71 @@ const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, sett
   }
 }
 
-// `https://api.up42.com/catalog/oneatlas/image/${f.properties.sceneId}/${previewType}`
 const getUp42PreviewUrls = (feature, up42BearerJson): any => {
   const previewUrls = {
     up42BearerJson,
-    // 'preview_uri': `https://api.up42.com/catalog/${feature.properties.providerName}/image/${feature.properties.providerProperties.id}/quicklook`,
-    // 'thumbnail_uri': `https://api.up42.com/catalog/${feature.properties.providerName}/image/${feature.properties.providerProperties.id}/thumbnail`
     preview_uri: `https://api.up42.com/catalog/${feature.properties.providerName as string}/image/${feature.properties.id as string}/quicklook`,
     thumbnail_uri: `https://api.up42.com/catalog/${feature.properties.providerName as string}/image/${feature.properties.id as string}/thumbnail`,
   }
   return previewUrls
 }
+async function getUp42PreviewsAsync(up42Results, up42BearerJson, chunkSize, setters, searchPolygon) {
+  await processInChunks(
+    async (feature: any) => {
+      if (!feature || !feature.properties) return;
 
-const getUp42PreviewsAsync = async (up42Results, up42BearerJson): Promise<void> => {
-  up42Results.features.forEach(async (feature) => {
-    const previewUrls = getUp42PreviewUrls(feature, up42BearerJson)
-    const thumbnailUriBlob = await ky.get(previewUrls.thumbnail_uri, { headers: { Authorization: up42BearerJson } }).blob()
-    feature.properties.thumbnail_uri = URL.createObjectURL(thumbnailUriBlob)
-    const previewUriBlob = await ky.get(previewUrls.preview_uri, { headers: { Authorization: up42BearerJson } }).blob()
-    feature.properties.preview_uri = URL.createObjectURL(previewUriBlob)
-    // Could use the setter here to dynamically add preview to datagrid and map preview as soon as it is retrieved
+      try {
+        const previewUrls = getUp42PreviewUrls(feature, up42BearerJson);
 
-    // console.log(feature.properties.thumbnail_uri, thumbnailUriBlob)
-    // These blobs would need to be stored on IndexedDB, which has larger storage limitation than localStorage' 5MB
-    // See this example: https://levelup.gitconnected.com/how-to-use-blob-in-browser-to-cache-ee9577b77daa based on [jakearchibald/idb-keyval](https://github.com/jakearchibald/idb-keyval)
-    // import { get, set } from 'idb-keyval';
-    // var fileReader = new FileReader();
-    // fileReader.onload = function(e) {
-    //   feature.properties.preview_uri = e.target.result;
-    // }
-    // fileReader.readAsDataURL(previewUriBlob);
-  })
+        const [thumbBlob, previewBlob] = await Promise.all([
+          ky.get(previewUrls.thumbnail_uri, {
+            headers: { Authorization: up42BearerJson },
+            timeout: 30000,
+            retry: 2
+          }).blob(),
+          ky.get(previewUrls.preview_uri, {
+            headers: { Authorization: up42BearerJson },
+            timeout: 30000,
+            retry: 2
+          }).blob()
+        ]);
+
+        feature.properties.thumbnail_uri = URL.createObjectURL(thumbBlob);
+        feature.properties.preview_uri = URL.createObjectURL(previewBlob);
+      } catch (err) {
+        if (err.name === 'TimeoutError') {
+          console.warn("Timeout for feature", feature?.properties?.id);
+        } else {
+          console.warn("Preview failed for feature", feature?.properties?.id, err.message);
+        }
+      }
+    },
+    {
+      items: up42Results.features || [],
+      chunkSize,
+      delayBetweenChunks: 100,
+      usePromiseAllSettled: true,
+      onChunkComplete: () => {
+        setters?.setSearchResults({
+          input: searchPolygon,
+          output: up42Results
+        });
+      }
+    }
+  );
+
+  return up42Results;
 }
+
+
+
+// These blobs would need to be stored on IndexedDB, which has larger storage limitation than localStorage' 5MB
+// See this example: https://levelup.gitconnected.com/how-to-use-blob-in-browser-to-cache-ee9577b77daa based on [jakearchibald/idb-keyval](https://github.com/jakearchibald/idb-keyval)
 
 // Docs: https://docs.up42.com/developers/api-archive/api-data-estimation
 // Painful, needs one request per item for which we want to estimate pricing
-const ESTIMATE_URL = `https://api.up42.com/workspaces/${process.env.UP42_WORKSPACE_ID as string}/orders/estimate`
+// const ESTIMATE_URL = `https://api.up42.com/workspaces/${process.env.UP42_WORKSPACE_ID as string}/orders/estimate`
+const ESTIMATE_URL = `https://api.up42.com/v2/orders/estimate`
 const DATA_PRODUCT_AIRBUS_ANALYTICS = '4f1b2f62-98df-4c74-81f4-5dce45deee99'
 const DATA_PRODUCT_AIRBUS_DISPLAY = '647780db-5a06-4b61-b525-577a8b68bb54'
 const DATA_PRODUCT_21AT_8BIT = '2398d8f5-5f7f-4596-884d-345c0b07af14'
@@ -322,61 +340,159 @@ const dataProductForFeature = {
   '21at': DATA_PRODUCT_21AT_8BIT,
   capellaspace: DATA_PRODUCT_CAPELLA_SPACE,
 }
-async function estimateCreditCost(feature, searchPolygon, up42BearerJson): Promise<number> {
+async function estimateCreditCost(feature, searchPolygon, up42BearerJson, hostsList): Promise<number | null> {
+  const collectionName =
+    feature.properties.raw_result_properties?.collection ||
+    feature.properties.constellation;
+
+  if (!collectionName) {
+    console.warn('Collection name not found in feature:', feature);
+    return null;
+  }
+
+  const matchedCollection = hostsList.find(
+    (collection) => collection.name === collectionName
+  );
+
+  if (matchedCollection && matchedCollection.providers?.[0].name === 'spectra') {
+    return null;
+  }
+
+  if (!matchedCollection || !matchedCollection.dataProducts?.[0]?.id) {
+    console.warn(`dataProductId not found for collection: ${collectionName}`);
+    return null;
+  }
+
+  const dataProductId = matchedCollection.dataProducts[0].id;
+
   const estimatePayload = {
-    dataProduct: dataProductForFeature[feature.properties.providerName],
+    dataProduct: dataProductId,
+    displayName: `Estimate-${feature.properties.providerName}`,
     params: {
-      id: feature.properties.id, // '2b21b708-4d32-498f-8400-a5a41241ed25', //
-      aoi: searchPolygon.geometry,
+
+    },
+    featureCollection: {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          geometry: searchPolygon.geometry,
+          properties: {
+            id: feature.properties.id,
+          },
+        },
+      ],
     },
   }
 
-  const estimateJson: any = await ky
-    .post(ESTIMATE_URL, {
+  let response;
+  try {
+    response = await ky.post(ESTIMATE_URL, {
       headers: {
         Authorization: up42BearerJson,
         'Content-Type': 'application/json',
-        'Content-Length': `${JSON.stringify(estimatePayload).length}`,
-        // Host: 'https://api.up42.com/',
       },
-      timeout: 20_000,
+      timeout: 30000,
       json: estimatePayload,
-    })
-    .json()
-  console.log('yo up42 price result', estimateJson)
+    }).catch((err) => {
+      console.error("Ky POST rejected", err);
+      throw err;
+    });
 
-  // 1euro = 100 credits
-  const price = estimateJson.error ? 0 : estimateJson.data.credits / 100
-  return price
+    const estimateJson: any = await response.json().catch((err) => {
+      console.error("Ky JSON rejected", err);
+      throw err;
+    });
+
+    const price = estimateJson?.results?.[0]?.credits / 100
+    return price != null ? price : null;
+  } catch (error) {
+    console.warn(error);
+    return null;
+  }
+
 }
 
-const getUp42PricesAsync = async (up42Results, searchPolygon, up42BearerJson): Promise<void> => {
-  up42Results.features.forEach(async (feature) => {
-    const price = await estimateCreditCost(feature, searchPolygon, up42BearerJson)
-    feature.properties.price = price
-  })
-}
+const getUp42PricesAsync = async (
+  up42Results,
+  up42BearerJson,
+  chunkSize,
+  setters,
+  searchPolygon
+): Promise<void> => {
+  if (!up42Results?.features?.length) return;
+
+  await processInChunks(
+    async (feature: any) => {
+      try {
+        const price = await estimateCreditCost(
+          feature,
+          searchPolygon,
+          up42BearerJson,
+          hostsList
+        );
+        feature.properties.price = price;
+
+      } catch (err) {
+        console.warn(err);
+        feature.properties.price = null;
+      }
+    },
+    {
+      items: up42Results.features,
+      chunkSize,
+      delayBetweenChunks: 0,
+      usePromiseAllSettled: true,
+      onChunkComplete: () => {
+        if (setters?.setSearchResults) {
+          setters.setSearchResults((prev) => {
+            if (!prev || !prev.output?.features) return prev;
+
+            const updatedFeatures = prev.output.features.map((feature) => {
+              const updated = up42Results.features.find(
+                (f) => f.properties.id === feature.properties.id
+              );
+              return {
+                ...feature,
+                properties: {
+                  ...feature.properties,
+                  price: updated?.properties?.price,
+                },
+              };
+            });
+
+            return {
+              ...prev,
+              output: {
+                ...prev.output,
+                features: updatedFeatures,
+              },
+            };
+          });
+        }
+      }
+    }
+  );
+};
+
 
 const formatUp42Results = (up42ResultsRaw, searchPolygon): GeoJSON.FeatureCollection => {
-  // meta':{'limit':1,'page':1,'found':15},
   return {
     features: up42ResultsRaw.features.map((feature) => ({
       geometry: feature.geometry,
       properties: {
-        // ...feature.properties,
         id: feature.properties.sceneId ?? uuidv4(),
         constellation: up42ConstellationDict[feature.properties.constellation]?.constellation || feature.properties.constellation,
-        price: null, // getUp42Price(feature),
+        price: null,
         shapeIntersection: null,
         providerPlatform: `${Providers.UP42}`,
-        provider: `${Providers.UP42}/${feature.properties.producer as string}-${feature.properties.constellation as string}`, // /${feature.properties.providerName}
-        //
+        provider: `${Providers.UP42}/${feature.properties.producer as string}-${feature.properties.constellation as string}`,
         providerName: feature.properties.providerName,
+        hostname: feature.hostname,
         sceneId: feature.properties.sceneId ?? uuidv4(),
         cloudCoverage: feature.properties.cloudCoverage,
         acquisitionDate: feature.properties.acquisitionDate,
         resolution: feature.properties.resolution,
-        //
         providerProperties: feature.properties.providerProperties,
         raw_result_properties: feature.properties,
       },
@@ -386,9 +502,4 @@ const formatUp42Results = (up42ResultsRaw, searchPolygon): GeoJSON.FeatureCollec
   }
 }
 
-// export {
-//   searchUp42,
-//   getUp42PreviewsAsync
-// }
-
-export default searchUp42
+export { searchUp42, getUp42Bearer, getDataCollections } 

@@ -14,11 +14,13 @@ import { parse as wkt_parse, stringify as wkt_stringify } from 'wellknown'
 // App: https://app.skyfi.com/explore
 // POST on https://app.skyfi.com/api/archive-available
 // Payload: {"clientType":"DESKTOP","fromDate":"2018-12-31T23:00:00.000Z","toDate":"2023-01-24T10:21:44.465Z","maxCloudCoveragePercent":20,"resolutions":["VERY HIGH","HIGH"],"sensors":["DAY","NIGHT","MULTISPECTRAL"],"imageCropping":{"wktString":"POLYGON((-77.05679665567264 38.899388312735795,-77.02040942302703 38.899388312735795,-77.02040942302703 38.92503663542644,-77.05679665567264 38.92503663542644,-77.05679665567264 38.899388312735795))"},"page":0,"pageSize":25}
+console.log('start');
 
-const SKYFI_SEARCH_URL = 'https://app.skyfi.com/api/archive-available'
+// const SKYFI_SEARCH_URL = 'https://app.skyfi.com/api/archive-available'
+const SKYFI_SEARCH_URL ='https://app.skyfi.com/platform-api/archives'
 const pageSize = 25
 const lookForNextPage = true
-const skyfiApiKey = 'eh6qPPge7f88EJPp'
+const skyfiApiKey = '0ce62eb53c044ce78872b301810962f8'
 
 // Not useful at the moment
 // const getSkyfiBearer = (apikey): string => {
@@ -59,31 +61,49 @@ const searchSkyfi = async (searchSettings, skyfiApikey, searchPolygon = null, se
     toDate: searchSettings.endDate.toISOString(), // "2023-01-24T10:21:44.465Z",
     maxCloudCoveragePercent: searchSettings.cloudCoverage,
     resolutions: resolutionArray,
-    clientType: 'DESKTOP',
-    sensors: ['DAY', 'NIGHT', 'MULTISPECTRAL'],
-    imageCropping: {
-      wktString: coordinatesWkt,
-    },
-    page: pageIdx,
-    pageSize,
+  //   isOpendata: false,
+  //   bandsCount: [
+  //     1,
+  //     3,
+  //     4
+  // ],
+    openData: false,
+    // clientType: 'DESKTOP',
+    // sensors: ['DAY', 'NIGHT', 'MULTISPECTRAL'],
+    // sensors: [    "DAY", "SAR", "STEREO"],
+    providers: [
+      "PLANET",
+      "GEOSAT",
+      "SATELLOGIC",
+      "SIWEI",
+      "IMPRO",
+      "URBAN_SKY",
+      "VEXCEL",
+      "NSL",
+      "UMBRA"
+  ],
+    // imageCropping: {
+    //   wktString: coordinatesWkt,
+    // },
+    aoi: coordinatesWkt,
+    // page: pageIdx,
+    pageSize: pageSize,
   }
   log('skyfi PAYLOAD: \n', skyfiPayload)
 
   const contentLength = `${JSON.stringify(skyfiPayload).length}`
-  console.log('contentLength', contentLength, skyfiPayload, JSON.stringify(skyfiPayload), JSON.stringify(skyfiPayload).length)
   const skyfiResultsRaw = await ky
     .post(SKYFI_SEARCH_URL, {
       headers: {
         // 'skyfi-api-key': skyfiApiKey,
-        'skyfi-api-key': ' eh6qPPge7f88EJPp',
-        'content-length': contentLength,
-
-        origin: ' https://app.skyfi.com',
-        referer: ' https://app.skyfi.com/explore/',
-        accept: ' application/json',
-        'cache-control': ' no-cache',
-        'content-type': ' application/json',
-        'skyfi-client-agent': ' DESKTOP-1.8.0',
+        'X-Skyfi-Api-Key': skyfiApiKey,
+        // 'content-length': contentLength,
+        // Origin: 'https://app.skyfi.com',
+        // Referer: 'https://app.skyfi.com/explore/',
+        Accept: 'application/json',
+        'content-type': 'application/json',
+        // 'cache-control': ' no-cache',
+        // 'skyfi-client-agent': ' DESKTOP-1.8.0',
       },
       json: skyfiPayload,
     })

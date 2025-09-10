@@ -435,20 +435,6 @@ function getConstellationName(satName, constellationDict): string | undefined {
   }
 }
 
-// const eosConstellationDict =
-//   Object.keys(constellationDict)
-//     .reduce(function(result, key) {
-//       if (false || providersDict[Providers.EOS].includes(Constellation[key])) {
-//         result[key] = {
-//           satellites: constellationDict[key].satellites.map(x => eosNames[x].eos_name)
-//         }
-//       }
-//       return result
-//   }, {})
-
-// TODO
-// Could be simplified
-
 const eosConstellationDict = providersDict[Providers.EOS].reduce(function (result, constellation) {
   result[constellation] = {
     satellites: constellationDict[constellation].satellites.map((x) => eosNames[x] || x),
@@ -463,15 +449,82 @@ const maxarConstellationDict = providersDict[Providers.MAXAR_DIGITALGLOBE].reduc
   return result
 }, {})
 
-// const headConstellationDict =
-//   providersDict[Providers.HEADAEROSPACE]
-//   .reduce(function(result, constellation) {
-//       result[constellation] = {
-//         satellites: constellationDict[constellation].satellites.map(x => headNames[x] || x)
-//       }
-//       return result
-//     }
-// , {})
+// Generic chunk processor utility
+interface ChunkProcessorOptions<T> {
+  items: T[];
+  chunkSize: number;
+  delayBetweenChunks?: number; // in milliseconds
+  onChunkComplete?: (processedItems: T[], chunkIndex: number, totalChunks: number) => void | Promise<void>;
+  usePromiseAllSettled?: boolean; // true = continue on errors, false = stop on first error
+}
+
+async function processInChunks<T>(
+  processor: (item: T, index: number) => Promise<void>,
+  options: ChunkProcessorOptions<T>
+): Promise<void> {
+  const {
+    items,
+    chunkSize,
+    delayBetweenChunks = 0,
+    onChunkComplete,
+    usePromiseAllSettled = true
+  } = options;
+
+  const totalChunks = Math.ceil(items.length / chunkSize);
+
+  for (let i = 0; i < items.length; i += chunkSize) {
+    const chunk = items.slice(i, i + chunkSize);
+    const chunkIndex = Math.floor(i / chunkSize);
+
+    if (usePromiseAllSettled) {
+      // Continue processing even if some items fail
+      await Promise.allSettled(
+        chunk.map((item, index) => processor(item, i + index))
+      );
+    } else {
+      // Stop on first error
+      await Promise.all(
+        chunk.map((item, index) => processor(item, i + index))
+      );
+    }
+
+    // Call callback after chunk completion
+    if (onChunkComplete) {
+      await onChunkComplete(chunk, chunkIndex, totalChunks);
+    }
+
+    // Add delay between chunks (except for the last one)
+    if (delayBetweenChunks > 0 && i + chunkSize < items.length) {
+      await new Promise(resolve => setTimeout(resolve, delayBetweenChunks));
+    }
+  }
+}
+
+// utils/up42DataBuilder.js
+export const extractUp42HostsWithGsd = (collectionsData) => {
+  const hostMap = new Map() // Use Map to avoid duplicates and store GSD
+
+  collectionsData.forEach(collection => {
+    collection.providers?.forEach(provider => {
+      if (provider.roles?.includes('HOST')) {
+        const hostTitle = provider.title
+        const gsd = collection.metadata?.resolutionValue?.minimum || null
+        // Only keep the best (smallest) GSD for each host
+        if (!hostMap.has(hostTitle) || hostMap.get(hostTitle).gsd > gsd) {
+          hostMap.set(hostTitle, {
+            title: hostTitle,
+            gsd: gsd,
+            satellites: []
+          })
+        }
+      }
+    })
+  })
+
+  return Array.from(hostMap.values())
+}
+
+export { processInChunks, type ChunkProcessorOptions };
 
 export {
   // Methods
