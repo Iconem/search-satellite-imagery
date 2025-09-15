@@ -106,8 +106,8 @@ function ApiKeysModalComponent(props): React.ReactElement {
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <TextField
-                  value={props.apiKeys[Providers.UP42].up42Email}
-                  onChange={(event) =>
+                  defaultValue={props.apiKeys[Providers.UP42].up42Email}
+                  onBlur={(event) =>
                     props.setApiKeys({
                       ...props.apiKeys,
                       [Providers.UP42]: {
@@ -123,8 +123,8 @@ function ApiKeysModalComponent(props): React.ReactElement {
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <TextField
-                  value={props.apiKeys[Providers.UP42].up42Password}
-                  onChange={(event) =>
+                  defaultValue={props.apiKeys[Providers.UP42].up42Password}
+                  onBlur={(event) =>
                     props.setApiKeys({
                       ...props.apiKeys,
                       [Providers.UP42]: {

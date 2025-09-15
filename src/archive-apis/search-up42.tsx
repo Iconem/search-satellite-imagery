@@ -42,7 +42,8 @@ const UP42_SEARCH_URL = 'https://api.up42.com/catalog/stac/search'
 
 const getUp42Bearer = async (
   email?: string,
-  password?: string
+  password?: string,
+  setters?: Record<string, (...args: any[]) => void>
 ): Promise<string> => {
   const username = email && email.trim() !== "" ? email : process.env.REACT_APP_UP42_ACCOUNT_EMAIL;
   const pwd = password && password.trim() !== "" ? password : process.env.REACT_APP_UP42_ACCOUNT_PASSWORD;
@@ -68,8 +69,13 @@ const getUp42Bearer = async (
     const up42BearerJson = `Bearer ${(up42OauthJson as any).access_token}`;
     return up42BearerJson;
   } catch (err: any) {
+    setters?.setLoadingResults(false)
+    setters?.setSnackbarOptions({
+      open: true,
+      message: 'WARNING! Failed to authenticate with UP42. Please check email/password or API keys.',
+    })
     console.error("Failed to authenticate UP42", err);
-    return ""; // ou null
+    return "";
   }
 };
 
@@ -77,9 +83,9 @@ function getUp42Price(feature): number | null {
   return getImageryPrice(feature, feature.properties.constellation, up42ConstellationDict)
 }
 
-const getDataCollections = async (up42BearerJson: string | null = null, email: string, password: string): Promise<any> => {
+const getDataCollections = async (up42BearerJson: string | null = null, email: string, password: string, setters): Promise<any> => {
   if (!up42BearerJson) {
-    up42BearerJson = await getUp42Bearer(email, password)
+    up42BearerJson = await getUp42Bearer(email, password, setters)
   }
   const collectionsReq = await ky
     .get('https://api.up42.com/v2/collections', {
@@ -131,7 +137,7 @@ const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, sett
 
   if (!up42BearerJson) {
     try {
-      up42BearerJson = await getUp42Bearer(up42Apikey.up42Email, up42Apikey.up42Password)
+      up42BearerJson = await getUp42Bearer(up42Apikey.up42Email, up42Apikey.up42Password, setters)
     } catch (error) {
       const errorStr = 'Could not get UP42 Auth token, probably because you did not use the Allow-CORS plugin '
       setTimeout(
@@ -177,7 +183,7 @@ const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, sett
     await searchForNextPage(up42ResultsRaw, searchSettings, up42Apikey, searchPolygon, setters, up42BearerJson)
   } else {
 
-    hostsList = await getDataCollections(up42BearerJson, up42Apikey.up42Email, up42Apikey.up42Password)
+    hostsList = await getDataCollections(up42BearerJson, up42Apikey.up42Email, up42Apikey.up42Password, setters)
 
     const searchPromises = Object.fromEntries(
       // build a dict from a dict via an array of key-value pairs
