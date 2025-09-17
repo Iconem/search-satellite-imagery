@@ -118,11 +118,11 @@ enum Providers {
   UP42 = 'UP42',
   MAXAR_DIGITALGLOBE = 'MAXAR',
   EOS = 'EOS',
-  SKYWATCH = 'SKYWATCH',
+  SKYWATCH = 'SKYWATCH - SLOW V1 API',
   SKYFI = 'SKYFI',
   OAM = 'OpenAerialMap',
   ARLULA = 'ARLULA',
-  APOLLO = 'APOLLO MAPPING',
+  // APOLLO = 'APOLLO MAPPING',
   STAC = 'STAC',
 }
 
@@ -153,11 +153,11 @@ const providersDict = {
     Constellation.TripleSat,
     // TODO LatConnect 60
   ],
-  [Providers.APOLLO]: [
-    Constellation.Pleiades,
-    Constellation.PleiadesNeo,
-    // TODO COMPLETE
-  ],
+  // [Providers.APOLLO]: [
+  //   Constellation.Pleiades,
+  //   Constellation.PleiadesNeo,
+  //   // TODO COMPLETE
+  // ],
   [Providers.STAC]: [Constellation.STAC],
   // 'SENTINELHUB': [Constellation.Pleiades,  Constellation.Worldview],
 }
@@ -453,7 +453,6 @@ const maxarConstellationDict = providersDict[Providers.MAXAR_DIGITALGLOBE].reduc
 interface ChunkProcessorOptions<T> {
   items: T[];
   chunkSize: number;
-  delayBetweenChunks?: number; // in milliseconds
   onChunkComplete?: (processedItems: T[], chunkIndex: number, totalChunks: number) => void | Promise<void>;
   usePromiseAllSettled?: boolean; // true = continue on errors, false = stop on first error
 }
@@ -465,7 +464,6 @@ async function processInChunks<T>(
   const {
     items,
     chunkSize,
-    delayBetweenChunks = 0,
     onChunkComplete,
     usePromiseAllSettled = true
   } = options;
@@ -492,37 +490,10 @@ async function processInChunks<T>(
     if (onChunkComplete) {
       await onChunkComplete(chunk, chunkIndex, totalChunks);
     }
-
-    // Add delay between chunks (except for the last one)
-    if (delayBetweenChunks > 0 && i + chunkSize < items.length) {
-      await new Promise(resolve => setTimeout(resolve, delayBetweenChunks));
-    }
   }
 }
 
-// utils/up42DataBuilder.js
-export const extractUp42HostsWithGsd = (collectionsData) => {
-  const hostMap = new Map() // Use Map to avoid duplicates and store GSD
 
-  collectionsData.forEach(collection => {
-    collection.providers?.forEach(provider => {
-      if (provider.roles?.includes('HOST')) {
-        const hostTitle = provider.title
-        const gsd = collection.metadata?.resolutionValue?.minimum || null
-        // Only keep the best (smallest) GSD for each host
-        if (!hostMap.has(hostTitle) || hostMap.get(hostTitle).gsd > gsd) {
-          hostMap.set(hostTitle, {
-            title: hostTitle,
-            gsd: gsd,
-            satellites: []
-          })
-        }
-      }
-    })
-  })
-
-  return Array.from(hostMap.values())
-}
 
 export { processInChunks, type ChunkProcessorOptions };
 

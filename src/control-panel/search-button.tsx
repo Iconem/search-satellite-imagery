@@ -27,8 +27,6 @@ SearchButton.propTypes = {
   providersTreeviewDataSelection: PropTypes.any,
   loadingResults: PropTypes.bool,
   theme: PropTypes.any,
-  token: PropTypes.any,
-  dataCollection: PropTypes.any
 }
 function SearchButton(props): React.ReactElement {
   const handleLoadingButtonClick = async (): void => {

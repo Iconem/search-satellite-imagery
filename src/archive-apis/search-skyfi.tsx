@@ -17,10 +17,10 @@ import { parse as wkt_parse, stringify as wkt_stringify } from 'wellknown'
 console.log('start');
 
 // const SKYFI_SEARCH_URL = 'https://app.skyfi.com/api/archive-available'
-const SKYFI_SEARCH_URL ='https://app.skyfi.com/platform-api/archives'
+const SKYFI_SEARCH_URL = 'https://app.skyfi.com/platform-api/archives'
 const pageSize = 25
 const lookForNextPage = true
-const skyfiApiKey = '0ce62eb53c044ce78872b301810962f8'
+const skyfiApiKey = process.env.SKYFI_API_KEY
 
 // Not useful at the moment
 // const getSkyfiBearer = (apikey): string => {
@@ -61,12 +61,12 @@ const searchSkyfi = async (searchSettings, skyfiApikey, searchPolygon = null, se
     toDate: searchSettings.endDate.toISOString(), // "2023-01-24T10:21:44.465Z",
     maxCloudCoveragePercent: searchSettings.cloudCoverage,
     resolutions: resolutionArray,
-  //   isOpendata: false,
-  //   bandsCount: [
-  //     1,
-  //     3,
-  //     4
-  // ],
+    //   isOpendata: false,
+    //   bandsCount: [
+    //     1,
+    //     3,
+    //     4
+    // ],
     openData: false,
     // clientType: 'DESKTOP',
     // sensors: ['DAY', 'NIGHT', 'MULTISPECTRAL'],
@@ -81,7 +81,7 @@ const searchSkyfi = async (searchSettings, skyfiApikey, searchPolygon = null, se
       "VEXCEL",
       "NSL",
       "UMBRA"
-  ],
+    ],
     // imageCropping: {
     //   wktString: coordinatesWkt,
     // },

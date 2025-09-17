@@ -21,8 +21,8 @@ import area from '@turf/area'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronDown, faChevronUp, faDrawPolygon, faSliders, faEarthEurope } from '@fortawesome/free-solid-svg-icons'
 import { faTwitter, faGithub } from '@fortawesome/free-brands-svg-icons'
-import { getUp42Bearer, getDataCollections } from '../archive-apis/search-up42'
-import { Providers, providersDict as initialProvidersDict, constellationDict as initialConstellationDict, extractUp42HostsWithGsd } from '../archive-apis/search-utilities'
+import { getUp42Bearer, getDataCollections, extractUp42HostsWithGsd } from '../archive-apis/search-up42'
+import { Providers, providersDict as initialProvidersDict, constellationDict as initialConstellationDict } from '../archive-apis/search-utilities'
 import PropTypes from 'prop-types'
 import DateRangeComponent from './date-range-component'
 import SettingsComponent from './settings-component'
@@ -32,8 +32,7 @@ import SearchButton from './search-button'
 import ExportButton from './export-button'
 import APIRequestsStatuses from './api-requests-statuses'
 import { sourcesTreeviewInitialSelection, buildTreeviewData } from './satellite-imagery-sources-treeview'
-import { useState } from 'react'
-import isEqual from 'lodash/isEqual'
+import equal from 'fast-deep-equal';
 
 /* Display COMPONENTS */
 /* AOI area COMPONENT */
@@ -163,7 +162,6 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   }
 
   //get Bearer and datacollection for UP42
-  const [token, setToken] = useState<string | null>(null);
   const [dataCollection, setDataCollection] = useLocalStorage(
     "dataCollection",
     []
@@ -177,11 +175,10 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
     (async () => {
       const { up42Email, up42Password } = apiKeys[Providers.UP42];
       const newToken = await getUp42Bearer(up42Email, up42Password);
-      setToken((prev) => (prev === newToken ? prev : newToken));
 
-      const data = await getDataCollections(newToken, up42Email, up42Password);
+      const data = await getDataCollections(newToken, up42Email, up42Password, setters);
       setDataCollection((prev) => {
-        if (isEqual(prev, data)) {
+        if (equal(prev, data)) {
           return prev;
         }
         return data;
@@ -324,9 +321,6 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
                 apiKeys={apiKeys}
                 loadingResults={loadingResults}
                 providersTreeviewDataSelection={providersTreeviewDataSelection}
-                token={token}
-                dataCollection={dataCollection}
-
               />
             </Grid>
             <Grid item xs={1}>

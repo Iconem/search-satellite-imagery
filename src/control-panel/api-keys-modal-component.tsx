@@ -77,21 +77,7 @@ function ApiKeysModalComponent(props): React.ReactElement {
                   </Link>
                 </Typography>
               </ListItem>
-              <ListItem sx={{ display: 'list-item' }}>
-                <Typography variant="h6">
-                  <Link href="https://imagehunter.apollomapping.com/" target="_blank">
-                    Apollo Mapping Image Hunter
-                  </Link>
-                </Typography>
-              </ListItem>
             </List>
-            <ListItem sx={{ display: 'list-item' }}>
-              <Typography variant="h6">
-                <Link href="https://discover.maxar.com/" target="_blank">
-                  Maxar Discover
-                </Link>
-              </Typography>
-            </ListItem>
 
             <Divider variant="middle" />
 
@@ -238,26 +224,46 @@ function ApiKeysModalComponent(props): React.ReactElement {
             </List>
 
             <Divider variant="middle" />
+            <List>
+              <ListItem sx={{ display: 'list-item' }}>
+                <Typography>Discontinued, API not maintained for APIs:</Typography>
+              </ListItem>
+              <ListItem sx={{ display: 'list-item' }}>
+                <Typography variant="h6">
+                  <Link href="https://imagehunter.apollomapping.com/" target="_blank">
+                    Apollo Mapping Image Hunter
+                  </Link>
+                </Typography>
+              </ListItem>
+              <ListItem sx={{ display: 'list-item' }}>
+                <Typography variant="h6">
+                  <Link href="https://discover.maxar.com/" target="_blank">
+                    Maxar Discover
+                  </Link>
+                </Typography>
+              </ListItem>
+            </List>
+
             {/* <List sx={{listStyleType: 'disc' }}> */}
             <List>
               <ListItem sx={{ display: 'list-item' }}>
-                UP42: Project ID and Project API Key can be found in the Developers section of the selected project, on the
+                UP42: Project ID and Project API Key can be found in the Developers section of the selected project, on the{" "}
                 <Link href="https://console.up42.com/" target="_blank">
                   console
                 </Link>
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
-                EOS api key can be found on your
+                EOS api key can be found on your{" "}
                 <Link href="https://api-connect.eos.com/user-dashboard/" target="_blank">
                   user dashboard
                 </Link>
-                . See the
+                . See the{" "}
                 <Link href="https://doc.eos.com/api/#authorization-api" target="_blank">
                   API section of the docs
                 </Link>
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
-                Skywatch API key can be found on your user
+                Skywatch API key can be found on your user {" "}
                 <Link href="https://dashboard.skywatch.co/account/profile" target="_blank">
                   account profile
                 </Link>

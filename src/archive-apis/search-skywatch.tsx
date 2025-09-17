@@ -14,11 +14,11 @@ const SKYWATCH_SEARCH_URL_JWT = 'https://api.skywatch.co/auth0-jwt/earthcache/ar
 const performSkywatchSearch = async (skywatchApikey, searchId): Promise<any> =>
   skywatchApikey?.includes('Bearer')
     ? await ky.get(`${SKYWATCH_SEARCH_URL_JWT}/${searchId.data.id as string}/search_results`, {
-        headers: { authorization: skywatchApikey },
-      })
+      headers: { authorization: skywatchApikey },
+    })
     : await ky.get(`${SKYWATCH_SEARCH_URL}/${searchId.data.id as string}/search_results`, {
-        headers: { 'x-api-key': skywatchApikey },
-      })
+      headers: { 'x-api-key': skywatchApikey },
+    })
 
 const MAX_QUERY_COUNT = 8
 
@@ -50,20 +50,20 @@ const searchSkywatch = async (searchSettings, skywatchApikey, searchPolygon = nu
 
   const searchId = skywatchApikey?.includes('Bearer')
     ? await ky
-        .post(SKYWATCH_SEARCH_URL_JWT, {
-          headers: {
-            authorization: skywatchApikey,
-            'content-length': `${JSON.stringify(skywatchPayload).length}`,
-          },
-          json: skywatchPayload,
-        })
-        .json()
+      .post(SKYWATCH_SEARCH_URL_JWT, {
+        headers: {
+          authorization: skywatchApikey,
+          'content-length': `${JSON.stringify(skywatchPayload).length}`,
+        },
+        json: skywatchPayload,
+      })
+      .json()
     : await ky
-        .post(SKYWATCH_SEARCH_URL, {
-          headers: { 'x-api-key': skywatchApikey },
-          json: skywatchPayload,
-        })
-        .json()
+      .post(SKYWATCH_SEARCH_URL, {
+        headers: { 'x-api-key': skywatchApikey },
+        json: skywatchPayload,
+      })
+      .json()
   log('SKYWATCH searchId: \n', searchId, '\n')
 
   let searchResultsRaw

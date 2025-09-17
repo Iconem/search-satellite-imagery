@@ -5,22 +5,24 @@ import { Providers, maxAbs, filterFeaturesWithSearchParams, processInChunks } fr
 import { v4 as uuidv4 } from 'uuid'
 import bboxPolygon from '@turf/bbox-polygon'
 import { log } from '../utilities'
-import type GeoJSON from 'react-map-gl'
-import CryptoJS from "crypto-js";
 
-const APOLLO_API_URL = 'https://cors-anywhere.herokuapp.com/https://imagehunter-api.apollomapping.com'
+const APOLLO_API_URL = 'https://imagehunter-api.apollomapping.com'
 const APOLLO_DOMAIN = 'https://imagehunter.apollomapping.com'
 
 const searchApollo = async (searchSettings, apolloApikey, searchPolygon: any | null = null, setters: any | null = null): Promise<any> => {
 
-  const generateXAuthToken = (): string => {
+  const generateXAuthToken = async (): Promise<string> => {
     const now = new Date();
     const day = now.getUTCDate();
     const hour = now.getUTCHours();
     const secret = "iGsZ1wMw8xERUZrxNPvBt2TlFTFcN3P2";
     const raw = `${day}${hour}${secret}`;
-    const hash = CryptoJS.SHA256(raw).toString();
-    return hash;
+    const msgUint8 = new TextEncoder().encode(raw); // encode string to Uint8Array
+    const hashBuffer = await window.crypto.subtle.digest("SHA-256", msgUint8); // hash
+    const hashArray = Array.from(new Uint8Array(hashBuffer)); // buffer -> byte array
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, "0")).join(""); // byte array -> hex string
+
+    return hashHex;
   }
 
   const apolloPayload = {
@@ -39,6 +41,7 @@ const searchApollo = async (searchSettings, apolloApikey, searchPolygon: any | n
     stereo: false,
     seasonal: false,
   }
+
   const apolloPayloadBody = new URLSearchParams(apolloPayload as any).toString()
   // Better have a look at maxar payload construction
 
@@ -48,8 +51,7 @@ const searchApollo = async (searchSettings, apolloApikey, searchPolygon: any | n
   // Tried using a CORS proxy, with no luck like [cors-anywhere](https://github.com/Rob--W/cors-anywhere/#documentation) public one or [allorigins](https://allorigins.win/) or any recent one listed [here](https://nordicapis.com/10-free-to-use-cors-proxies/)
 
   const apolloRequest = `${APOLLO_API_URL}/ajax/search`
-  const token = generateXAuthToken();
-
+  const token = await generateXAuthToken()
   const apolloResultsRaw = await ky
     .post(apolloRequest, {
       headers: {
@@ -58,7 +60,7 @@ const searchApollo = async (searchSettings, apolloApikey, searchPolygon: any | n
         Referer: APOLLO_DOMAIN,
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
         'Content-Length': `${apolloPayloadBody.length}`,
-        "x-auth-token": token,
+        "X-Auth-Token": token,
       },
       body: apolloPayloadBody,
     })

@@ -1,7 +1,7 @@
-// Code for searching UP42 STAC APIpost
+// Code for searching UP42 STAC API
 
 import ky from 'ky'
-import { getImageryPrice, up42ConstellationDict, providersDict, Providers, up42ProducersNames, processInChunks, extractUp42HostsWithGsd } from './search-utilities'
+import { getImageryPrice, up42ConstellationDict, providersDict, Providers, up42ProducersNames, processInChunks } from './search-utilities'
 import { v4 as uuidv4 } from 'uuid'
 import { log } from '../utilities'
 
@@ -289,12 +289,12 @@ async function getUp42PreviewsAsync(up42Results, up42BearerJson, chunkSize, sett
         const [thumbBlob, previewBlob] = await Promise.all([
           ky.get(previewUrls.thumbnail_uri, {
             headers: { Authorization: up42BearerJson },
-            timeout: 30000,
+            timeout: 3000,
             retry: 2
           }).blob(),
           ky.get(previewUrls.preview_uri, {
             headers: { Authorization: up42BearerJson },
-            timeout: 30000,
+            timeout: 3000,
             retry: 2
           }).blob()
         ]);
@@ -312,7 +312,6 @@ async function getUp42PreviewsAsync(up42Results, up42BearerJson, chunkSize, sett
     {
       items: up42Results.features || [],
       chunkSize,
-      delayBetweenChunks: 100,
       usePromiseAllSettled: true,
       onChunkComplete: () => {
         setters?.setSearchResults({
@@ -447,7 +446,6 @@ const getUp42PricesAsync = async (
     {
       items: up42Results.features,
       chunkSize,
-      delayBetweenChunks: 0,
       usePromiseAllSettled: true,
       onChunkComplete: () => {
         if (setters?.setSearchResults) {
@@ -508,4 +506,28 @@ const formatUp42Results = (up42ResultsRaw, searchPolygon): GeoJSON.FeatureCollec
   }
 }
 
-export { searchUp42, getUp42Bearer, getDataCollections } 
+// utils/up42DataBuilder.js
+const extractUp42HostsWithGsd = (collectionsData) => {
+  const hostMap = new Map() // Use Map to avoid duplicates and store GSD
+
+  collectionsData.forEach(collection => {
+    collection.providers?.forEach(provider => {
+      if (provider.roles?.includes('HOST')) {
+        const hostTitle = provider.title
+        const gsd = collection.metadata?.resolutionValue?.minimum || null
+        // Only keep the best (smallest) GSD for each host
+        if (!hostMap.has(hostTitle) || hostMap.get(hostTitle).gsd > gsd) {
+          hostMap.set(hostTitle, {
+            title: hostTitle,
+            gsd: gsd,
+            satellites: []
+          })
+        }
+      }
+    })
+  })
+
+  return Array.from(hostMap.values())
+}
+
+export { searchUp42, getUp42Bearer, getDataCollections, extractUp42HostsWithGsd } 

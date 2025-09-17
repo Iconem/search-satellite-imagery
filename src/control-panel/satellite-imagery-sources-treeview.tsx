@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronDown, faChevronUp, faChevronRight, faSatellite } from '@fortawesome/free-solid-svg-icons'
 import { useLocalStorage } from '../utilities'
 import PropTypes from 'prop-types'
+import { Providers } from '../archive-apis/search-utilities'
 
 interface RenderTree {
   id: string
@@ -29,7 +30,7 @@ function buildTreeviewData(providersDict, constellationDict): RenderTree {
       children: providersDict[providerKey].map((constellationKey: string) => ({
         id: `treeview-constellation-${providerKey}-${constellationKey}`,
         name: `${constellationKey} - ${100 * (constellationDict[constellationKey]?.gsd ?? 0)}cm`,
-        disabled: true,
+        disabled: !(providerKey === Providers.UP42),
       })),
     })),
   }
