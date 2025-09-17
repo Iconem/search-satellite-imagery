@@ -493,6 +493,14 @@ async function processInChunks<T>(
   }
 }
 
+async function ComputeSha256Hash(message) {
+  const msgUint8 = new TextEncoder().encode(message); // encode string to Uint8Array
+  const hashBuffer = await window.crypto.subtle.digest("SHA-256", msgUint8); // hash
+  const hashArray = Array.from(new Uint8Array(hashBuffer)); // buffer -> byte array
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, "0")).join(""); // byte array -> hex string
+
+  return hashHex;
+}
 
 
 export { processInChunks, type ChunkProcessorOptions };
@@ -505,6 +513,7 @@ export {
   maxAbs,
   getConstellationName,
   getSatellitesRespectingGsd,
+  ComputeSha256Hash,
 
   // Enums
   Satellites,
