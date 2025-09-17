@@ -493,7 +493,8 @@ async function processInChunks<T>(
   }
 }
 
-async function ComputeSha256Hash(message) {
+// Implementation extractd from MDN https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest#basic_example
+async function computeSha256Hash(message) {
   const msgUint8 = new TextEncoder().encode(message); // encode string to Uint8Array
   const hashBuffer = await window.crypto.subtle.digest("SHA-256", msgUint8); // hash
   const hashArray = Array.from(new Uint8Array(hashBuffer)); // buffer -> byte array
@@ -513,7 +514,7 @@ export {
   maxAbs,
   getConstellationName,
   getSatellitesRespectingGsd,
-  ComputeSha256Hash,
+  computeSha256Hash,
 
   // Enums
   Satellites,
