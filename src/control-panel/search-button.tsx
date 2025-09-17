@@ -5,9 +5,7 @@ import area from '@turf/area'
 import { v4 as uuidv4 } from 'uuid'
 import { shapeIntersection, Providers, filterFeaturesWithSearchParams } from '../archive-apis/search-utilities'
 import PropTypes from 'prop-types'
-
-// import {searchUp42, searchEosHighres, searchSkywatch, searchMaxar} from './search-apis'
-import searchUp42 from '../archive-apis/search-up42'
+import { searchUp42 } from '../archive-apis/search-up42'
 import searchMaxar from '../archive-apis/search-maxar'
 import { searchEosHighres } from '../archive-apis/search-eos'
 import searchSkywatch from '../archive-apis/search-skywatch'
@@ -15,9 +13,7 @@ import searchSkyfi from '../archive-apis/search-skyfi'
 import searchOpenaerialmap from '../archive-apis/search-openaerialmap'
 import searchArlula from '../archive-apis/search-arlula'
 import searchApollo from '../archive-apis/search-apollo'
-
 import { GSD_STEPS, GSDFromIndex, log } from '../utilities'
-
 import searchStac from '../archive-apis/search-stac'
 
 const productionMode = !process.env.NODE_ENV || process.env.NODE_ENV === 'production'
@@ -35,9 +31,6 @@ SearchButton.propTypes = {
 function SearchButton(props): React.ReactElement {
   const handleLoadingButtonClick = async (): void => {
     log('SearchButton props.providersTreeviewDataSelection', props.providersTreeviewDataSelection)
-    // if (!props.loadingResults) {
-    // props.searchImagery()
-    // }
     await searchImagery(props.polygons, props.searchSettings, props.apiKeys, props.setters, props.providersTreeviewDataSelection)
   }
   const buttonDisabled = props.loadingResults || (productionMode && !(props.polygons?.length > 0))
@@ -78,7 +71,6 @@ const providersSearch = {
   [Providers.OAM]: searchOpenaerialmap,
   [Providers.ARLULA]: searchArlula,
   [Providers.APOLLO]: searchApollo,
-
   [Providers.STAC]: searchStac,
 }
 
@@ -130,7 +122,6 @@ const searchImagery = async (polygons, searchSettings, apiKeys, setters, provide
         open: true,
         message: 'WARNING ! Default Polygon (Paris area) used since no rectangle polygon has been drawn !',
       })
-      // return {output: emptyFeatureCollection}
     }
   }
 
@@ -140,7 +131,6 @@ const searchImagery = async (polygons, searchSettings, apiKeys, setters, provide
     properties: {
       ...searchSettings,
       id: uuidv4(),
-      // gsdIndex,
       acquisitionDate: searchSettings.startDate,
       gsd_min: GSD_STEPS[searchSettings.gsdIndex[0]],
       gsd_max: GSD_STEPS[searchSettings.gsdIndex[1]],
@@ -164,9 +154,6 @@ const searchImagery = async (polygons, searchSettings, apiKeys, setters, provide
   }
   setters.setSearchResults(searchResults)
 
-  // console.log('Search Settings', polygons, '\n Coordinates', coordinates, searchPolygon)
-  // const search_polygon = polygons && polygons.length && (polygons.length > 0) && polygons[0]
-
   if (area(searchPolygon as any) / 1_000_000 > 100_000) {
     setters.setSnackbarOptions({
       open: true,
@@ -176,9 +163,7 @@ const searchImagery = async (polygons, searchSettings, apiKeys, setters, provide
 
   const searchSettingsObj = {
     coordinates,
-    // startDate, endDate,
     ...searchSettings,
-    // gsdIndex,
     gsd: {
       min: GSD_STEPS[searchSettings.gsdIndex[0]],
       max: GSD_STEPS[searchSettings.gsdIndex[1]],
@@ -188,7 +173,6 @@ const searchImagery = async (polygons, searchSettings, apiKeys, setters, provide
 
   function updateSearchResults(newResults): void {
     if (newResults) {
-      // console.log('length before push', searchResults.output.features.length)
       // The below two lines commented out wont work because no change in shallow equality check
       // searchResults.output.features.push(...newResults.features)
       // setters.setSearchResults(searchResults)
@@ -200,14 +184,16 @@ const searchImagery = async (polygons, searchSettings, apiKeys, setters, provide
         },
       })
       searchResults.output.features.push(...newResults.features)
-      // console.log('length after push', searchResults.output.features.length)
     }
   }
-  // updateSearchResults(searchPolygon)
 
   // Filter only selected search APIs
-  const filteredProvidersSearch = providersTreeviewDataSelection ? Object.fromEntries(Object.entries(providersSearch).filter(([key]) => providersTreeviewDataSelection.some((treeId) => treeId.includes(key)))) : providersSearch
-  // console.log('before/after filteredProvidersSearch', providersSearch, filteredProvidersSearch)
+  const filteredProvidersSearch = Object.fromEntries(
+    Object.entries(providersSearch).filter(([key]) =>
+      providersTreeviewDataSelection.some(id => id === `treeview-provider-${key}` || id.startsWith(`treeview-constellation-${key}-`))
+    )
+  )
+
 
   // PROMISES FOR EACH SEARCH API
   const searchPromises = Object.fromEntries(
@@ -222,26 +208,23 @@ const searchImagery = async (polygons, searchSettings, apiKeys, setters, provide
           errorOnFetch: false,
           promise: new Promise(async (resolve) => {
             let searchResultsJson, errorOnFetch
-            // const { searchResultsJson, errorOnFetch } = await filteredProvidersSearch[provider]
-            //   (searchSettingsObj, apiKeys[provider], searchPolygon, setters)
             await filteredProvidersSearch[provider](searchSettingsObj, apiKeys[provider], searchPolygon, setters)
               .then((searchResultObj) => {
                 if (!searchResultObj || searchResultObj.errorOnFetch || !searchResultObj.searchResultsJson) {
                   throw new Error('Search had an error or led to not well formatted search_results object')
                 }
-                ;({ searchResultsJson, errorOnFetch } = searchResultObj)
+                ; ({ searchResultsJson, errorOnFetch } = searchResultObj)
                 searchPromises[provider].errorOnFetch = errorOnFetch ?? false
 
                 // Compute AOI shape intersection / coverage percent
                 searchResultsJson.features
                   .filter((f) => !f.properties.shapeIntersection)
                   .forEach((f) => {
-                    // console.log('recompute shapeIntersection for ', f)
                     f.properties.shapeIntersection = shapeIntersection(f.geometry, searchPolygon)
-                    // console.log('f.properties.shapeIntersection', f.properties.shapeIntersection,  searchPolygon.properties.shapeIntersection,  (f.properties.shapeIntersection ?? 100) >= searchPolygon.properties.shapeIntersection)
                   })
 
                 // Filter out results not matching resquest
+                // REFILTER ZINEB
                 searchResultsJson.features = searchResultsJson.features.filter((f) => filterFeaturesWithSearchParams(f, searchPolygon))
               })
               .catch((error) => {
@@ -262,7 +245,6 @@ const searchImagery = async (polygons, searchSettings, apiKeys, setters, provide
             updateSearchResults(searchResultsJson)
             resolve(searchResultsJson)
             searchPromises[provider].searchFinished = true
-            // setters.setSearchPromises(searchPromises)
             setters.setSearchPromises({
               ...searchPromises,
               [provider]: {
@@ -273,7 +255,6 @@ const searchImagery = async (polygons, searchSettings, apiKeys, setters, provide
 
             setTimeout(() => {
               searchPromises[provider].searchFinishedForMoreThanDelay = true
-              // setters.setSearchPromises(searchPromises)
               setters.setSearchPromises({
                 ...searchPromises,
                 [provider]: {
@@ -295,19 +276,5 @@ const searchImagery = async (polygons, searchSettings, apiKeys, setters, provide
     console.log('FINISHED requests for all Providers promises!', results)
   })
 }
-
-// function SearchButtonComponent(props) {
-
-//     return (
-//       <SearchButton
-//         loadingResults={loadingResults}
-//         setSearchResults= {props.setSearchResults}
-//         polygons= {polygons}
-//         searchImagery={() =>
-//           searchImagery(polygons, searchSettings, apiKeys, setters)
-//         }
-//       />
-//     )
-// }
 
 export default SearchButton

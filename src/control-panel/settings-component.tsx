@@ -22,7 +22,6 @@ const defaultSliderProps = {
   valueLabelDisplay: 'auto',
 }
 const appendSuffix = (suffix: string) => (val: string) => `${val}${suffix}`
-// const marks_10_100 = [...Array(11).keys()].map((i) => `${i * 10}%`)
 
 const handleSliderFun = (stateProperty, props) => (event: Event, newValue: number | number[]) =>
   props.setSearchSettings({
@@ -38,14 +37,6 @@ const CustomMarksSlider = styled(Slider)({
   '& .MuiSlider-markLabel[data-index="3"]': {
     transform: 'translateX(-100%)',
   },
-  // '& .MuiSlider-markLabel': {
-  //   fontSize: "10px",
-  //   top: "25px"
-  // },
-  // '& .MuiSlider-thumb': {
-  //   width: "8px",
-  //   height: "8px"
-  // },
 })
 
 // ---
@@ -85,18 +76,13 @@ CloudinessComponent.propTypes =
   AoiCoverageComponent.propTypes =
   SunElevationComponent.propTypes =
   OffNadirComponent.propTypes =
-    {
-      searchSettings: PropTypes.any,
-      setSearchSettings: PropTypes.func,
-    }
+  {
+    searchSettings: PropTypes.any,
+    setSearchSettings: PropTypes.func,
+  }
 
 /* Cloudiness Component */
 function CloudinessComponent(props): React.ReactElement {
-  // const handleCloudCoverageSlider = (event: Event, newValue: number | number[]) =>
-  //   props.setSearchSettings({
-  //     ...props.searchSettings,
-  //     cloudCoverage: newValue
-  //   })
   return (
     <>
       <SettingsHeader icon={faCloudSun} title={'Cloudiness'} value={`≤ ${props.searchSettings.cloudCoverage as number} %`} />
@@ -104,8 +90,6 @@ function CloudinessComponent(props): React.ReactElement {
         <Slider
           {...(defaultSliderProps as any)}
           value={props.searchSettings.cloudCoverage}
-          // onChange={handleCloudCoverageSlider}
-          // onChange={props.handleSlider('cloudCoverage')}
           onChange={handleSliderFun('cloudCoverage', props)}
           valueLabelFormat={(value) => `${value}%`}
         />
@@ -123,7 +107,6 @@ function AoiCoverageComponent(props): React.ReactElement {
         <Slider
           {...(defaultSliderProps as any)}
           value={props.searchSettings.aoiCoverage}
-          // onChange={props.handleSlider('aoiCoverage')}
           onChange={handleSliderFun('aoiCoverage', props)}
           track="inverted"
           valueLabelFormat={appendSuffix('%')}
@@ -159,7 +142,6 @@ AdvancedSettingsComponent.propTypes = {
   setSearchSettings: PropTypes.func,
 }
 function AdvancedSettingsComponent(props): React.ReactElement {
-  // const [advancedSettingsCollapsed, setAdvancedSettingsCollapsed] = React.useState(true)
   const [advancedSettingsCollapsed, setAdvancedSettingsCollapsed] = useLocalStorage('UI_collapsed_advancedSettings', true)
   return (
     <>
@@ -183,6 +165,7 @@ SettingsComponent.propTypes = {
   GSD_STEPS: PropTypes.arrayOf(PropTypes.number),
   providersTreeviewDataSelection: PropTypes.any,
   setProvidersTreeviewDataSelection: PropTypes.func,
+  treeviewData: PropTypes.any,
 }
 function SettingsComponent(props): React.ReactElement {
   return (
@@ -192,7 +175,11 @@ function SettingsComponent(props): React.ReactElement {
 
       <AdvancedSettingsComponent searchSettings={props.searchSettings} setSearchSettings={props.setSearchSettings} />
 
-      <SatelliteImagerySourcesTreeview setProvidersTreeviewDataSelection={props.setProvidersTreeviewDataSelection} providersTreeviewDataSelection={props.providersTreeviewDataSelection} />
+      <SatelliteImagerySourcesTreeview
+        setProvidersTreeviewDataSelection={props.setProvidersTreeviewDataSelection}
+        providersTreeviewDataSelection={props.providersTreeviewDataSelection}
+        treeviewData={props.treeviewData}
+      />
     </>
   )
 }

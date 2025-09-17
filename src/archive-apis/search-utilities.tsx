@@ -118,11 +118,11 @@ enum Providers {
   UP42 = 'UP42',
   MAXAR_DIGITALGLOBE = 'MAXAR',
   EOS = 'EOS',
-  SKYWATCH = 'SKYWATCH',
+  SKYWATCH = 'SKYWATCH - SLOW V1 API',
   SKYFI = 'SKYFI',
   OAM = 'OpenAerialMap',
   ARLULA = 'ARLULA',
-  APOLLO = 'APOLLO MAPPING',
+  // APOLLO = 'APOLLO MAPPING',
   STAC = 'STAC',
 }
 
@@ -153,11 +153,11 @@ const providersDict = {
     Constellation.TripleSat,
     // TODO LatConnect 60
   ],
-  [Providers.APOLLO]: [
-    Constellation.Pleiades,
-    Constellation.PleiadesNeo,
-    // TODO COMPLETE
-  ],
+  // [Providers.APOLLO]: [
+  //   Constellation.Pleiades,
+  //   Constellation.PleiadesNeo,
+  //   // TODO COMPLETE
+  // ],
   [Providers.STAC]: [Constellation.STAC],
   // 'SENTINELHUB': [Constellation.Pleiades,  Constellation.Worldview],
 }
@@ -435,20 +435,6 @@ function getConstellationName(satName, constellationDict): string | undefined {
   }
 }
 
-// const eosConstellationDict =
-//   Object.keys(constellationDict)
-//     .reduce(function(result, key) {
-//       if (false || providersDict[Providers.EOS].includes(Constellation[key])) {
-//         result[key] = {
-//           satellites: constellationDict[key].satellites.map(x => eosNames[x].eos_name)
-//         }
-//       }
-//       return result
-//   }, {})
-
-// TODO
-// Could be simplified
-
 const eosConstellationDict = providersDict[Providers.EOS].reduce(function (result, constellation) {
   result[constellation] = {
     satellites: constellationDict[constellation].satellites.map((x) => eosNames[x] || x),
@@ -463,15 +449,53 @@ const maxarConstellationDict = providersDict[Providers.MAXAR_DIGITALGLOBE].reduc
   return result
 }, {})
 
-// const headConstellationDict =
-//   providersDict[Providers.HEADAEROSPACE]
-//   .reduce(function(result, constellation) {
-//       result[constellation] = {
-//         satellites: constellationDict[constellation].satellites.map(x => headNames[x] || x)
-//       }
-//       return result
-//     }
-// , {})
+// Generic chunk processor utility
+interface ChunkProcessorOptions<T> {
+  items: T[];
+  chunkSize: number;
+  onChunkComplete?: (processedItems: T[], chunkIndex: number, totalChunks: number) => void | Promise<void>;
+  usePromiseAllSettled?: boolean; // true = continue on errors, false = stop on first error
+}
+
+async function processInChunks<T>(
+  processor: (item: T, index: number) => Promise<void>,
+  options: ChunkProcessorOptions<T>
+): Promise<void> {
+  const {
+    items,
+    chunkSize,
+    onChunkComplete,
+    usePromiseAllSettled = true
+  } = options;
+
+  const totalChunks = Math.ceil(items.length / chunkSize);
+
+  for (let i = 0; i < items.length; i += chunkSize) {
+    const chunk = items.slice(i, i + chunkSize);
+    const chunkIndex = Math.floor(i / chunkSize);
+
+    if (usePromiseAllSettled) {
+      // Continue processing even if some items fail
+      await Promise.allSettled(
+        chunk.map((item, index) => processor(item, i + index))
+      );
+    } else {
+      // Stop on first error
+      await Promise.all(
+        chunk.map((item, index) => processor(item, i + index))
+      );
+    }
+
+    // Call callback after chunk completion
+    if (onChunkComplete) {
+      await onChunkComplete(chunk, chunkIndex, totalChunks);
+    }
+  }
+}
+
+
+
+export { processInChunks, type ChunkProcessorOptions };
 
 export {
   // Methods

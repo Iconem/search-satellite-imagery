@@ -1,18 +1,30 @@
 // Code for searching APOLLO MAPPING API
 
 import ky from 'ky'
-import { Providers, maxAbs, filterFeaturesWithSearchParams } from './search-utilities'
+import { Providers, maxAbs, filterFeaturesWithSearchParams, processInChunks } from './search-utilities'
 import { v4 as uuidv4 } from 'uuid'
 import bboxPolygon from '@turf/bbox-polygon'
 import { log } from '../utilities'
-import type GeoJSON from 'react-map-gl'
-
-// https://imagehunter.apollomapping.com/
 
 const APOLLO_API_URL = 'https://imagehunter-api.apollomapping.com'
 const APOLLO_DOMAIN = 'https://imagehunter.apollomapping.com'
 
 const searchApollo = async (searchSettings, apolloApikey, searchPolygon: any | null = null, setters: any | null = null): Promise<any> => {
+
+  const generateXAuthToken = async (): Promise<string> => {
+    const now = new Date();
+    const day = now.getUTCDate();
+    const hour = now.getUTCHours();
+    const secret = "iGsZ1wMw8xERUZrxNPvBt2TlFTFcN3P2";
+    const raw = `${day}${hour}${secret}`;
+    const msgUint8 = new TextEncoder().encode(raw); // encode string to Uint8Array
+    const hashBuffer = await window.crypto.subtle.digest("SHA-256", msgUint8); // hash
+    const hashArray = Array.from(new Uint8Array(hashBuffer)); // buffer -> byte array
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, "0")).join(""); // byte array -> hex string
+
+    return hashHex;
+  }
+
   const apolloPayload = {
     startDate: searchSettings.startDate.toISOString().substring(0, 19), // '1970-01-01T12:00:00',
     endDate: searchSettings.endDate.toISOString().substring(0, 19),
@@ -29,32 +41,17 @@ const searchApollo = async (searchSettings, apolloApikey, searchPolygon: any | n
     stereo: false,
     seasonal: false,
   }
+
   const apolloPayloadBody = new URLSearchParams(apolloPayload as any).toString()
   // Better have a look at maxar payload construction
 
   // WIP, returns 401 unauthorized because origin and referer headers are overwritten on post
-  // return {
-  //   searchResultsJson: {
-  //     'features': [],
-  //     type: 'FeatureCollection'
-  //   }
-  // }
 
   // Returns 401 Unauthorized probably because request is actually sent to http non-sll server url because dev server has no tls and origin and referer are overwritten by browser to localhost
   // Tried using a CORS proxy, with no luck like [cors-anywhere](https://github.com/Rob--W/cors-anywhere/#documentation) public one or [allorigins](https://allorigins.win/) or any recent one listed [here](https://nordicapis.com/10-free-to-use-cors-proxies/)
 
-  // const requestOptions = {headers: { 'Host': APOLLO_DOMAIN,  'Origin': APOLLO_DOMAIN,  'Referer': APOLLO_DOMAIN, }, method: 'POST'};
-  // let apolloRequest = new Request(APOLLO_SEARCH_URL, requestOptions);
   const apolloRequest = `${APOLLO_API_URL}/ajax/search`
-  // let apolloRequest = 'https://api.allorigins.win/get?url=https%3A%2F%2Freqres.in%2Fapi%2Fusers'
-  // let apolloRequest = 'https://test.cors.workers.dev/?https%3A%2F%2Freqres.in%2Fapi%2Fusers'
-  // apolloRequest = 'http://localhost:8010/proxy/ajax/search'
-  // let apolloRequest = `https://api.allorigins.win/post?url=${encodeURIComponent(APOLLO_SEARCH_URL)}`
-  // const testPayload = {
-  //   name: 'morpheudezetterz',
-  //   job: 'letrezterzder',
-  // }
-
+  const token = await generateXAuthToken()
   const apolloResultsRaw = await ky
     .post(apolloRequest, {
       headers: {
@@ -63,9 +60,9 @@ const searchApollo = async (searchSettings, apolloApikey, searchPolygon: any | n
         Referer: APOLLO_DOMAIN,
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
         'Content-Length': `${apolloPayloadBody.length}`,
-        // 'Content-Length': '867'
+        "X-Auth-Token": token,
       },
-      body: apolloPayloadBody, // testPayload, apolloPayload, fakePayload
+      body: apolloPayloadBody,
     })
     .json()
 
@@ -79,7 +76,7 @@ const searchApollo = async (searchSettings, apolloApikey, searchPolygon: any | n
   // A better way could be to add a callback on hover in datagrid if preview does not exist to retrieve its url
   // Initiate search for previews/thumbnails
   // TODO REDO
-  void getApolloPreviewsAsync(searchResultsJson).then((results) => {
+  void getApolloPreviewsAsync(searchResultsJson, token).then((results) => {
     if (setters) {
       // const searchResults = {
       //   input: searchPolygon,
@@ -131,58 +128,55 @@ const formatApolloResults = (apolloResultsRaw): GeoJSON.FeatureCollection => {
 }
 
 const timer = async (ms): Promise<any> => await new Promise((resolve) => setTimeout(resolve, ms))
+const getApolloPreviewsAsync = async (apolloResults, token): Promise<void> => {
+  const errors: string[] = [];
 
-const getApolloPreviewsAsync = async (apolloResults): Promise<void> => {
-  const chunkSize = 10
-  // Send batches of chunkSize POST requests to ApolloMapping API server
-  for (let i = 0; i < apolloResults.features.length; i += chunkSize) {
-    const chunk = apolloResults.features.slice(i, i + chunkSize)
-    const errors: string[] = []
-    // Await all promises of chunk fetching
-    await Promise.all(
-      chunk.map(async (feature) => {
-        const previewPayload = {
-          catid: feature.properties.id,
-          satellite: 'scene',
-          satelliteShortName: feature.properties.providerProperties.satelliteShortName,
-          isRefresh: false,
-          forceHighestQuality: false, // Todo: test true
+  await processInChunks(
+    async (feature: any) => {
+      const previewPayload = {
+        catid: feature.properties.id,
+        satellite: 'scene',
+        satelliteShortName: feature.properties.providerProperties.satelliteShortName,
+        isRefresh: false,
+        forceHighestQuality: false,
+      };
+
+      const previewPayloadBody = new URLSearchParams(previewPayload as any).toString();
+
+      await ky
+        .post(`${APOLLO_API_URL}/ajax/get_preview_image`, {
+          headers: {
+            Host: APOLLO_DOMAIN,
+            Origin: APOLLO_DOMAIN,
+            Referer: APOLLO_DOMAIN,
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'Content-Length': `${previewPayloadBody.length}`,
+            "x-auth-token": token,
+          },
+          body: previewPayloadBody,
+          timeout: 30000,
+        })
+        .json()
+        .then((previewUrlObject) => {
+          feature.properties.thumbnail_uri = `${APOLLO_API_URL}${(previewUrlObject as any).path}`;
+          feature.properties.preview_uri = feature.properties.thumbnail_uri;
+        })
+        .catch(() => {
+          errors.push('Error during ky post request to get Apollo preview image');
+        });
+    },
+    {
+      items: apolloResults.features,
+      chunkSize: 10,
+      delayBetweenChunks: 500,
+      usePromiseAllSettled: false, // Stop on error like original
+      onChunkComplete: (chunk, chunkIndex, totalChunks) => {
+        if (errors.length > 0) {
+          throw new Error(`ApolloMapping Previews fetch - Error during chunk ${chunkIndex}`);
         }
-        const previewPayloadBody = new URLSearchParams(previewPayload as any).toString()
-        // console.log('Fetching preview via ky.post for ', feature.properties.id)
-        // console.log('REQUESTING APOLLO PREVIEW', previewPayload.catid, previewPayload, previewUrlObject, feature.properties.thumbnail_uri)
-        await ky
-          .post(`${APOLLO_API_URL}/ajax/get_preview_image`, {
-            headers: {
-              Host: APOLLO_DOMAIN,
-              Origin: APOLLO_DOMAIN,
-              Referer: APOLLO_DOMAIN,
-              'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-              'Content-Length': `${previewPayloadBody.length}`,
-            },
-            body: previewPayloadBody,
-            timeout: 30000,
-          })
-          .json()
-          .then((previewUrlObject) => {
-            // console.log('ApolloMapping, found preview ', previewUrlObject)
-            feature.properties.thumbnail_uri = `${APOLLO_API_URL}${(previewUrlObject as any).path as string}`
-            feature.properties.preview_uri = feature.properties.thumbnail_uri
-          })
-          .catch(() => {
-            errors.push('Error during ky post request to get Apollo preview image')
-          })
-      })
-    )
-
-    if (errors.length > 0) {
-      log(`ApolloMapping Previews fetch - Catched error during chunk previews fetch for loop ${i}, so break master loop by return`)
-      throw new Error(`ApolloMapping Previews fetch - Catched error during chunk previews fetch for loop ${i}, so break master loop by return`)
-      // throw new Error(errors.join());
-      // return
+      }
     }
-    await timer(3000)
-  }
-}
+  );
+};
 
 export default searchApollo
