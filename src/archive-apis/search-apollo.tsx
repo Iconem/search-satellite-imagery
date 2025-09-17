@@ -1,7 +1,7 @@
 // Code for searching APOLLO MAPPING API
 
 import ky from 'ky'
-import { Providers, maxAbs, filterFeaturesWithSearchParams, processInChunks, ComputeSha256Hash } from './search-utilities'
+import { Providers, maxAbs, filterFeaturesWithSearchParams, processInChunks, computeSha256Hash } from './search-utilities'
 import { v4 as uuidv4 } from 'uuid'
 import bboxPolygon from '@turf/bbox-polygon'
 import { log } from '../utilities'
@@ -17,7 +17,7 @@ const searchApollo = async (searchSettings, apolloApikey, searchPolygon: any | n
     const hour = now.getUTCHours();
     const secret = "iGsZ1wMw8xERUZrxNPvBt2TlFTFcN3P2";
     const raw = `${day}${hour}${secret}`;
-    const hashHex = await ComputeSha256Hash(raw)
+    const hashHex = await computeSha256Hash(raw)
 
     return hashHex;
   }
