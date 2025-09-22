@@ -161,7 +161,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
     })
   }
 
-  //get Bearer and datacollection for UP42
+  // State management for satellite data and provider selection
   const [dataCollection, setDataCollection] = useLocalStorage(
     "dataCollection",
     []
@@ -170,56 +170,98 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
     'providersTreeviewDataSelection',
     []
   )
+  const [isUp42Loading, setIsUp42Loading] = React.useState(false);
 
+  // Load UP42 data on component mount
   React.useEffect(() => {
+    if (dataCollection.length > 0) return;
     (async () => {
       const { up42Email, up42Password } = apiKeys[Providers.UP42];
-      const newToken = await getUp42Bearer(up42Email, up42Password);
+      setIsUp42Loading(true);
+      try {
+        const newToken = await getUp42Bearer(up42Email, up42Password);
+        const data = await getDataCollections(newToken, up42Email, up42Password, setters);
 
-      const data = await getDataCollections(newToken, up42Email, up42Password, setters);
-      setDataCollection((prev) => {
-        if (equal(prev, data)) {
-          return prev;
-        }
-        return data;
-      });
+        // Only update if data actually changed
+        setDataCollection((prev) => {
+          if (equal(prev, data)) {
+            return prev;
+          }
+          return data;
+        });
+      } catch (error) {
+        console.error('UP42 CORS Error:', error);
+      } finally {
+        setIsUp42Loading(false);
+      }
     })();
   }, [apiKeys[Providers.UP42].up42Email, apiKeys[Providers.UP42].up42Password]);
 
+  // Merge hardcoded providers with dynamic UP42 data
   const { providersDict, constellationDict } = React.useMemo(() => {
-    if (dataCollection.length === 0) {
-      return { providersDict: {}, constellationDict: {} };
+    let newProvidersDict = { ...initialProvidersDict };
+    let newConstellationDict = { ...initialConstellationDict };
+
+    if (dataCollection.length > 0) {
+      // Add UP42 providers once loaded
+      const up42Hosts = extractUp42HostsWithGsd(dataCollection);
+      newProvidersDict[Providers.UP42] = up42Hosts.map(host => host.title);
+
+      up42Hosts.forEach(host => {
+        newConstellationDict[host.title] = {
+          satellites: host.satellites,
+          gsd: host.gsd
+        };
+      });
+    } else {
+      newProvidersDict[Providers.UP42] = []; // Empty while loading
     }
-
-    const up42Hosts = extractUp42HostsWithGsd(dataCollection);
-
-    const newProvidersDict = {
-      ...initialProvidersDict,
-      [Providers.UP42]: up42Hosts.map(host => host.title)
-    };
-    const newConstellationDict: Record<string, any> = {};
-    up42Hosts.forEach(host => {
-      newConstellationDict[host.title] = {
-        satellites: host.satellites,
-        gsd: host.gsd
-      };
-    });
 
     return { providersDict: newProvidersDict, constellationDict: newConstellationDict };
   }, [dataCollection]);
 
+  // Build tree structure with loading state
   const treeviewData = React.useMemo(
-    () => (dataCollection.length ? buildTreeviewData(providersDict, constellationDict) : null),
-    [dataCollection, providersDict, constellationDict]
+    () => buildTreeviewData(providersDict, constellationDict, isUp42Loading),
+    [providersDict, constellationDict, isUp42Loading]
   );
 
-  // Initialize selection when treeviewData is ready and selection is empty
+  // Initial selection (hardcoded providers only)
   React.useEffect(() => {
     if (treeviewData && providersTreeviewDataSelection.length === 0) {
       const initialSelection = sourcesTreeviewInitialSelection(treeviewData)
       setProvidersTreeviewDataSelection(initialSelection)
     }
   }, [treeviewData])
+
+  // Add UP42 to selection once loaded
+  React.useEffect(() => {
+    if (!isUp42Loading && dataCollection.length > 0 && treeviewData) {
+      const up42Provider = treeviewData.children?.find(
+        provider => provider.id === `treeview-provider-${Providers.UP42}`
+      );
+
+      if (up42Provider && !up42Provider.loading) {
+        const up42ProviderId = up42Provider.id;
+        const wasUp42Selected = providersTreeviewDataSelection.includes(up42ProviderId);
+
+        if (wasUp42Selected) {
+          const up42SelectionIds = [
+            up42Provider.id,
+            ...(up42Provider.children?.map(child => child.id) || [])
+          ];
+
+          setProvidersTreeviewDataSelection(prev => {
+
+            const withoutOldUp42 = prev.filter(id => !id.includes('treeview-constellation-UP42-'));
+            const newSelection = [...withoutOldUp42, ...up42SelectionIds];
+            return [...new Set(newSelection)];
+          });
+        }
+
+      }
+    }
+  }, [isUp42Loading])
 
   const setters = {
     setSearchResults: props.setSearchResults,
