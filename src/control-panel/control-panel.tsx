@@ -174,8 +174,15 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
 
   // Load UP42 data on component mount
   React.useEffect(() => {
-    if (dataCollection.length > 0) return;
     (async () => {
+      const lastFetched = localStorage.getItem('dataCollectionLastEdited');
+      const today = new Date().toDateString();
+
+      if (lastFetched === today && dataCollection.length > 0) {
+        console.log('UP42 data already fresh for today, skipping fetch');
+        return;
+      }
+
       const { up42Email, up42Password } = apiKeys[Providers.UP42];
       setIsUp42Loading(true);
       try {
@@ -189,6 +196,8 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
           }
           return data;
         });
+
+        localStorage.setItem('dataCollectionLastEdited', today);
       } catch (error) {
         console.error('UP42 CORS Error:', error);
       } finally {
