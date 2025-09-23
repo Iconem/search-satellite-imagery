@@ -4,7 +4,7 @@
 
 import * as React from 'react'
 import { TreeView, TreeItem } from '@mui/lab'
-import { Typography, Collapse, Checkbox, FormControlLabel } from '@mui/material'
+import { Typography, Collapse, Checkbox, FormControlLabel, CircularProgress, Box } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronDown, faChevronUp, faChevronRight, faSatellite } from '@fortawesome/free-solid-svg-icons'
 import { useLocalStorage } from '../utilities'
@@ -16,24 +16,56 @@ interface RenderTree {
   name: string
   children?: RenderTree[]
   disabled?: boolean
+  loading?: boolean
 }
 
 const treeviewRootId = 'treeview-provider-root'
 
-function buildTreeviewData(providersDict, constellationDict): RenderTree {
+// function buildTreeviewData(providersDict, constellationDict): RenderTree {
+//   return {
+//     id: treeviewRootId,
+//     name: 'Satellite Sources',
+//     children: Object.keys(providersDict).map((providerKey: string) => ({
+//       id: `treeview-provider-${providerKey}`,
+//       name: providerKey,
+//       children: providersDict[providerKey].map((constellationKey: string) => ({
+//         id: `treeview-constellation-${providerKey}-${constellationKey}`,
+//         name: `${constellationKey} - ${100 * (constellationDict[constellationKey]?.gsd ?? 0)}cm`,
+//         disabled: !(providerKey === Providers.UP42),
+//       })),
+//     })),
+//   }
+// }
+
+function buildTreeviewData(providersDict, constellationDict, isUp42Loading = false): RenderTree {
   return {
     id: treeviewRootId,
     name: 'Satellite Sources',
-    children: Object.keys(providersDict).map((providerKey: string) => ({
-      id: `treeview-provider-${providerKey}`,
-      name: providerKey,
-      children: providersDict[providerKey].map((constellationKey: string) => ({
-        id: `treeview-constellation-${providerKey}-${constellationKey}`,
-        name: `${constellationKey} - ${100 * (constellationDict[constellationKey]?.gsd ?? 0)}cm`,
-        disabled: !(providerKey === Providers.UP42),
-      })),
-    })),
-  }
+    children: Object.keys(providersDict).map((providerKey: string) => {
+
+      if (providerKey === Providers.UP42 && isUp42Loading) {
+        return {
+          id: `treeview-provider-${providerKey}`,
+          name: `${providerKey} (Loading...)`,
+          children: [{
+            id: `treeview-constellation-${providerKey}-loading`,
+            name: 'Loading...',
+            loading: true,
+            children: []
+          }]
+        };
+      }
+      return {
+        id: `treeview-provider-${providerKey}`,
+        name: providerKey,
+        children: providersDict[providerKey].map((constellationKey: string) => ({
+          id: `treeview-constellation-${providerKey}-${constellationKey}`,
+          name: `${constellationKey} - ${100 * (constellationDict[constellationKey]?.gsd ?? 0)}cm`,
+          // disabled: !(providerKey === Providers.UP42),
+        })),
+      };
+    }),
+  };
 }
 
 const sourcesTreeviewInitialSelection = (treeviewData: RenderTree): string[] => {
@@ -46,6 +78,7 @@ const sourcesTreeviewInitialSelection = (treeviewData: RenderTree): string[] => 
     .flat()
   return result
 }
+
 
 RecursiveTreeView.propTypes = {
   providersTreeviewDataSelection: PropTypes.any,
@@ -124,10 +157,10 @@ function RecursiveTreeView(props): React.ReactElement {
   }
 
   const renderTree = (nodes: RenderTree): React.ReactElement => {
+
     const allSelectedChildren = parentMap[nodes.id]?.every((childNodeId: string) => selectedSet.has(childNodeId))
     const checked = selectedSet.has(nodes.id) || allSelectedChildren || false
     const indeterminate = parentMap[nodes.id]?.some((childNodeId: string) => selectedSet.has(childNodeId)) || false
-
     if (allSelectedChildren && !selectedSet.has(nodes.id)) {
       props.setProvidersTreeviewDataSelection([...props.providersTreeviewDataSelection, nodes.id])
     }
@@ -147,7 +180,13 @@ function RecursiveTreeView(props): React.ReactElement {
                 disabled={nodes.disabled}
               />
             }
-            label={<Typography variant="subtitle2">{nodes.name}</Typography>}
+            // label={<Typography variant="subtitle2">{nodes.name}</Typography>}
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography variant="subtitle2">{nodes.name}</Typography>
+                {nodes.loading && <CircularProgress size={16} />}
+              </Box>
+            }
             key={nodes.id}
           />
         }
@@ -184,16 +223,21 @@ function SatelliteImagerySourcesTreeview(props): React.ReactElement {
         &nbsp; Satellite Sources Selection &nbsp;
         {advancedSettingsCollapsed ? <FontAwesomeIcon icon={faChevronDown} /> : <FontAwesomeIcon icon={faChevronUp} />}
       </Typography>
+      {/* <Collapse in={!advancedSettingsCollapsed} timeout="auto" unmountOnExit>
+
+        <RecursiveTreeView
+          setProvidersTreeviewDataSelection={props.setProvidersTreeviewDataSelection}
+          providersTreeviewDataSelection={props.providersTreeviewDataSelection}
+          treeviewData={props.treeviewData}
+        />
+
+      </Collapse> */}
       <Collapse in={!advancedSettingsCollapsed} timeout="auto" unmountOnExit>
-        {props.treeviewData ? (
-          <RecursiveTreeView
-            setProvidersTreeviewDataSelection={props.setProvidersTreeviewDataSelection}
-            providersTreeviewDataSelection={props.providersTreeviewDataSelection}
-            treeviewData={props.treeviewData}
-          />
-        ) : (
-          <div>Loading...</div>
-        )}
+        <RecursiveTreeView
+          setProvidersTreeviewDataSelection={props.setProvidersTreeviewDataSelection}
+          providersTreeviewDataSelection={props.providersTreeviewDataSelection}
+          treeviewData={props.treeviewData}
+        />
       </Collapse>
     </>
   )
