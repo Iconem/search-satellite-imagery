@@ -21,39 +21,37 @@ interface RenderTree {
 
 const treeviewRootId = 'treeview-provider-root'
 
-// function buildTreeviewData(providersDict, constellationDict): RenderTree {
-//   return {
-//     id: treeviewRootId,
-//     name: 'Satellite Sources',
-//     children: Object.keys(providersDict).map((providerKey: string) => ({
-//       id: `treeview-provider-${providerKey}`,
-//       name: providerKey,
-//       children: providersDict[providerKey].map((constellationKey: string) => ({
-//         id: `treeview-constellation-${providerKey}-${constellationKey}`,
-//         name: `${constellationKey} - ${100 * (constellationDict[constellationKey]?.gsd ?? 0)}cm`,
-//         disabled: !(providerKey === Providers.UP42),
-//       })),
-//     })),
-//   }
-// }
-
-function buildTreeviewData(providersDict, constellationDict, isUp42Loading = false): RenderTree {
+function buildTreeviewData(providersDict, constellationDict, isUp42Loading = false, apiKeys): RenderTree {
   return {
     id: treeviewRootId,
     name: 'Satellite Sources',
     children: Object.keys(providersDict).map((providerKey: string) => {
+      if (providerKey === Providers.UP42) {
+        if (!apiKeys[Providers.UP42]?.up42Email || !apiKeys[Providers.UP42]?.up42Password) {
+          return {
+            id: `treeview-provider-${providerKey}`,
+            name: `${providerKey} (Not configured)`,
+            disabled: true,
+            children: [{
+              id: `${providerKey}-config`,
+              name: 'Configure credentials in "SET API KEYS" bellow',
+              disabled: true
+            }]
+          };
+        }
 
-      if (providerKey === Providers.UP42 && isUp42Loading) {
-        return {
-          id: `treeview-provider-${providerKey}`,
-          name: `${providerKey} (Loading...)`,
-          children: [{
-            id: `treeview-constellation-${providerKey}-loading`,
-            name: 'Loading...',
-            loading: true,
-            children: []
-          }]
-        };
+        if (isUp42Loading) {
+          return {
+            id: `treeview-provider-${providerKey}`,
+            name: `${providerKey} (Loading...)`,
+            children: [{
+              id: `treeview-constellation-${providerKey}-loading`,
+              name: 'Loading...',
+              loading: true,
+              children: []
+            }]
+          };
+        }
       }
       return {
         id: `treeview-provider-${providerKey}`,

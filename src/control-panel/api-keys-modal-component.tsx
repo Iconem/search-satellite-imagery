@@ -93,7 +93,9 @@ function ApiKeysModalComponent(props): React.ReactElement {
               <ListItem sx={{ display: 'list-item' }}>
                 <TextField
                   defaultValue={props.apiKeys[Providers.UP42].up42Email}
-                  onBlur={(event) =>
+                  onBlur={(event) => {
+                    console.log('onBlur déclenché avec:', event.target.value);
+                    console.log('Longueur:', event.target.value.length);
                     props.setApiKeys({
                       ...props.apiKeys,
                       [Providers.UP42]: {
@@ -101,6 +103,7 @@ function ApiKeysModalComponent(props): React.ReactElement {
                         up42Email: event.target.value,
                       },
                     })
+                  }
                   }
                   label="Email"
                   type="search"
@@ -110,7 +113,9 @@ function ApiKeysModalComponent(props): React.ReactElement {
               <ListItem sx={{ display: 'list-item' }}>
                 <TextField
                   defaultValue={props.apiKeys[Providers.UP42].up42Password}
-                  onBlur={(event) =>
+                  onBlur={(event) => {
+                    console.log('onBlur déclenché avec:', event.target.value);
+                    console.log('Longueur:', event.target.value.length);
                     props.setApiKeys({
                       ...props.apiKeys,
                       [Providers.UP42]: {
@@ -118,7 +123,7 @@ function ApiKeysModalComponent(props): React.ReactElement {
                         up42Password: event.target.value,
                       },
                     })
-                  }
+                  }}
                   label="Password"
                   type="search"
                   sx={{ width: '50%' }}

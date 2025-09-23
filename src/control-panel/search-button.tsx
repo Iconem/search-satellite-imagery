@@ -64,14 +64,14 @@ function SearchButton(props): React.ReactElement {
 
 const providersSearch = {
   [Providers.UP42]: searchUp42,
-  [Providers.MAXAR_DIGITALGLOBE]: searchMaxar,
+  [Providers.ARLULA]: searchArlula,
   [Providers.EOS]: searchEosHighres,
   [Providers.SKYWATCH]: searchSkywatch,
   [Providers.SKYFI]: searchSkyfi,
   [Providers.OAM]: searchOpenaerialmap,
-  [Providers.ARLULA]: searchArlula,
-  [Providers.APOLLO]: searchApollo,
   [Providers.STAC]: searchStac,
+  // [Providers.APOLLO]: searchApollo,
+  [Providers.MAXAR_DIGITALGLOBE]: searchMaxar,
 }
 
 const emptyFeatureCollection = {
