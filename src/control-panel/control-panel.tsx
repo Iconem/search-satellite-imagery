@@ -175,6 +175,14 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   // Load UP42 data on component mount
   React.useEffect(() => {
     (async () => {
+      const { up42Email, up42Password } = apiKeys[Providers.UP42];
+      if (!up42Email || !up42Password) {
+        setters?.setSnackbarOptions({
+          open: true,
+          message: 'UP42 credentials not configured. Please check your API settings.',
+        });
+        return;
+      }
       const lastFetched = localStorage.getItem('dataCollectionLastEdited');
       const today = new Date().toDateString();
 
@@ -182,11 +190,18 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
         console.log('UP42 data already fresh for today, skipping fetch');
         return;
       }
-
-      const { up42Email, up42Password } = apiKeys[Providers.UP42];
       setIsUp42Loading(true);
       try {
         const newToken = await getUp42Bearer(up42Email, up42Password);
+        if (!newToken || newToken === "") {
+          setDataCollection([])
+          setters?.setSnackbarOptions({
+            open: true,
+            message: 'Incorrect credentials',
+          });
+          return;
+        }
+
         const data = await getDataCollections(newToken, up42Email, up42Password, setters);
 
         // Only update if data actually changed
@@ -199,7 +214,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
 
         localStorage.setItem('dataCollectionLastEdited', today);
       } catch (error) {
-        console.error('UP42 CORS Error:', error);
+        console.error('UP42 data collection error:', error);
       } finally {
         setIsUp42Loading(false);
       }
@@ -231,8 +246,8 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
 
   // Build tree structure with loading state
   const treeviewData = React.useMemo(
-    () => buildTreeviewData(providersDict, constellationDict, isUp42Loading),
-    [providersDict, constellationDict, isUp42Loading]
+    () => buildTreeviewData(providersDict, constellationDict, isUp42Loading, apiKeys),
+    [providersDict, constellationDict, isUp42Loading, apiKeys[Providers.UP42].up42Email, apiKeys[Providers.UP42].up42Password]
   );
 
   // Initial selection (hardcoded providers only)

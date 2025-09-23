@@ -116,14 +116,14 @@ enum Constellation {
 
 enum Providers {
   UP42 = 'UP42',
-  MAXAR_DIGITALGLOBE = 'MAXAR',
   EOS = 'EOS',
+  ARLULA = 'ARLULA',
   SKYWATCH = 'SKYWATCH - SLOW V1 API',
   SKYFI = 'SKYFI',
   OAM = 'OpenAerialMap',
-  ARLULA = 'ARLULA',
-  // APOLLO = 'APOLLO MAPPING',
   STAC = 'STAC',
+  // APOLLO = 'APOLLO MAPPING',
+  // MAXAR_DIGITALGLOBE = 'MAXAR',
 }
 
 const providersDict = {
@@ -134,14 +134,8 @@ const providersDict = {
     Constellation.SPOT,
     Constellation.NearSpace,
     Constellation.CapellaSpace,
-    // Constellation.NearMap,
-    // Constellation.HxGN,
   ],
-  [Providers.MAXAR_DIGITALGLOBE]: [Constellation.GeoEye, Constellation.WorldView_1_2, Constellation.WorldView_3_4, Constellation.QuickBird2, Constellation.Ikonos1],
   [Providers.EOS]: [Constellation.Superview1, Constellation.Superview2, Constellation.Kompsat3, Constellation.Kompsat2, Constellation.Gaofen1],
-  [Providers.SKYWATCH]: [Constellation.PlanetSkysat, Constellation.TripleSat, Constellation.Pleiades, Constellation.PleiadesNeo, Constellation.Kompsat3, Constellation.Kompsat2],
-  [Providers.SKYFI]: [Constellation.DailyVision],
-  [Providers.OAM]: [Constellation.OAM],
   [Providers.ARLULA]: [
     Constellation.GeoEye,
     Constellation.WorldView_1_2,
@@ -153,12 +147,16 @@ const providersDict = {
     Constellation.TripleSat,
     // TODO LatConnect 60
   ],
+  [Providers.SKYWATCH]: [Constellation.PlanetSkysat, Constellation.TripleSat, Constellation.Pleiades, Constellation.PleiadesNeo, Constellation.Kompsat3, Constellation.Kompsat2],
+  [Providers.SKYFI]: [Constellation.DailyVision],
+  [Providers.OAM]: [Constellation.OAM],
+  [Providers.STAC]: [Constellation.STAC],
+  // [Providers.MAXAR_DIGITALGLOBE]: [Constellation.GeoEye, Constellation.WorldView_1_2, Constellation.WorldView_3_4, Constellation.QuickBird2, Constellation.Ikonos1],
   // [Providers.APOLLO]: [
   //   Constellation.Pleiades,
   //   Constellation.PleiadesNeo,
   //   // TODO COMPLETE
   // ],
-  [Providers.STAC]: [Constellation.STAC],
   // 'SENTINELHUB': [Constellation.Pleiades,  Constellation.Worldview],
 }
 // Maxar EUSI satellites https://docs.sentinel-hub.com/api/latest/static/files/data/maxar/world-view/resources/brochures/EUSI_Satellite_Booklet_digital.pdf
@@ -442,12 +440,15 @@ const eosConstellationDict = providersDict[Providers.EOS].reduce(function (resul
   return result
 }, {})
 
-const maxarConstellationDict = providersDict[Providers.MAXAR_DIGITALGLOBE].reduce(function (result, constellation) {
-  result[constellation] = {
-    satellites: constellationDict[constellation].satellites.map((x) => maxarNames[x] || x),
-  }
-  return result
-}, {})
+// const maxarConstellationDict = providersDict[Providers.MAXAR_DIGITALGLOBE].reduce(function (result, constellation) {
+//   result[constellation] = {
+//     satellites: constellationDict[constellation].satellites.map((x) => maxarNames[x] || x),
+//   }
+//   return result
+// }, {})
+// MAXAR provider disabled due to API/configuration issues
+// Returning empty object to maintain compatibility with existing imports
+const maxarConstellationDict = {};
 
 // Generic chunk processor utility
 interface ChunkProcessorOptions<T> {
