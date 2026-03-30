@@ -94,8 +94,6 @@ function ApiKeysModalComponent(props): React.ReactElement {
                 <TextField
                   defaultValue={props.apiKeys[Providers.UP42].up42Email}
                   onBlur={(event) => {
-                    console.log('onBlur déclenché avec:', event.target.value);
-                    console.log('Longueur:', event.target.value.length);
                     props.setApiKeys({
                       ...props.apiKeys,
                       [Providers.UP42]: {
@@ -114,8 +112,6 @@ function ApiKeysModalComponent(props): React.ReactElement {
                 <TextField
                   defaultValue={props.apiKeys[Providers.UP42].up42Password}
                   onBlur={(event) => {
-                    console.log('onBlur déclenché avec:', event.target.value);
-                    console.log('Longueur:', event.target.value.length);
                     props.setApiKeys({
                       ...props.apiKeys,
                       [Providers.UP42]: {

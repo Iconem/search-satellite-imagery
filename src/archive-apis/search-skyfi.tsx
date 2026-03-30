@@ -14,13 +14,8 @@ import { parse as wkt_parse, stringify as wkt_stringify } from 'wellknown'
 // App: https://app.skyfi.com/explore
 // POST on https://app.skyfi.com/api/archive-available
 // Payload: {"clientType":"DESKTOP","fromDate":"2018-12-31T23:00:00.000Z","toDate":"2023-01-24T10:21:44.465Z","maxCloudCoveragePercent":20,"resolutions":["VERY HIGH","HIGH"],"sensors":["DAY","NIGHT","MULTISPECTRAL"],"imageCropping":{"wktString":"POLYGON((-77.05679665567264 38.899388312735795,-77.02040942302703 38.899388312735795,-77.02040942302703 38.92503663542644,-77.05679665567264 38.92503663542644,-77.05679665567264 38.899388312735795))"},"page":0,"pageSize":25}
-console.log('start');
 
-// const SKYFI_SEARCH_URL = 'https://app.skyfi.com/api/archive-available'
-const SKYFI_SEARCH_URL = 'https://app.skyfi.com/platform-api/archives'
-const pageSize = 25
-const lookForNextPage = true
-const skyfiApiKey = process.env.SKYFI_API_KEY
+// https://app.skyfi.com/api/v4/catalog-specs/archive t oget specs/providers
 
 // Not useful at the moment
 // const getSkyfiBearer = (apikey): string => {
@@ -46,13 +41,44 @@ const skyfiApiKey = process.env.SKYFI_API_KEY
 //   return skyfiBearerJson
 // }
 
-const searchSkyfi = async (searchSettings, skyfiApikey, searchPolygon = null, setters = null, pageIdx = 0): Promise<any> => {
+
+// const SKYFI_SEARCH_URL = 'https://app.skyfi.com/api/archive-available'
+const SKYFI_BASE_URL = 'https://hwai-proxy.zainab-eddahmani-01.workers.dev/proxy?url=https://app.skyfi.com'
+const SKYFI_SEARCH_URL = SKYFI_BASE_URL + '/platform-api/archives'
+const pageSize = 25
+const lookForNextPage = true
+const skyfiApiKey = process.env.SKYFI_API_KEY
+
+const getEnabledProviderIds = async (): Promise<string[]> => {
+  const data = await ky
+    .get(SKYFI_BASE_URL + '/api/v4/catalog-specs/archive')
+    .json();
+
+  const providerIds = new Set<string>();
+
+  (data as any).specs
+    .filter((spec) => spec.isEnabled && spec.sensor === 'DAY')
+    .flatMap((spec) => spec.resolutions)
+    .filter((resolution) => resolution.isEnabled)
+    .flatMap((resolution) => resolution.providers)
+    .filter((provider) => provider.isEnabled)
+    .forEach((provider) => providerIds.add(provider.provider));
+
+  return [...providerIds];
+};
+
+
+const searchSkyfi = async (searchSettings, skyfiApikey, searchPolygon = null, setters = null, nextPageUrl: string | null = null, pageIdx = 0): Promise<any> => {
   const resolutionArray: string[] = []
-  if (searchSettings.gsd.min <= 0.5) resolutionArray.push('VERY HIGH')
+  if (searchSettings.gsd.min <= 0.15) resolutionArray.push('ULTRA HIGH')
+  if ((searchSettings.gsd.min <= 0.15 && searchSettings.gsd.max >= 0.15) || (searchSettings.gsd.min <= 0.30 && searchSettings.gsd.max >= 0.30)) resolutionArray.push('SUPER HIGH')
+  if ((searchSettings.gsd.min <= 0.3 && searchSettings.gsd.max >= 0.3) || (searchSettings.gsd.min <= 0.50 && searchSettings.gsd.max >= 0.50)) resolutionArray.push('VERY HIGH')
   if ((searchSettings.gsd.min <= 0.5 && searchSettings.gsd.max >= 0.5) || (searchSettings.gsd.min <= 1 && searchSettings.gsd.max >= 1)) resolutionArray.push('HIGH')
   if ((searchSettings.gsd.min <= 1 && searchSettings.gsd.max >= 1) || (searchSettings.gsd.min <= 5 && searchSettings.gsd.max >= 5)) resolutionArray.push('MEDIUM')
+  const providersArray = await getEnabledProviderIds();
+  // ['SATELLOGIC', 'GEOSAT', 'SIWEI', 'PLANET', 'VANTOR', 'URBAN_SKY', 'NSL', 'VEXCEL']
 
-  // const coordinatesWkt = "POLYGON((-77.05679665567264 38.899388312735795,-77.02040942302703 38.899388312735795,-77.02040942302703 38.92503663542644,-77.05679665567264 38.92503663542644,-77.05679665567264 38.899388312735795))"
+
   const coordinatesWkt = wkt_stringify(searchPolygon)
 
   // Up42 hosts listing
@@ -61,61 +87,46 @@ const searchSkyfi = async (searchSettings, skyfiApikey, searchPolygon = null, se
     toDate: searchSettings.endDate.toISOString(), // "2023-01-24T10:21:44.465Z",
     maxCloudCoveragePercent: searchSettings.cloudCoverage,
     resolutions: resolutionArray,
-    //   isOpendata: false,
-    //   bandsCount: [
-    //     1,
-    //     3,
-    //     4
-    // ],
     openData: false,
-    // clientType: 'DESKTOP',
-    // sensors: ['DAY', 'NIGHT', 'MULTISPECTRAL'],
-    // sensors: [    "DAY", "SAR", "STEREO"],
-    providers: [
-      "PLANET",
-      "GEOSAT",
-      "SATELLOGIC",
-      "SIWEI",
-      "IMPRO",
-      "URBAN_SKY",
-      "VEXCEL",
-      "NSL",
-      "UMBRA"
-    ],
-    // imageCropping: {
-    //   wktString: coordinatesWkt,
-    // },
+    providersArray,
     aoi: coordinatesWkt,
-    // page: pageIdx,
     pageSize: pageSize,
   }
-  log('skyfi PAYLOAD: \n', skyfiPayload)
 
-  const contentLength = `${JSON.stringify(skyfiPayload).length}`
-  const skyfiResultsRaw = await ky
-    .post(SKYFI_SEARCH_URL, {
+  let skyfiResultsRaw
+  if (!nextPageUrl) {
+    skyfiResultsRaw = await ky.post(SKYFI_SEARCH_URL, {
       headers: {
-        // 'skyfi-api-key': skyfiApiKey,
         'X-Skyfi-Api-Key': skyfiApiKey,
-        // 'content-length': contentLength,
-        // Origin: 'https://app.skyfi.com',
-        // Referer: 'https://app.skyfi.com/explore/',
-        Accept: 'application/json',
         'content-type': 'application/json',
-        // 'cache-control': ' no-cache',
-        // 'skyfi-client-agent': ' DESKTOP-1.8.0',
       },
       json: skyfiPayload,
-    })
-    .json()
-  log(`FOUND ${(skyfiResultsRaw as any).numReturnedArchives as string}/${(skyfiResultsRaw as any).numTotalArchives as string}, 'skyfi skyfiResultsRaw: \n', skyfiResultsRaw, `)
+    }).json()
 
+  } else {
+    //  NEXT PAGES → GET with cursor
+    const url = `${SKYFI_BASE_URL}${nextPageUrl}`
+
+    skyfiResultsRaw = await ky.get(url, {
+      headers: {
+        'X-Skyfi-Api-Key': skyfiApiKey,
+      },
+    }).json()
+  }
+
+  log(`FOUND ${(skyfiResultsRaw as any).archives.length} archives`)
   const searchResultsJson = formatSkyfiResults(skyfiResultsRaw, searchPolygon)
-  log('skyfi PAYLOAD: \n', skyfiPayload, '\nRAW skyfi search results: \n', skyfiResultsRaw, '\nJSON skyfi search results: \n', searchResultsJson)
 
-  if (lookForNextPage && (skyfiResultsRaw as any).numTotalArchives > pageSize * pageIdx) {
-    const nextResults = await searchSkyfi(searchSettings, skyfiApikey, searchPolygon, setters, pageIdx + 1)
-    // Looking for next results
+  // handle pagination correctly
+  const nextPage = skyfiResultsRaw.nextPage
+  if (lookForNextPage && nextPage) {
+    const nextResults = await searchSkyfi(
+      searchSettings,
+      skyfiApikey,
+      searchPolygon,
+      setters,
+      nextPage,
+    )
     searchResultsJson?.features.push(...nextResults?.searchResultsJson?.features)
   }
 
@@ -124,41 +135,30 @@ const searchSkyfi = async (searchSettings, skyfiApikey, searchPolygon = null, se
   }
 }
 
-// parse('POINT(1 2)');
-
 const formatSkyfiResults = (skyfiResultsRaw, searchPolygon): GeoJSON.FeatureCollection => {
-  // meta':{'limit':1,'page':1,'found':15},
   return {
     features: skyfiResultsRaw.archives.map((feature) => {
       const feat = {
         geometry: wkt_parse(feature.footprint),
-        // "footprint": "POLYGON ((-77.2127 39.0983,-76.9662 39.0562,-77.0204 38.8647,-77.2663 38.9068,-77.2127 39.0983))",
-        // "sw": { "lat": 38.8647, "lon": -77.2663 }, "ne": { "lat": 39.0983, "lon": -76.9662},
         properties: {
-          // ...feature.properties,
           id: feature.archiveId ?? uuidv4(),
           sceneId: feature.archiveId ?? uuidv4(),
           providerPlatform: `${Providers.SKYFI}`,
-          provider: `${Providers.SKYFI}/${feature.provider as string}-${feature.name as string}`,
-          resolution: feature.platformResolution / 100,
-          acquisitionDate: new Date(feature.date).toISOString(), // "2022-11-26T14:49:32+00:00"
+          provider: `${Providers.SKYFI}/${feature.provider as string}-${feature.constellation as string}`,
+          resolution: feature.gsd / 100,
+          acquisitionDate: new Date(feature.captureTimestamp).toISOString(),
           cloudCoverage: feature.cloudCoveragePercent,
-          price: feature.totalPrice,
+          price: feature.priceFullScene,
           providerProperties: {
             azimuthAngle: feature.offNadirAngle,
             preview_uri_tiles: {
-              url: feature.previewUrl,
-              // 'scheme': 'tms',
-              // minzoom : 0,
-              // maxzoom : 20,
-              sensor_day_night_ms: feature.sensor,
+              url: feature.tilesUrl,
             },
           },
-          preview_uri: Object.values(feature?.thumbnailUrls)?.at(-1) || null, // feature.previewUrl, // feature.thumbnailBase64,
-          thumbnail_uri: Object.values(feature?.thumbnailUrls)?.at(-1) || null, // "thumbnailUrls": { "300x300": 'url'}
-
-          constellation: `${feature.provider as string}/${feature.name as string}`,
-          providerName: feature.providerName,
+          preview_uri: Object.values(feature?.thumbnailUrls)?.at(-1) || null,
+          thumbnail_uri: Object.values(feature?.thumbnailUrls)?.at(-1) || null,
+          constellation: feature.constellation,
+          providerName: feature.provider,
           shapeIntersection: null,
           raw_result_properties: feature,
         },
@@ -171,7 +171,6 @@ const formatSkyfiResults = (skyfiResultsRaw, searchPolygon): GeoJSON.FeatureColl
 }
 
 const get_aggregator_permalink = (feature, searchPolygon) => {
-  // https://app.skyfi.com/explore/crop/cd1a2c12-9266-44ca-9211-cd15a28598be?aoi=POLYGON%28%28-97.65035587767008+30.191975017380607%2C-97.47871005826741+30.191975017380607%2C-97.47871005826741+30.340856714206836%2C-97.65035587767008+30.340856714206836%2C-97.65035587767008+30.191975017380607%29%29
   return `https://app.skyfi.com/explore/crop/${feature.archiveId}?aoi=${escape(wkt_stringify(searchPolygon))}`
 }
 

@@ -194,6 +194,8 @@ const searchImagery = async (polygons, searchSettings, apiKeys, setters, provide
     )
   )
 
+  console.log("providers sélectionnés:", providersTreeviewDataSelection)
+  console.log("providers filtrés:", Object.keys(filteredProvidersSearch))
 
   // PROMISES FOR EACH SEARCH API
   const searchPromises = Object.fromEntries(
@@ -225,7 +227,7 @@ const searchImagery = async (polygons, searchSettings, apiKeys, setters, provide
 
                 // Filter out results not matching resquest
                 // REFILTER ZINEB
-                searchResultsJson.features = searchResultsJson.features.filter((f) => filterFeaturesWithSearchParams(f, searchPolygon))
+                searchResultsJson.features = searchResultsJson.features; // .filter((f) => filterFeaturesWithSearchParams(f, searchPolygon))
               })
               .catch((error) => {
                 console.error('Error during search', error)
