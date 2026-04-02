@@ -111,6 +111,7 @@ function ApiKeysModalComponent(props): React.ReactElement {
               <ListItem sx={{ display: 'list-item' }}>
                 <TextField
                   defaultValue={props.apiKeys[Providers.UP42].up42Password}
+                  type="password"
                   onBlur={(event) => {
                     props.setApiKeys({
                       ...props.apiKeys,
@@ -121,7 +122,6 @@ function ApiKeysModalComponent(props): React.ReactElement {
                     })
                   }}
                   label="Password"
-                  type="search"
                   sx={{ width: '50%' }}
                 />
               </ListItem>
@@ -136,6 +136,7 @@ function ApiKeysModalComponent(props): React.ReactElement {
               <ListItem sx={{ display: 'list-item' }}>
                 <TextField
                   value={props.apiKeys[Providers.EOS]}
+                  type="password"
                   onChange={(event) =>
                     props.setApiKeys({
                       ...props.apiKeys,
@@ -143,7 +144,6 @@ function ApiKeysModalComponent(props): React.ReactElement {
                     })
                   }
                   label="EOS API key"
-                  type="search"
                   sx={{ width: '50%' }}
                 />
               </ListItem>
@@ -157,6 +157,7 @@ function ApiKeysModalComponent(props): React.ReactElement {
               <ListItem sx={{ display: 'list-item' }}>
                 <TextField
                   value={props.apiKeys[Providers.SKYWATCH]}
+                  type="password"
                   onChange={(event) =>
                     props.setApiKeys({
                       ...props.apiKeys,
@@ -164,7 +165,6 @@ function ApiKeysModalComponent(props): React.ReactElement {
                     })
                   }
                   label="SKYWATCH API key"
-                  type="search"
                   sx={{ width: '50%' }}
                 />
               </ListItem>
@@ -172,6 +172,7 @@ function ApiKeysModalComponent(props): React.ReactElement {
               <ListItem sx={{ display: 'list-item' }}>
                 <TextField
                   value={props.apiKeys[Providers.MAXAR_DIGITALGLOBE]}
+                  type="password"
                   onChange={(event) =>
                     props.setApiKeys({
                       ...props.apiKeys,
@@ -179,7 +180,6 @@ function ApiKeysModalComponent(props): React.ReactElement {
                     })
                   }
                   label="MAXAR API key"
-                  type="search"
                   sx={{ width: '50%' }}
                 />
               </ListItem>
@@ -191,6 +191,7 @@ function ApiKeysModalComponent(props): React.ReactElement {
               <ListItem sx={{ display: 'list-item' }}>
                 <TextField
                   value={props.apiKeys[Providers.ARLULA].apiKey}
+                  type="password"
                   onChange={(event) =>
                     props.setApiKeys({
                       ...props.apiKeys,
@@ -201,13 +202,13 @@ function ApiKeysModalComponent(props): React.ReactElement {
                     })
                   }
                   label="ARLULA API Key"
-                  type="search"
                   sx={{ width: '50%' }}
                 />
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <TextField
                   value={props.apiKeys[Providers.ARLULA].apiSecurity}
+                  type="password"
                   onChange={(event) =>
                     props.setApiKeys({
                       ...props.apiKeys,
@@ -218,7 +219,6 @@ function ApiKeysModalComponent(props): React.ReactElement {
                     })
                   }
                   label="ARLULA API Security key"
-                  type="search"
                   sx={{ width: '50%' }}
                 />
               </ListItem>

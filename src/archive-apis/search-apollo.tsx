@@ -1,88 +1,146 @@
 // Code for searching APOLLO MAPPING API
-
 import ky from 'ky'
 import { Providers, maxAbs, filterFeaturesWithSearchParams, processInChunks, computeSha256Hash } from './search-utilities'
 import { v4 as uuidv4 } from 'uuid'
 import bboxPolygon from '@turf/bbox-polygon'
 import { log } from '../utilities'
+import CryptoJS from 'crypto-js'
 
-const APOLLO_API_URL = 'https://imagehunter-api.apollomapping.com'
+const PROXY_BASE_URL = process.env.PROXY_BASE_URL
+const APOLLO_API_URL = `${PROXY_BASE_URL}?url=https://imagehunter-api.apollomapping.com`
 const APOLLO_DOMAIN = 'https://imagehunter.apollomapping.com'
+
+// Generate token for requests to Apollo
+export const generateXAuthToken = async (): Promise<string> => {
+  const now = new Date();
+  const day = now.getUTCDate();
+  const hour = now.getUTCHours();
+  const secret = "iGsZ1wMw8xERUZrxNPvBt2TlFTFcN3P2";
+  const raw = `${day}${hour}${secret}`;
+  const hashHex = await computeSha256Hash(raw);
+  return hashHex;
+};
+
+// function to fetch a single preview on demand
+export const fetchApolloPreview = async (
+  feature: any,
+  token: string
+): Promise<string | null> => {
+  const raw = feature.properties.raw_result_properties;
+
+  const previewPayload = {
+    catid: feature.properties.id,
+    satellite: raw?.satellite ?? 'scene',
+    satelliteShortName: feature.properties.providerProperties.satelliteShortName,
+    imageFormat: 'PNG',
+    isRefresh: false,
+    forceHighestQuality: false,
+  };
+
+  const previewPayloadBody = new URLSearchParams(previewPayload as any).toString();
+
+  try {
+    //POST to get the path of the preview
+    const previewUrlObject: any = await ky
+      .post(`${APOLLO_API_URL}/ajax/get_preview_image`, {
+        headers: {
+          'X-Api-Key': process.env.PROXY_API_KEY,
+          'x-custom-origin': APOLLO_DOMAIN,
+          'x-custom-referer': APOLLO_DOMAIN,
+          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+          'Content-Length': `${previewPayloadBody.length}`,
+          'x-auth-token': token,
+        },
+        body: previewPayloadBody,
+        timeout: 30000,
+      })
+      .json();
+
+    if (!previewUrlObject?.path) return null;
+
+    const imgUrl = `https://imagehunter-api.apollomapping.com${previewUrlObject.path}`
+    return imgUrl
+
+  } catch (err) {
+    console.warn('fetchApolloPreview failed', err);
+    return null;
+  }
+};
 
 const searchApollo = async (searchSettings, apolloApikey, searchPolygon: any | null = null, setters: any | null = null): Promise<any> => {
 
-  const generateXAuthToken = async (): Promise<string> => {
-    const now = new Date();
-    const day = now.getUTCDate();
-    const hour = now.getUTCHours();
-    const secret = "iGsZ1wMw8xERUZrxNPvBt2TlFTFcN3P2";
-    const raw = `${day}${hour}${secret}`;
-    const hashHex = await computeSha256Hash(raw)
+  function decryptApolloResponse(encryptedData: { data: string }) {
+    if (!encryptedData || !encryptedData.data) return null;
 
-    return hashHex;
+    const [ivBase64, ciphertextBase64] = encryptedData.data.split(':');
+
+    const iv = CryptoJS.enc.Base64.parse(ivBase64);
+    const ciphertext = CryptoJS.enc.Base64.parse(ciphertextBase64);
+    const key = CryptoJS.enc.Utf8.parse('oWyq4TXM8AJqg3mfrLGOrqay4OfHsWT4');
+
+    const decrypted = CryptoJS.AES.decrypt(
+      { ciphertext },
+      key,
+      {
+        iv,
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7,
+      }
+    ).toString(CryptoJS.enc.Utf8);
+
+    return JSON.parse(decrypted);
   }
 
   const apolloPayload = {
-    startDate: searchSettings.startDate.toISOString().substring(0, 19), // '1970-01-01T12:00:00',
+    startDate: searchSettings.startDate.toISOString().substring(0, 19),
     endDate: searchSettings.endDate.toISOString().substring(0, 19),
-    coords: JSON.stringify(searchPolygon?.geometry.coordinates[0]), // [[2.3299598693847656,48.8607622103356],[2.35107421875,48.867763659652354],[2.366352081298828,48.851500724507346],[2.3411178588867188,48.844384028766385],[2.322235107421875,48.8539856815748],[2.322235107421875,48.8539856815748]],
-
+    coords: JSON.stringify(searchPolygon?.geometry.coordinates[0]),
     cloudcover_max: searchSettings.cloudCoverage,
     offnadir_max: maxAbs(searchSettings.offNadirAngle),
     resolution_min: searchSettings.gsd.min,
     resolution_max: searchSettings.gsd.max,
-
     lazyLoad: false,
-    satellites: JSON.stringify(['HEX', 'EB', 'FS2', 'FS5', 'GS2', 'GF1H', 'GF2', 'GE1', 'BSG', 'IK', 'J14', 'J15', 'J1V', 'K2', 'K3', 'K3A', 'KZ1', 'OVS1', 'OVS23', 'PNEO', 'P1', 'QB', 'SP6', 'SKYC', 'SV1', 'TeL', 'TS', 'WV1', 'WV2', 'WV3', 'WV4']),
+    satellites: JSON.stringify(["BJ3A", "BJ3N", "DSEO", "HEX", "EB", "FS2", "FS5", "GS2", "GF1H", "GF2", "GE1", "BSG", "IK02", "J14", "J15", "J1V", "K2", "K3", "K3A", "KZ1", "LG", "OVS1", "OVS23", "PNEO", "P1", "QB", "SP6", "SKYC", "SVN1", "SVN3", "SV1", "SV2", "TeL", "THS", "TSL", "TST", "TS", "WV1", "WV2", "WV3", "WV4"]),
     dem: false,
     stereo: false,
     seasonal: false,
+    monthly: false,
+    sar: false,
+    pageNum: 0,
+    persistentScenes: JSON.stringify([]),
+    dateRange: true,
+    dateFilter: JSON.stringify([{
+      startDate: searchSettings.startDate.toISOString(),
+      endDate: searchSettings.endDate.toISOString()
+    }]),
   }
-
   const apolloPayloadBody = new URLSearchParams(apolloPayload as any).toString()
-  // Better have a look at maxar payload construction
-
-  // WIP, returns 401 unauthorized because origin and referer headers are overwritten on post
-
-  // Returns 401 Unauthorized probably because request is actually sent to http non-sll server url because dev server has no tls and origin and referer are overwritten by browser to localhost
-  // Tried using a CORS proxy, with no luck like [cors-anywhere](https://github.com/Rob--W/cors-anywhere/#documentation) public one or [allorigins](https://allorigins.win/) or any recent one listed [here](https://nordicapis.com/10-free-to-use-cors-proxies/)
-
   const apolloRequest = `${APOLLO_API_URL}/ajax/search`
   const token = await generateXAuthToken()
   const apolloResultsRaw = await ky
     .post(apolloRequest, {
       headers: {
-        Host: APOLLO_DOMAIN,
-        Origin: APOLLO_DOMAIN,
-        Referer: APOLLO_DOMAIN,
+        // Host: APOLLO_DOMAIN,
+        'X-Api-Key': process.env.PROXY_API_KEY,
+        'x-custom-origin': APOLLO_DOMAIN,
+        'x-custom-referer': APOLLO_DOMAIN,
+        'accept': '*/*',
+        'next-page-store': '{}',
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
         'Content-Length': `${apolloPayloadBody.length}`,
         "X-Auth-Token": token,
       },
       body: apolloPayloadBody,
+      timeout: 60000,
     })
     .json()
 
-  const searchResultsJson = formatApolloResults(apolloResultsRaw)
+  const apolloResults = decryptApolloResponse(apolloResultsRaw as { data: string })
+  const searchResultsJson = formatApolloResults(apolloResults)
   log('apollo PAYLOAD: \n', JSON.stringify(apolloPayload), '\nRAW apollo search results: \n', apolloResultsRaw, '\nJSON apollo search results: \n', searchResultsJson)
 
   // Filter out unwanted features before searching previews
   searchResultsJson.features = searchResultsJson.features.filter((f) => filterFeaturesWithSearchParams(f, searchPolygon))
-
-  // CAUTION This is heavy on request as it does one per image to preview
-  // A better way could be to add a callback on hover in datagrid if preview does not exist to retrieve its url
-  // Initiate search for previews/thumbnails
-  // TODO REDO
-  void getApolloPreviewsAsync(searchResultsJson, token).then((results) => {
-    if (setters) {
-      // const searchResults = {
-      //   input: searchPolygon,
-      //   output: results,
-      // }
-      // console.log('APOLLO search previews have been retrieved, setting react state')
-      // setters.setSearchResults(searchResults)
-    }
-  })
 
   return {
     searchResultsJson,
@@ -143,9 +201,9 @@ const getApolloPreviewsAsync = async (apolloResults, token): Promise<void> => {
       await ky
         .post(`${APOLLO_API_URL}/ajax/get_preview_image`, {
           headers: {
-            Host: APOLLO_DOMAIN,
-            Origin: APOLLO_DOMAIN,
-            Referer: APOLLO_DOMAIN,
+            'X-Api-Key': process.env.PROXY_API_KEY,
+            'x-custom-origin': APOLLO_DOMAIN,
+            'x-custom-referer': APOLLO_DOMAIN,
             'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
             'Content-Length': `${previewPayloadBody.length}`,
             "x-auth-token": token,

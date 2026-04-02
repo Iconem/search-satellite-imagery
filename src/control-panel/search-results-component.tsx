@@ -10,13 +10,15 @@ import bbox from '@turf/bbox'
 import MuiPagination from '@mui/material/Pagination'
 import { type TablePaginationProps } from '@mui/material/TablePagination'
 
+import { generateXAuthToken as generateApolloToken, fetchApolloPreview } from '../archive-apis/search-apollo'
+import { Providers } from '../archive-apis/search-utilities'
+
 /* SEARCH RESULTS COMPONENT */
 function CustomGridToolbar(): React.ReactElement {
   return (
     <GridToolbarContainer
       sx={{
         '& .MuiButton-root': {
-          // color: 'black',
           fontSize: 'small',
           fontWeight: 300,
           textTransform: 'none',
@@ -33,8 +35,6 @@ function CustomGridToolbar(): React.ReactElement {
 function CustomFooter(): React.ReactElement {
   return (
     <GridFooterContainer>
-      {/* <GridPagination /> */}
-      {/* <GridAutoSizer /> */}
       <CustomPagination />
     </GridFooterContainer>
   )
@@ -257,7 +257,6 @@ const datagridColumns: GridColDef[] = [
         }}
         alt=""
         src={params.value}
-      // onerror={"this.src='alternative.jpg';"}
       />
     ),
     valueGetter: (params) => params.row?.thumbnail_uri, // thumbnail_uri or preview_uri
@@ -274,10 +273,6 @@ const datagridColumns: GridColDef[] = [
           height: '100%',
           pointerEvents: 'none',
         }}
-        // onError={e => {
-        //    // or e.target.className = fallback_className
-        //   (e.target as any).src = NO_IMAGE_FALLBACK_URL;
-        // }}
         title={'No Preview available'}
       />
     ),
@@ -286,16 +281,6 @@ const datagridColumns: GridColDef[] = [
     // width is not dynamic yet https://github.com/mui/mui-x/issues/1241
     minWidth: 200,
     flex: 1,
-    // width:({ id, densityFactor }: GridRowHeightParams) => {
-    //   switch (densityFactor) {
-    //     case 0.7:
-    //       return null;
-    //     case 1:
-    //       return 100;
-    //     case 1.3:
-    //       return 200;
-    //   }
-    // }
   },
   {
     field: 'identifier',
@@ -322,46 +307,80 @@ const getRowIdFromProps = (properties): string => `${properties.provider as stri
 const handleRowHover = (e, searchResults, setFootprintFeatures): void => {
   const rowId = e.target.parentElement.dataset.id // provider/id
   const row = searchResults.features.find((el) => getRowIdFromProps(el.properties) === rowId)
-  // setFootprintFeatures(row?.geometry)
   setFootprintFeatures(row)
 }
 
-const handleRowClick = (
-  params, // GridRowParams
-  event, // MuiEvent<React.MouseEvent<HTMLElement>>
-  details, // GridCallbackDetails
+const handleRowClick = async (
+  params,
+  event,
+  details,
   mapRef,
-  searchResults
-): void => {
-  const featureGeom = searchResults.features.find((el) => getRowIdFromProps(el.properties) === params.id)
-  console.log('rowClick params', params, featureGeom)
-  const bounds = bbox(featureGeom)
-  const [minLng, minLat, maxLng, maxLat] = bounds
+  searchResults,
+  setSearchResults
+): Promise<void> => {
+
+  // --- map zoom logic ---
+  const featureGeom = searchResults.features.find(
+    (el) => getRowIdFromProps(el.properties) === params.id
+  );
+  const bounds = bbox(featureGeom);
+  const [minLng, minLat, maxLng, maxLat] = bounds;
   mapRef?.current?.fitBounds(
-    [
-      [minLng, minLat],
-      [maxLng, maxLat],
-    ],
+    [[minLng, minLat], [maxLng, maxLat]],
     {
       padding: { top: 100, bottom: 100, left: 100, right: 100 },
       bearing: 0,
       center: [0.5 * (minLng + maxLng), 0.5 * (minLat + maxLat)],
     }
-  )
-}
+  );
+
+  // --- Apollo on-demand preview ---
+  const isApollo = featureGeom?.properties?.providerPlatform === Providers.APOLLO;
+  const alreadyHasPreview = !!featureGeom?.properties?.preview_uri;
+
+  if (isApollo && !alreadyHasPreview) {
+    try {
+      const token = await generateApolloToken();
+      const previewUrl = await fetchApolloPreview(featureGeom, token);
+      if (previewUrl) {
+        setSearchResults((prev) => {
+          if (!prev?.output?.features) return prev;
+
+          const updated = {
+            ...prev,
+            output: {
+              ...prev.output,
+              features: prev.output.features.map((f) =>
+                getRowIdFromProps(f.properties) === params.id
+                  ? {
+                    ...f,
+                    properties: {
+                      ...f.properties,
+                      preview_uri: previewUrl,
+                      thumbnail_uri: previewUrl,
+                    },
+                  }
+                  : f
+              ),
+            },
+          };
+          return updated;
+        });
+      }
+    } catch (err) {
+      console.warn('Apollo preview on click failed', err);
+    }
+  }
+};
 
 function SearchResultsComponent(props): React.ReactElement {
   const searchResults = props.searchResults
+  const setSearchResults = props.setSearchResults
   const [autoPageSizeBool, setAutoPageSizeBool] = React.useState(false)
 
   const selectionModel = props.footprintFeatures?.properties && [getRowIdFromProps(props.footprintFeatures?.properties)]
-  // console.log('selectionModel', selectionModel)
-
-  // const filterModel = {
-  //   items: [{ field: 'provider', operator: 'noContain', value: 'APOLLO' }],
-  // }
-
   const rows = searchResults.features.map((feature) => feature.properties)
+
   return (
     <>
       <Typography variant="subtitle1">
@@ -369,10 +388,9 @@ function SearchResultsComponent(props): React.ReactElement {
         &nbsp; Search Results
       </Typography>
 
-      {/* height: 600, */}
       <div style={{ width: '100%', flex: '1 1 auto', minHeight: '320px', overflow: 'auto' }}>
         <div style={{ display: 'flex', height: '100%' }}>
-          <div style={{ /* flexGrow: 1 */ width: '100%' }}>
+          <div style={{ width: '100%' }}>
             <GlobalStyles
               styles={{
                 '& .MuiDataGrid-panelWrapper': {
@@ -381,6 +399,11 @@ function SearchResultsComponent(props): React.ReactElement {
               }}
             />
             <DataGrid
+              sx={{
+                '& .MuiDataGrid-cell': {
+                  cursor: 'default',
+                },
+              }}
               onPaginationModelChange={(newModel, reason) => {
                 if (newModel.pageSize === 0) {
                   setAutoPageSizeBool(true)
@@ -407,11 +430,9 @@ function SearchResultsComponent(props): React.ReactElement {
               getRowId={(row: any) => getRowIdFromProps(row)}
               density="compact"
               sortingOrder={['desc', 'asc']}
-              // autoHeight
               components={{
                 Toolbar: CustomGridToolbar,
                 Footer: CustomFooter,
-                // ColumnMenu: CustomColumnMenuComponent,
               }}
               initialState={{
                 sorting: {
@@ -446,8 +467,6 @@ function SearchResultsComponent(props): React.ReactElement {
                   case 1.3:
                     return 200
                 }
-                // return 100 * densityFactor; // 70/100/130
-                // return null;
               }}
               disableColumnMenu={true}
               hideFooterSelectedRowCount={true}
@@ -455,20 +474,15 @@ function SearchResultsComponent(props): React.ReactElement {
               columns={datagridColumns}
               rows={rows}
               onRowClick={(p, e, d) => {
-                handleRowClick(p, e, d, props.mapRef, searchResults)
+                handleRowClick(p, e, d, props.mapRef, searchResults, setSearchResults)
               }}
               componentsProps={{
                 row: {
                   onMouseEnter: (e) => {
                     handleRowHover(e, searchResults, props.setFootprintFeatures)
                   },
-                  // onMouseLeave: e => props.setFootprintFeatures({
-                  //   coordinates: [],
-                  //   type: 'Polygon'
-                  // })
                 },
                 columnMenu: {
-                  // background: 'red',
                   counter: rows.length,
                 },
                 toolbar: {
@@ -483,7 +497,6 @@ function SearchResultsComponent(props): React.ReactElement {
               localeText={{
                 filterOperatorNoContain: 'does not contain',
               }}
-            // filterModel={filterModel}
             />
           </div>
         </div>

@@ -254,7 +254,21 @@ const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, sett
 
   // TODO: TEST next
   const searchResultsJson = formatUp42Results(up42ResultsRaw, searchPolygon)
-  if (setters) setters.setSearchResults(searchResultsJson)
+  if (setters) {
+    setters.setSearchResults((prev) => {
+      const existingFeatures = prev?.output?.features || [];
+      return {
+        input: searchPolygon,
+        output: {
+          type: 'FeatureCollection',
+          features: [
+            ...existingFeatures.filter(f => f.properties.providerPlatform !== Providers.UP42), // remove old UP42 results if re-searching
+            ...searchResultsJson.features
+          ]
+        }
+      };
+    });
+  }
   log('UP42 PAYLOAD: \n', up42Payload, '\nRAW UP42 search results: \n', up42ResultsRaw, '\nJSON UP42 search results: \n', searchResultsJson)
 
 
@@ -314,9 +328,31 @@ async function getUp42PreviewsAsync(up42Results, up42BearerJson, chunkSize, sett
       chunkSize,
       usePromiseAllSettled: true,
       onChunkComplete: () => {
-        setters?.setSearchResults({
-          input: searchPolygon,
-          output: up42Results
+        setters?.setSearchResults((prev) => {
+          if (!prev?.output?.features) return prev;
+          return {
+            ...prev,
+            output: {
+              ...prev.output,
+              features: prev.output.features.map((feature) => {
+                // only update UP42 features, leave others untouched
+                if (feature.properties.providerPlatform !== Providers.UP42) return feature;
+
+                const updated = up42Results.features.find(
+                  (f) => f.properties.id === feature.properties.id
+                );
+                if (!updated) return feature;
+                return {
+                  ...feature,
+                  properties: {
+                    ...feature.properties,
+                    preview_uri: updated.properties.preview_uri,
+                    thumbnail_uri: updated.properties.thumbnail_uri,
+                  },
+                };
+              }),
+            },
+          };
         });
       }
     }

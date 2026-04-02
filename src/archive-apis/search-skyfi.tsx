@@ -43,15 +43,19 @@ import { parse as wkt_parse, stringify as wkt_stringify } from 'wellknown'
 
 
 // const SKYFI_SEARCH_URL = 'https://app.skyfi.com/api/archive-available'
-const SKYFI_BASE_URL = 'https://hwai-proxy.zainab-eddahmani-01.workers.dev/proxy?url=https://app.skyfi.com'
-const SKYFI_SEARCH_URL = SKYFI_BASE_URL + '/platform-api/archives'
+const PROXY_BASE_URL = process.env.PROXY_BASE_URL
+const SKYFI_BASE_URL = `${PROXY_BASE_URL}?url=https://app.skyfi.com`
+const skyfiApiKey = process.env.SKYFI_API_KEY
 const pageSize = 25
 const lookForNextPage = true
-const skyfiApiKey = process.env.SKYFI_API_KEY
 
 const getEnabledProviderIds = async (): Promise<string[]> => {
   const data = await ky
-    .get(SKYFI_BASE_URL + '/api/v4/catalog-specs/archive')
+    .get(SKYFI_BASE_URL + '/api/v4/catalog-specs/archive', {
+      headers: {
+        'X-Api-Key': process.env.PROXY_API_KEY,
+      }
+    })
     .json();
 
   const providerIds = new Set<string>();
@@ -78,7 +82,6 @@ const searchSkyfi = async (searchSettings, skyfiApikey, searchPolygon = null, se
   const providersArray = await getEnabledProviderIds();
   // ['SATELLOGIC', 'GEOSAT', 'SIWEI', 'PLANET', 'VANTOR', 'URBAN_SKY', 'NSL', 'VEXCEL']
 
-
   const coordinatesWkt = wkt_stringify(searchPolygon)
 
   // Up42 hosts listing
@@ -95,8 +98,9 @@ const searchSkyfi = async (searchSettings, skyfiApikey, searchPolygon = null, se
 
   let skyfiResultsRaw
   if (!nextPageUrl) {
-    skyfiResultsRaw = await ky.post(SKYFI_SEARCH_URL, {
+    skyfiResultsRaw = await ky.post(SKYFI_BASE_URL + '/platform-api/archives', {
       headers: {
+        'X-Api-Key': process.env.PROXY_API_KEY,
         'X-Skyfi-Api-Key': skyfiApiKey,
         'content-type': 'application/json',
       },
@@ -109,6 +113,7 @@ const searchSkyfi = async (searchSettings, skyfiApikey, searchPolygon = null, se
 
     skyfiResultsRaw = await ky.get(url, {
       headers: {
+        'X-Api-Key': process.env.PROXY_API_KEY,
         'X-Skyfi-Api-Key': skyfiApiKey,
       },
     }).json()

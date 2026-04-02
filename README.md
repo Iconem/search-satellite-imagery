@@ -5,12 +5,10 @@ NOTE: App is completely client-side for easier maintenance plus avoid tracking s
 Search satellite Imagery Archive on aggregators via their respective APIs (official or not), like:
 
 - Open-data:
-
   - [OpenAerialMap](https://map.openaerialmap.org/), free and open-data
-  - [STAC](https://stacspec.org/en) search endpoint for landsat/sentinel on EarthSearch. In dev mode for now, catalog endpoint not editbale through UI yet, need to edit search-API file. 
+  - [STAC](https://stacspec.org/en) search endpoint for landsat/sentinel on EarthSearch. In dev mode for now, catalog endpoint not editbale through UI yet, need to edit search-API file.
 
 - Commercial Agregators:
-
   - [UP42](https://console.up42.com/catalog)
   - [EOS Landviewer](https://eos.com/landviewer)
   - [SKYWATCH EarthCache](https://console.earthcache.com/search-archive)
@@ -40,10 +38,10 @@ Search satellite Imagery Archive on aggregators via their respective APIs (offic
 
 We're currently evaluating adding the following (complete list [here](https://github.com/Iconem/search-satellite-imagery/issues/3)):
 
-- [Geopera](https://portal.geopera.com/) 
-- [Pixxel Space Aurora](https://aurora.pixxel.space/iconem) 
+- [Geopera](https://portal.geopera.com/)
+- [Pixxel Space Aurora](https://aurora.pixxel.space/iconem)
 - [Maxar Xpress](https://xpress.maxar.com/)
-- [Satellogic Aleph](https://aleph.satellogic.com/) 
+- [Satellogic Aleph](https://aleph.satellogic.com/)
 
 #### New Features/Fixes
 
@@ -58,6 +56,8 @@ We're currently evaluating adding the following (complete list [here](https://gi
 - Not really useful: [intro-js](https://github.com/usablica/intro.js) or [reactour](https://reactour.vercel.app/) (or react-joyride) guided steps walkthrough/onboarding guides
 
 #### Serverless Proxy server - STAC conversion
+
+> Note: we decided to use a Cloudflare Worker proxy that proxies requests to third-party APIs to handle CORS and auth headers. see [`workers/hwai-proxy` directory](./workers/hwai-proxy/index.js)
 
 Important Feature: Proxy server middleware when app will not be client only, to remove the need for Allow-CORS plugin. Would be great to be a complete STAC catalog endpoint - translating each aggregator API into a fully compliant STAC API.
 Probable go-to route: use Serverless deployments. Next-js embeds them by default within /pages/api folder, vercel can do so as well, nextjs can be converted to AWS Lambda or Azure Functions with other tools.

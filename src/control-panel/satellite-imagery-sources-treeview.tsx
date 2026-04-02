@@ -82,8 +82,6 @@ const sourcesTreeviewInitialSelection = (treeviewData: RenderTree): string[] => 
   const result = (treeviewData.children ?? [])
     .filter(provider => !provider.disabled)
     .map((provider) => {
-      console.log('proviiiiiiiiiider', provider);
-
       const selIdx = (provider.children ?? [])
         .map((source) => source.id)
       selIdx.push(provider.id)

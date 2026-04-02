@@ -70,7 +70,7 @@ const providersSearch = {
   [Providers.SKYFI]: searchSkyfi,
   [Providers.OAM]: searchOpenaerialmap,
   [Providers.STAC]: searchStac,
-  // [Providers.APOLLO]: searchApollo,
+  [Providers.APOLLO]: searchApollo,
   [Providers.MAXAR_DIGITALGLOBE]: searchMaxar,
 }
 

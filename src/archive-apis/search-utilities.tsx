@@ -122,7 +122,7 @@ enum Providers {
   SKYFI = 'SKYFI',
   OAM = 'OpenAerialMap',
   STAC = 'STAC',
-  // APOLLO = 'APOLLO MAPPING',
+  APOLLO = 'APOLLO MAPPING',
   // MAXAR_DIGITALGLOBE = 'MAXAR',
 }
 
@@ -152,11 +152,11 @@ const providersDict = {
   [Providers.OAM]: [Constellation.OAM],
   [Providers.STAC]: [Constellation.STAC],
   // [Providers.MAXAR_DIGITALGLOBE]: [Constellation.GeoEye, Constellation.WorldView_1_2, Constellation.WorldView_3_4, Constellation.QuickBird2, Constellation.Ikonos1],
-  // [Providers.APOLLO]: [
-  //   Constellation.Pleiades,
-  //   Constellation.PleiadesNeo,
-  //   // TODO COMPLETE
-  // ],
+  [Providers.APOLLO]: [
+    Constellation.Pleiades,
+    Constellation.PleiadesNeo,
+    // TODO COMPLETE
+  ],
   // 'SENTINELHUB': [Constellation.Pleiades,  Constellation.Worldview],
 }
 // Maxar EUSI satellites https://docs.sentinel-hub.com/api/latest/static/files/data/maxar/world-view/resources/brochures/EUSI_Satellite_Booklet_digital.pdf

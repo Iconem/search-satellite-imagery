@@ -429,7 +429,15 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
             </Alert>
           </Snackbar>
 
-          {props.searchResults?.output?.features?.length > 0 && <SearchResultsComponent searchResults={props.searchResults.output} setFootprintFeatures={props.setFootprintFeatures} footprintFeatures={props.footprintFeatures} mapRef={props.mapRef} />}
+          {props.searchResults?.output?.features?.length > 0 &&
+            <SearchResultsComponent
+              searchResults={props.searchResults.output}
+              setFootprintFeatures={props.setFootprintFeatures}
+              footprintFeatures={props.footprintFeatures}
+              mapRef={props.mapRef}
+              setSearchResults={props.setSearchResults}
+            />
+          }
         </div>
       </div>
     </>
