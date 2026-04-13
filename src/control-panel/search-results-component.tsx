@@ -1,16 +1,16 @@
 // Component for presenting search results on a mui-x datagrid
 
 import * as React from 'react'
-import { Tooltip, Typography, GlobalStyles, Box } from '@mui/material'
+import { Tooltip, Typography, GlobalStyles, Box, IconButton } from '@mui/material'
 import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton, GridToolbarDensitySelector, type GridRowHeightParams, type GridColDef, GridFooterContainer, GridPagination, gridPageCountSelector, useGridApiContext, useGridSelector, getGridStringOperators, GridFilterInputValue, type GridFilterItem, GridPreferencePanelsValue } from '@mui/x-data-grid'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCloudSun, faSquarePollHorizontal, faSatellite, faBolt, faVectorSquare } from '@fortawesome/free-solid-svg-icons'
+import { faCloudSun, faSquarePollHorizontal, faSatellite, faBolt, faVectorSquare, faCartShopping } from '@fortawesome/free-solid-svg-icons'
 import bbox from '@turf/bbox'
 
 import MuiPagination from '@mui/material/Pagination'
 import { type TablePaginationProps } from '@mui/material/TablePagination'
 
-import { generateXAuthToken as generateApolloToken, fetchApolloPreview } from '../archive-apis/search-apollo'
+import { generateXAuthToken as generateApolloToken, fetchApolloPreview, createApolloSearchPermalink } from '../archive-apis/search-apollo'
 import { Providers } from '../archive-apis/search-utilities'
 
 /* SEARCH RESULTS COMPONENT */
@@ -88,7 +88,7 @@ const customStringFilterOperators = [
   },
 ]
 
-const datagridColumns: GridColDef[] = [
+const getDatagridColumns = (searchSettings) => [
   {
     field: 'acquisitionDate',
     // valueGetter: (params) => params.row.acquisitionDate.substring(0, 16).replace('T', ' '),
@@ -131,6 +131,110 @@ const datagridColumns: GridColDef[] = [
       return <p>{value === null ? '-' : `${checkUnknown(value, ' $')}`}</p>;// USD EURO
     },
     renderHeader: () => <strong>Price</strong>,
+  },
+  {
+    field: 'purchaseLink',
+    headerName: 'Purchase',
+    minWidth: 60,
+    flex: 0.6,
+    valueGetter: (params) => params.row?.permalink,
+
+    renderCell: (params) => {
+
+      const isApollo = params.row.providerPlatform === "APOLLO MAPPING";
+
+      // CASE 1 — APOLLO (no permalink → generate on click)
+      if (isApollo) {
+        const coords = params.row.raw_result_properties.geometry_coordinates;
+
+        const handleClick = async (e) => {
+          e.preventDefault();
+
+          const newTab = window.open("", "_blank");
+
+          try {
+            const sceneId = params.row.raw_result_properties.objectid;
+            const satellite = params.row.raw_result_properties.collection_vehicle_short;
+            const url = await createApolloSearchPermalink({
+              searchSettings,
+              sceneId,
+              satellite,
+              coords
+            });
+            newTab.location.href = url;
+
+          } catch (err) {
+            console.error(err);
+            newTab?.close();
+          }
+        };
+
+        return (
+          <a href="#" onClick={handleClick}>
+            <span style={{
+              background: '#1976d2',
+              borderRadius: '6px',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              width: '40px',
+              height: '32px',
+              cursor: 'pointer'
+            }}>
+              <FontAwesomeIcon icon={faCartShopping} color="white" />
+            </span>
+          </a>
+        );
+      }
+
+      // CASE 2 — OTHER PROVIDERS WITH NO LINK
+      if (!params.value) {
+        return (
+          <Tooltip title='No permalink/deeplink support for this provider' disableInteractive>
+            <span
+              style={{
+                background: '#2a2a2a',
+                padding: '9px',
+                borderRadius: '6px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: '40px',
+                height: '32px',
+              }}>
+              <FontAwesomeIcon icon={faCartShopping} color="white" />
+            </span>
+          </Tooltip>
+        );
+      }
+
+      // CASE 3 — NORMAL PROVIDERS WITH PERMALINK
+      return (
+        <a
+          href={params.value}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span style={{
+            background: '#1976d2',
+            borderRadius: '6px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '40px',
+            height: '32px',
+          }}>
+            <FontAwesomeIcon icon={faCartShopping} color="white" />
+          </span>
+        </a>
+      );
+    },
+
+    renderHeader: () => (
+      <Tooltip title="Open this scene on the provider platform to purchase">
+        <strong>Buy</strong>
+      </Tooltip>
+    ),
   },
   // {
   //   field: 'constellation',
@@ -376,6 +480,7 @@ const handleRowClick = async (
 function SearchResultsComponent(props): React.ReactElement {
   const searchResults = props.searchResults
   const setSearchResults = props.setSearchResults
+  const searchSettings = props.searchSettings
   const [autoPageSizeBool, setAutoPageSizeBool] = React.useState(false)
 
   const selectionModel = props.footprintFeatures?.properties && [getRowIdFromProps(props.footprintFeatures?.properties)]
@@ -471,7 +576,7 @@ function SearchResultsComponent(props): React.ReactElement {
               disableColumnMenu={true}
               hideFooterSelectedRowCount={true}
               rowsPerPageOptions={[]}
-              columns={datagridColumns}
+              columns={getDatagridColumns(searchSettings)}
               rows={rows}
               onRowClick={(p, e, d) => {
                 handleRowClick(p, e, d, props.mapRef, searchResults, setSearchResults)

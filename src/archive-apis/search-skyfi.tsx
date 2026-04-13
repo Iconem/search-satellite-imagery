@@ -140,6 +140,21 @@ const searchSkyfi = async (searchSettings, skyfiApikey, searchPolygon = null, se
   }
 }
 
+const buildSkyfiPermalink = (feature) => {
+  const type = feature.openData ? 'open' : 'commercial'
+  const provider = feature.provider
+  const id = feature.archiveId
+
+  return `https://app.skyfi.com/explore/${type}/crop/${provider}:${id}`
+
+  //with this it gives me a cors error idk why yet 
+  //   const coordinates = feature.geometry.coordinates[0];
+  // const wktPolygon = `POLYGON((${coordinates.map(c => c.join(' ')).join(',')}))`;
+  // const aoiParam = encodeURIComponent(wktPolygon);
+
+  // return `https://app.skyfi.com/explore/${type}/crop/${provider}:${id}?aoi=${aoiParam}`
+}
+
 const formatSkyfiResults = (skyfiResultsRaw, searchPolygon): GeoJSON.FeatureCollection => {
   return {
     features: skyfiResultsRaw.archives.map((feature) => {
@@ -166,6 +181,7 @@ const formatSkyfiResults = (skyfiResultsRaw, searchPolygon): GeoJSON.FeatureColl
           providerName: feature.provider,
           shapeIntersection: null,
           raw_result_properties: feature,
+          permalink: buildSkyfiPermalink(feature),
         },
         type: 'Feature',
       }

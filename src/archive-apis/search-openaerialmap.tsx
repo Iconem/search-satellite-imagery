@@ -9,6 +9,15 @@ import { log } from '../utilities'
 const OAM_LIMIT = 1000
 const OAM_BASE_URL = 'https://api.openaerialmap.org/meta'
 
+const buildOamPermalink = (feature) => {
+  const id = feature._id
+  // to visualize the OAM scene in stac-browser
+  //stac-browser: https://radiantearth.github.io/stac-browser/#/external/api.imagery.hotosm.org/stac/collections/openaerialmap/items/${id}?.asset=asset-visual
+  // to visualize the OAM scene in stac-map 
+  return `https://developmentseed.org/stac-map/?href=https://api.imagery.hotosm.org/stac/collections/openaerialmap/items/${id}`
+
+}
+
 const searchOpenaerialmap = async (searchSettings, oamApikey, searchPolygon = null, setters = null): Promise<any> => {
   const oamUrl = new URL(OAM_BASE_URL)
   const bounds = bbox(searchPolygon)
@@ -58,6 +67,7 @@ const formatOamResults = (oamResultsRaw, searchPolygon = null): GeoJSON.FeatureC
             },
           },
           raw_result_properties: { ...r },
+          permalink: buildOamPermalink(r),
         },
         type: 'Feature',
       }

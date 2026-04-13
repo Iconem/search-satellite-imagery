@@ -67,29 +67,153 @@ export const fetchApolloPreview = async (
   }
 };
 
-const searchApollo = async (searchSettings, apolloApikey, searchPolygon: any | null = null, setters: any | null = null): Promise<any> => {
+const uploadShape = async (coords, token) => {
 
-  function decryptApolloResponse(encryptedData: { data: string }) {
-    if (!encryptedData || !encryptedData.data) return null;
+  const cleanCoords = coords.slice(0, coords.length - 1).reverse();
 
-    const [ivBase64, ciphertextBase64] = encryptedData.data.split(':');
+  const body = new URLSearchParams({
+    coords: JSON.stringify(cleanCoords)
+  }).toString();
 
-    const iv = CryptoJS.enc.Base64.parse(ivBase64);
-    const ciphertext = CryptoJS.enc.Base64.parse(ciphertextBase64);
-    const key = CryptoJS.enc.Utf8.parse('oWyq4TXM8AJqg3mfrLGOrqay4OfHsWT4');
+  const res = await ky.post(
+    `${APOLLO_API_URL}/ajax/upload/shape`,
+    {
+      headers: {
+        'X-Api-Key': process.env.PROXY_API_KEY,
+        'x-custom-origin': APOLLO_DOMAIN,
+        'x-custom-referer': APOLLO_DOMAIN,
+        'X-Auth-Token': token,
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'accept': '*/*',
+      },
+      body
+    }
+  ).text();
 
-    const decrypted = CryptoJS.AES.decrypt(
-      { ciphertext },
-      key,
+  return res;
+};
+
+const rangeForPermalinkPayload = (start, stop, step) =>
+  Array.from(
+    { length: Math.ceil((stop - start) / step) },
+    (_, i) => start + i * step,
+  );
+
+
+export const createApolloSearchPermalink = async ({
+  searchSettings,
+  sceneId,
+  satellite,
+  coords
+}: {
+  searchSettings: any;
+  sceneId: string;
+  satellite: string;
+  coords: any;
+}) => {
+  const token = await generateXAuthToken();
+  const shape_url = await uploadShape(coords, token);
+
+
+  const permalikPayload = {
+    startDate: searchSettings.startDate.toISOString(),
+    endDate: searchSettings.endDate.toISOString(),
+    cloudcover_max: searchSettings.cloudCoverage ?? 100,
+    offnadir_max: Math.max(
+      Math.abs(searchSettings.offNadirAngle?.[0] || 0),
+      Math.abs(searchSettings.offNadirAngle?.[1] || 0)
+    ),
+    resolution_min: searchSettings.gsdIndex?.[0] ?? 0,
+    resolution_max: searchSettings.gsdIndex?.[1] ?? 2,
+    dateRange: true,
+    dateFilter: JSON.stringify([
       {
-        iv,
-        mode: CryptoJS.mode.CBC,
-        padding: CryptoJS.pad.Pkcs7,
+        startDate: searchSettings.startDate.toISOString(),
+        endDate: searchSettings.endDate.toISOString(),
+      },
+    ]),
+    coords: [],
+    satellites: JSON.stringify(["BJ3A", "BJ3N", "DSEO", "HEX", "EB", "FS2", "FS5", "GS2", "GF1H", "GF2", "GE1", "BSG", "IK02", "J14", "J15", "J1V", "K2", "K3", "K3A", "KZ1", "LG", "OVS1", "OVS23", "PNEO", "P1", "QB", "SP6", "SKYC", "SVN1", "SVN3", "SV1", "SV2", "TeL", "THS", "TSL", "TST", "TS", "WV1", "WV2", "WV3", "WV4"]),
+    pageNum: 0,
+    lazyLoad: false,
+    dem: false,
+    stereo: false,
+    seasonal: false,
+    monthly: false,
+    sar: false,
+    persistentScenes: null,
+    selectedScenes: [
+      {
+        id: sceneId,
+        satellite: satellite
       }
-    ).toString(CryptoJS.enc.Utf8);
+    ],
+    months: rangeForPermalinkPayload(1, 13, 1).join(","),
+    years: rangeForPermalinkPayload(1970, new Date().getFullYear() + 1, 1).join(","),
+  };
 
-    return JSON.parse(decrypted);
-  }
+  const body = new URLSearchParams({
+    search: JSON.stringify(permalikPayload),
+    shape_url: shape_url,
+    token: "",
+    quote: "false"
+  }).toString();
+
+  const resRaw = await ky.post(
+    `${APOLLO_API_URL}/ajax/upload/search`,
+    {
+      headers: {
+        'X-Api-Key': process.env.PROXY_API_KEY,
+        'x-custom-origin': APOLLO_DOMAIN,
+        'x-custom-referer': APOLLO_DOMAIN,
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'X-Auth-Token': token,
+        'accept': '*/*',
+      },
+      body,
+    }
+  ).json();
+
+  const fullSearch = await ky.get(
+    `${APOLLO_API_URL}/ajax/getsearch/${resRaw?.search_id}`,
+    {
+      headers: {
+        'X-Api-Key': process.env.PROXY_API_KEY,
+        'x-custom-origin': APOLLO_DOMAIN,
+        'x-custom-referer': APOLLO_DOMAIN,
+        'X-Auth-Token': token,
+      }
+    }
+  ).json();
+  console.log("FULL SEARCH:", fullSearch);
+  console.log("APOLLO RESPONSE:", resRaw);
+
+  return `https://imagehunter.apollomapping.com/search/${resRaw?.search_id}`;
+};
+
+function decryptApolloResponse(encryptedData: { data: string }) {
+  if (!encryptedData || !encryptedData.data) return null;
+
+  const [ivBase64, ciphertextBase64] = encryptedData.data.split(':');
+
+  const iv = CryptoJS.enc.Base64.parse(ivBase64);
+  const ciphertext = CryptoJS.enc.Base64.parse(ciphertextBase64);
+  const key = CryptoJS.enc.Utf8.parse('oWyq4TXM8AJqg3mfrLGOrqay4OfHsWT4');
+
+  const decrypted = CryptoJS.AES.decrypt(
+    { ciphertext },
+    key,
+    {
+      iv,
+      mode: CryptoJS.mode.CBC,
+      padding: CryptoJS.pad.Pkcs7,
+    }
+  ).toString(CryptoJS.enc.Utf8);
+
+  return JSON.parse(decrypted);
+}
+
+const searchApollo = async (searchSettings, apolloApikey, searchPolygon: any | null = null, setters: any | null = null): Promise<any> => {
 
   const apolloPayload = {
     startDate: searchSettings.startDate.toISOString().substring(0, 19),
@@ -137,7 +261,7 @@ const searchApollo = async (searchSettings, apolloApikey, searchPolygon: any | n
 
   const apolloResults = decryptApolloResponse(apolloResultsRaw as { data: string })
   const searchResultsJson = formatApolloResults(apolloResults)
-  log('apollo PAYLOAD: \n', JSON.stringify(apolloPayload), '\nRAW apollo search results: \n', apolloResultsRaw, '\nJSON apollo search results: \n', searchResultsJson)
+  log('apollo PAYLOAD: \n', JSON.stringify(apolloPayload), '\nRAW apollo search results: \n', apolloResults, '\nJSON apollo search results: \n', searchResultsJson)
 
   // Filter out unwanted features before searching previews
   searchResultsJson.features = searchResultsJson.features.filter((f) => filterFeaturesWithSearchParams(f, searchPolygon))

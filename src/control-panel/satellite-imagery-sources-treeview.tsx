@@ -4,7 +4,7 @@
 
 import * as React from 'react'
 import { TreeView, TreeItem } from '@mui/lab'
-import { Typography, Collapse, Checkbox, FormControlLabel, CircularProgress, Box } from '@mui/material'
+import { Typography, Collapse, Checkbox, FormControlLabel, CircularProgress, Box, Alert, Link } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronDown, faChevronUp, faChevronRight, faSatellite } from '@fortawesome/free-solid-svg-icons'
 import { useLocalStorage } from '../utilities'
@@ -251,6 +251,7 @@ function SatelliteImagerySourcesTreeview(props): React.ReactElement {
         &nbsp; Satellite Sources Selection &nbsp;
         {advancedSettingsCollapsed ? <FontAwesomeIcon icon={faChevronDown} /> : <FontAwesomeIcon icon={faChevronUp} />}
       </Typography>
+
       {/* <Collapse in={!advancedSettingsCollapsed} timeout="auto" unmountOnExit>
 
         <RecursiveTreeView
@@ -261,6 +262,18 @@ function SatelliteImagerySourcesTreeview(props): React.ReactElement {
 
       </Collapse> */}
       <Collapse in={!advancedSettingsCollapsed} timeout="auto" unmountOnExit>
+        {/*  ADD warning indication to use an allow-cors plugin */}
+        <Alert severity="warning" >
+          Some providers require a CORS extension enabled to work properly like <Link href="https://chrome.google.com/webstore/detail/allow-cors-access-control/lhobafahddgcelffkeicbaginigeejlf" target="_blank" rel="noreferrer">
+            Chrome
+          </Link>
+          &nbsp; &nbsp;
+          <Link href="https://addons.mozilla.org/en-US/firefox/addon/access-control-allow-origin/" target="_blank" rel="noreferrer">
+            Firefox
+          </Link>
+          &nbsp;
+        </Alert>
+
         <RecursiveTreeView
           setProvidersTreeviewDataSelection={props.setProvidersTreeviewDataSelection}
           providersTreeviewDataSelection={props.providersTreeviewDataSelection}

@@ -436,6 +436,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
               footprintFeatures={props.footprintFeatures}
               mapRef={props.mapRef}
               setSearchResults={props.setSearchResults}
+              searchSettings={searchSettings}
             />
           }
         </div>

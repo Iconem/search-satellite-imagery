@@ -51,8 +51,10 @@ function ApiKeysModalComponent(props): React.ReactElement {
           <Box
             sx={{
               ...infoModalStyle,
-              maxHeight: '100vh',
+              width: { xs: '90%', sm: 600 },
+              maxHeight: '  95vh',
               overflowY: 'auto',
+              p: 2,
             }}
           >
             <Typography variant="h5" component="h2">
