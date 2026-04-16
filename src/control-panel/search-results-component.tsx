@@ -13,6 +13,7 @@ import { type TablePaginationProps } from '@mui/material/TablePagination'
 import { generateXAuthToken as generateApolloToken, fetchApolloPreview, createApolloSearchPermalink } from '../archive-apis/search-apollo'
 import { Providers } from '../archive-apis/search-utilities'
 import { fetchUp42Preview, getUp42TokenSafe } from '../archive-apis/search-up42'
+import { string } from 'prop-types'
 
 /* SEARCH RESULTS COMPONENT */
 function CustomGridToolbar(): React.ReactElement {

@@ -16,10 +16,11 @@ const baseApolloHeaders = {
   'accept': '*/*',
   'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
 };
-const buildBaseApolloPayload = (searchSettings) => {
+const buildBaseApolloPayload = (searchSettings: any, searchPolygon?: any) => {
   return {
-    startDate: searchSettings.startDate.toISOString(),
-    endDate: searchSettings.endDate.toISOString(),
+    startDate: searchSettings.startDate.toISOString().substring(0, 19),
+    endDate: searchSettings.endDate.toISOString().substring(0, 19),
+    persistentScenes: JSON.stringify([]),
     cloudcover_max: searchSettings.cloudCoverage ?? 100,
     resolution_min: searchSettings.gsd?.min ?? searchSettings.gsdIndex?.[0] ?? 0,
     resolution_max: searchSettings.gsd?.max ?? searchSettings.gsdIndex?.[1] ?? 2,
@@ -34,7 +35,8 @@ const buildBaseApolloPayload = (searchSettings) => {
       "LG", "OVS1", "OVS23", "PNEO", "P1", "QB", "SP6", "SKYC", "SVN1", "SVN3",
       "SV1", "SV2", "TeL", "THS", "TSL", "TST", "TS", "WV1", "WV2", "WV3", "WV4"
     ]),
-
+    offnadir_max: maxAbs(searchSettings.offNadirAngle),
+    coords: JSON.stringify(searchPolygon?.geometry.coordinates[0]),
 
     pageNum: 0,
     lazyLoad: false,
@@ -110,7 +112,7 @@ export const createApolloSearchPermalink = async ({
   searchSettings,
   sceneId,
   satellite,
-  coords
+  coords,
 }: {
   searchSettings: any;
   sceneId: string;
@@ -121,14 +123,8 @@ export const createApolloSearchPermalink = async ({
   const shape_url = await uploadShape(coords, token);
   const basePayload = buildBaseApolloPayload(searchSettings);
 
-  const permalikPayload = {
+  const permalinkPayload = {
     ...basePayload,
-    coords: [],
-    offnadir_max: Math.max(
-      Math.abs(searchSettings.offNadirAngle?.[0] || 0),
-      Math.abs(searchSettings.offNadirAngle?.[1] || 0)
-    ),
-    persistentScenes: null,
     selectedScenes: [
       {
         id: sceneId,
@@ -138,7 +134,7 @@ export const createApolloSearchPermalink = async ({
   };
 
   const body = new URLSearchParams({
-    search: JSON.stringify(permalikPayload),
+    search: JSON.stringify(permalinkPayload),
     shape_url: shape_url,
     token: "",
     quote: "false"
@@ -201,18 +197,9 @@ export const fetchApolloPreview = async (
 };
 
 const searchApollo = async (searchSettings, apolloApikey, searchPolygon: any | null = null, setters: any | null = null): Promise<any> => {
-  const basePayload = buildBaseApolloPayload(searchSettings);
+  const basePayload = buildBaseApolloPayload(searchSettings, searchPolygon);
 
-  const apolloPayload = {
-    ...basePayload,
-    startDate: searchSettings.startDate.toISOString().substring(0, 19),
-    endDate: searchSettings.endDate.toISOString().substring(0, 19),
-    coords: JSON.stringify(searchPolygon?.geometry.coordinates[0]),
-    offnadir_max: maxAbs(searchSettings.offNadirAngle),
-    persistentScenes: JSON.stringify([]),
-  }
-
-  const apolloPayloadBody = new URLSearchParams(apolloPayload as any).toString()
+  const apolloPayloadBody = new URLSearchParams(basePayload as any).toString()
   const apolloRequest = `${APOLLO_API_URL}/ajax/search`
   const token = await generateXAuthToken()
 
@@ -230,7 +217,7 @@ const searchApollo = async (searchSettings, apolloApikey, searchPolygon: any | n
 
   const apolloResults = decryptApolloResponse(apolloResultsRaw as { data: string })
   const searchResultsJson = formatApolloResults(apolloResults)
-  log('apollo PAYLOAD: \n', JSON.stringify(apolloPayload), '\nRAW apollo search results: \n', apolloResults, '\nJSON apollo search results: \n', searchResultsJson)
+  log('apollo PAYLOAD: \n', JSON.stringify(basePayload), '\nRAW apollo search results: \n', apolloResults, '\nJSON apollo search results: \n', searchResultsJson)
 
   // Filter out unwanted features before searching previews
   searchResultsJson.features = searchResultsJson.features.filter((f) => filterFeaturesWithSearchParams(f, searchPolygon))
