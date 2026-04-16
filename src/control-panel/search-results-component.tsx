@@ -12,6 +12,7 @@ import { type TablePaginationProps } from '@mui/material/TablePagination'
 
 import { generateXAuthToken as generateApolloToken, fetchApolloPreview, createApolloSearchPermalink } from '../archive-apis/search-apollo'
 import { Providers } from '../archive-apis/search-utilities'
+import { fetchUp42Preview, getUp42TokenSafe } from '../archive-apis/search-up42'
 
 /* SEARCH RESULTS COMPONENT */
 function CustomGridToolbar(): React.ReactElement {
@@ -150,8 +151,6 @@ const getDatagridColumns = (searchSettings) => [
         const handleClick = async (e) => {
           e.preventDefault();
 
-          const newTab = window.open("", "_blank");
-
           try {
             const sceneId = params.row.raw_result_properties.objectid;
             const satellite = params.row.raw_result_properties.collection_vehicle_short;
@@ -161,11 +160,12 @@ const getDatagridColumns = (searchSettings) => [
               satellite,
               coords
             });
-            newTab.location.href = url;
+            if (url) {
+              window.open(url, "_blank");
+            }
 
           } catch (err) {
             console.error(err);
-            newTab?.close();
           }
         };
 
@@ -368,18 +368,38 @@ const getDatagridColumns = (searchSettings) => [
   {
     field: 'preview',
     type: 'string',
-    renderCell: (params) => (
-      <img
-        src={params.value}
-        style={{
-          objectFit: 'cover',
-          width: '100%',
-          height: '100%',
-          pointerEvents: 'none',
-        }}
-        title={'No Preview available'}
-      />
-    ),
+    renderCell: (params) => {
+      const value = params.value;
+      const isBlob = typeof value === 'string' && value.startsWith('blob:');
+      // 1. NO preview at all
+      if (value === undefined) {
+        return (
+          <span style={{ fontSize: 12, color: '#999' }}>
+            No preview available
+          </span>
+        );
+      }
+      // 2. Needs fetch (null OR dead blob)
+      if (value === null) {
+        return (
+          <span style={{ color: '#1976d2', fontSize: 12 }}>
+            Click to load preview
+          </span>
+        );
+      }
+      // 3. Valid image
+      return (
+        <img
+          src={value}
+          style={{
+            objectFit: 'cover',
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+          }}
+        />
+      );
+    },
     valueGetter: (params) => params.row?.preview_uri, // thumbnail_uri or preview_uri
     // resizable: true, // only works for datagrids with mui-x pro
     // width is not dynamic yet https://github.com/mui/mui-x/issues/1241
@@ -420,7 +440,9 @@ const handleRowClick = async (
   details,
   mapRef,
   searchResults,
-  setSearchResults
+  setSearchResults,
+  apiKeys,
+  setters,
 ): Promise<void> => {
 
   // --- map zoom logic ---
@@ -438,42 +460,57 @@ const handleRowClick = async (
     }
   );
 
-  // --- Apollo on-demand preview ---
-  const isApollo = featureGeom?.properties?.providerPlatform === Providers.APOLLO;
+  // --- Apollo/UP42 on-demand preview ---
+  const provider = featureGeom?.properties?.providerPlatform;
   const alreadyHasPreview = !!featureGeom?.properties?.preview_uri;
+  const { up42Email, up42Password } = apiKeys[Providers.UP42];
+  try {
+    let previewUrl: string | null = null;
+    let thumbnailUrl: string | null = null;
 
-  if (isApollo && !alreadyHasPreview) {
-    try {
+    if (provider === Providers.APOLLO) {
+      if (alreadyHasPreview) return;
       const token = await generateApolloToken();
-      const previewUrl = await fetchApolloPreview(featureGeom, token);
-      if (previewUrl) {
-        setSearchResults((prev) => {
-          if (!prev?.output?.features) return prev;
-
-          const updated = {
-            ...prev,
-            output: {
-              ...prev.output,
-              features: prev.output.features.map((f) =>
-                getRowIdFromProps(f.properties) === params.id
-                  ? {
-                    ...f,
-                    properties: {
-                      ...f.properties,
-                      preview_uri: previewUrl,
-                      thumbnail_uri: previewUrl,
-                    },
-                  }
-                  : f
-              ),
-            },
-          };
-          return updated;
-        });
-      }
-    } catch (err) {
-      console.warn('Apollo preview on click failed', err);
+      previewUrl = await fetchApolloPreview(featureGeom, token);
+      thumbnailUrl = previewUrl;
     }
+
+    if (provider === Providers.UP42) {
+      const token = await getUp42TokenSafe(up42Email, up42Password, setters);
+      const result = await fetchUp42Preview(featureGeom, token);
+      if (result) {
+        previewUrl = result.preview;
+        thumbnailUrl = result.thumbnail;
+      }
+    }
+
+    if (previewUrl) {
+      setSearchResults((prev) => {
+        if (!prev?.output?.features) return prev;
+
+        return {
+          ...prev,
+          output: {
+            ...prev.output,
+            features: prev.output.features.map((f) =>
+              getRowIdFromProps(f.properties) === params.id
+                ? {
+                  ...f,
+                  properties: {
+                    ...f.properties,
+                    preview_uri: thumbnailUrl,
+                    thumbnail_uri: thumbnailUrl,
+                  },
+                }
+                : f
+            ),
+          },
+        };
+      });
+    }
+
+  } catch (err) {
+    console.warn("Preview fetch failed", err);
   }
 };
 
@@ -481,6 +518,8 @@ function SearchResultsComponent(props): React.ReactElement {
   const searchResults = props.searchResults
   const setSearchResults = props.setSearchResults
   const searchSettings = props.searchSettings
+  const apiKeys = props.apiKeys
+  const setters = props.setters
   const [autoPageSizeBool, setAutoPageSizeBool] = React.useState(false)
 
   const selectionModel = props.footprintFeatures?.properties && [getRowIdFromProps(props.footprintFeatures?.properties)]
@@ -579,7 +618,7 @@ function SearchResultsComponent(props): React.ReactElement {
               columns={getDatagridColumns(searchSettings)}
               rows={rows}
               onRowClick={(p, e, d) => {
-                handleRowClick(p, e, d, props.mapRef, searchResults, setSearchResults)
+                handleRowClick(p, e, d, props.mapRef, searchResults, setSearchResults, apiKeys, setters)
               }}
               componentsProps={{
                 row: {

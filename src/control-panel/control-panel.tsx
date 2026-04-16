@@ -21,7 +21,7 @@ import area from '@turf/area'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronDown, faChevronUp, faDrawPolygon, faSliders, faEarthEurope } from '@fortawesome/free-solid-svg-icons'
 import { faTwitter, faGithub } from '@fortawesome/free-brands-svg-icons'
-import { getUp42Bearer, getDataCollections, extractUp42HostsWithGsd } from '../archive-apis/search-up42'
+import { getUp42Bearer, getDataCollections, extractUp42HostsWithGsd, getUp42TokenSafe } from '../archive-apis/search-up42'
 import { Providers, providersDict as initialProvidersDict, constellationDict as initialConstellationDict } from '../archive-apis/search-utilities'
 import PropTypes from 'prop-types'
 import DateRangeComponent from './date-range-component'
@@ -173,6 +173,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   const [isUp42Loading, setIsUp42Loading] = React.useState(false);
   //to check if the credentials are correct
   const [up42Status, setUp42Status] = React.useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [up42Bearer, setUp42Bearer] = React.useState<string | null>(null);
 
   // Load UP42 data on component mount
   React.useEffect(() => {
@@ -194,6 +195,23 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
         });
         return;
       }
+      // we generate here the token so we can pass it to fetchPreview even if the datacollection is stored in the cash 
+      // let token = up42Bearer;
+      // if (!token) {
+      //   token = await getUp42Bearer(up42Email, up42Password);
+      //   setUp42Bearer(token);
+      // }
+      const token = await getUp42TokenSafe(up42Email, up42Password, setters);
+      if (!token) {
+        setUp42Status('error')
+        setDataCollection([])
+        setters?.setSnackbarOptions({
+          open: true,
+          message: 'Incorrect credentials',
+        });
+        return;
+      }
+
       const lastFetched = localStorage.getItem('dataCollectionLastEdited');
       const today = new Date().toDateString();
 
@@ -204,19 +222,9 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
       setIsUp42Loading(true);
       setUp42Status('loading')
       try {
-        const newToken = await getUp42Bearer(up42Email, up42Password);
-        if (!newToken || newToken === "") {
-          setUp42Status('error')
-          setDataCollection([])
-          setters?.setSnackbarOptions({
-            open: true,
-            message: 'Incorrect credentials',
-          });
-          return;
-        }
         setUp42Status('success') //valid UP42 login
 
-        const data = await getDataCollections(newToken, up42Email, up42Password, setters);
+        const data = await getDataCollections(token, up42Email, up42Password, setters);
 
         // Only update if data actually changed
         setDataCollection((prev) => {
@@ -238,7 +246,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
 
   //if the credentials are incorrect dont add UP42 to the selection
   React.useEffect(() => {
-    if (up42Status === 'error' || up42Status === 'idle' || up42Status === 'loading') {
+    if (up42Status === 'error' || up42Status === 'loading') {
       setProvidersTreeviewDataSelection(prev =>
         prev.filter(id => !id.includes('UP42'))
       )
@@ -301,7 +309,6 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
           ];
 
           setProvidersTreeviewDataSelection(prev => {
-
             const withoutOldUp42 = prev.filter(id => !id.includes('treeview-constellation-UP42-'));
             const newSelection = [...withoutOldUp42, ...up42SelectionIds];
             return [...new Set(newSelection)];
@@ -437,6 +444,8 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
               mapRef={props.mapRef}
               setSearchResults={props.setSearchResults}
               searchSettings={searchSettings}
+              apiKeys={apiKeys}
+              setters={setters}
             />
           }
         </div>

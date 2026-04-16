@@ -79,14 +79,37 @@ const getUp42Bearer = async (
   }
 };
 
+//shared function to manage the UP42 token in differnet component 
+let up42Token: string | null = null;
+let tokenPromise: Promise<string> | null = null;
+
+const getUp42TokenSafe = async (email: string, password: string, setters) => {
+  if (up42Token) return up42Token;
+
+  if (tokenPromise) return tokenPromise;
+
+  tokenPromise = getUp42Bearer(email, password, setters)
+    .then((token) => {
+      up42Token = token;
+      return token;
+    })
+    .finally(() => {
+      tokenPromise = null;
+    });
+
+  return tokenPromise;
+};
+//
+
 function getUp42Price(feature): number | null {
   return getImageryPrice(feature, feature.properties.constellation, up42ConstellationDict)
 }
 
 const getDataCollections = async (up42BearerJson: string | null = null, email: string, password: string, setters): Promise<any> => {
-  if (!up42BearerJson) {
-    up42BearerJson = await getUp42Bearer(email, password, setters)
-  }
+  // if (!up42BearerJson) {
+  //   up42BearerJson = await getUp42Bearer(email, password, setters)
+  // }
+  up42BearerJson = await getUp42TokenSafe(email, password, setters);
   const collectionsReq = await ky
     .get('https://api.up42.com/v2/collections', {
       headers: { Authorization: up42BearerJson },
@@ -134,24 +157,7 @@ async function searchForNextPage(up42ResultsRaw, searchSettings, up42Apikey, sea
 // Up42 hosts listing
 let hostsList = []
 const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, setters = null, up42BearerJson: string | null = null, nextUrl = ''): Promise<any> => {
-
-  if (!up42BearerJson) {
-    try {
-      up42BearerJson = await getUp42Bearer(up42Apikey.up42Email, up42Apikey.up42Password, setters)
-    } catch (error) {
-      const errorStr = 'Could not get UP42 Auth token, probably because you did not use the Allow-CORS plugin '
-      setTimeout(
-        () =>
-          setters.setSnackbarOptions({
-            open: true,
-            message: errorStr,
-          }),
-        5000
-      )
-      console.log('Use this Allow-CORS plugins for example, \nChrome: https://chrome.google.com/webstore/detail/allow-cors-access-control/lhobafahddgcelffkeicbaginigeejlf \nFirefox: https://addons.mozilla.org/en-US/firefox/addon/access-control-allow-origin/')
-      throw new Error(errorStr)
-    }
-  }
+  up42BearerJson = await getUp42TokenSafe(up42Apikey.up42Email, up42Apikey.up42Password, setters);
 
   const up42Payload = {
     datetime: `${searchSettings.startDate.toISOString() as string}/${searchSettings.endDate.toISOString() as string}`,
@@ -252,7 +258,6 @@ const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, sett
       })
   }
 
-  // TODO: TEST next
   const searchResultsJson = formatUp42Results(up42ResultsRaw, searchPolygon)
   if (setters) {
     setters.setSearchResults((prev) => {
@@ -274,7 +279,7 @@ const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, sett
 
 
   // Initiate search for previews/thumbnails
-  getUp42PreviewsAsync(searchResultsJson, up42BearerJson, 5, setters, searchPolygon);
+  // getUp42PreviewsAsync(searchResultsJson, up42BearerJson, 5, setters, searchPolygon);
 
   getUp42PricesAsync(searchResultsJson, up42BearerJson, 5, setters, searchPolygon);
 
@@ -284,7 +289,7 @@ const searchUp42 = async (searchSettings, up42Apikey, searchPolygon = null, sett
   }
 }
 
-const getUp42PreviewUrls = (feature, up42BearerJson): any => {
+const buildUp42PreviewUrls = (feature, up42BearerJson): any => {
   const previewUrls = {
     up42BearerJson,
     preview_uri: `https://api.up42.com/catalog/${feature.properties.providerName as string}/image/${feature.properties.id as string}/quicklook`,
@@ -292,13 +297,76 @@ const getUp42PreviewUrls = (feature, up42BearerJson): any => {
   }
   return previewUrls
 }
+
+const fetchUp42Preview = async (
+  feature: any,
+  up42Bearer: string
+): Promise<{ preview: string; thumbnail: string } | null> => {
+  try {
+    const previewUrls = buildUp42PreviewUrls(feature, up42Bearer);
+
+    const [thumbBlob, previewBlob] = await Promise.all([
+      ky.get(previewUrls.thumbnail_uri, {
+        headers: { Authorization: up42Bearer },
+      }).blob(),
+
+      ky.get(previewUrls.preview_uri, {
+        headers: { Authorization: up42Bearer },
+      }).blob(),
+    ]);
+
+    return {
+      thumbnail: URL.createObjectURL(thumbBlob),
+      preview: URL.createObjectURL(previewBlob),
+    };
+
+  } catch (err) {
+    console.warn("fetchUp42Preview failed", err);
+    return null;
+  }
+};
+
+// Remove invalid UP42 blob previews so the UI stays consistent on reload and the user know that he should reclick to get the preview since its a blob .
+const cleanUp42BlobPreviews = (data) => {
+  if (!data?.output?.features) return data;
+
+  return {
+    ...data,
+    output: {
+      ...data.output,
+      features: data.output.features.map((f) => {
+        const isUp42 = f.properties?.providerPlatform === Providers.UP42;
+        const preview = f.properties?.preview_uri;
+
+        if (
+          isUp42 &&
+          typeof preview === 'string' &&
+          preview.startsWith('blob:')
+        ) {
+          return {
+            ...f,
+            properties: {
+              ...f.properties,
+              preview_uri: null,
+              thumbnail_uri: null,
+            },
+          };
+        }
+
+        return f;
+      }),
+    },
+  };
+};
+
+// If one day we want to fetch all preview by chunck 
 async function getUp42PreviewsAsync(up42Results, up42BearerJson, chunkSize, setters, searchPolygon) {
   await processInChunks(
     async (feature: any) => {
       if (!feature || !feature.properties) return;
 
       try {
-        const previewUrls = getUp42PreviewUrls(feature, up42BearerJson);
+        const previewUrls = buildUp42PreviewUrls(feature, up42BearerJson);
 
         const [thumbBlob, previewBlob] = await Promise.all([
           ky.get(previewUrls.thumbnail_uri, {
@@ -535,6 +603,8 @@ const formatUp42Results = (up42ResultsRaw, searchPolygon): GeoJSON.FeatureCollec
         resolution: feature.properties.resolution,
         providerProperties: feature.properties.providerProperties,
         raw_result_properties: feature.properties,
+        preview_uri: null,
+        thumbnail_uri: null,
       },
       type: 'Feature',
     })),
@@ -566,4 +636,4 @@ const extractUp42HostsWithGsd = (collectionsData) => {
   return Array.from(hostMap.values())
 }
 
-export { searchUp42, getUp42Bearer, getDataCollections, extractUp42HostsWithGsd } 
+export { searchUp42, getUp42Bearer, getDataCollections, extractUp42HostsWithGsd, getUp42TokenSafe, fetchUp42Preview, cleanUp42BlobPreviews } 

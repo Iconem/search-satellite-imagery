@@ -17,6 +17,8 @@ import MapControls from './map/map-controls'
 import CustomImageSource from './map/custom-image-source'
 import FeaturesSourceAndLayer from './map/features-source-and-layer'
 import { useLocalStorage } from './utilities'
+import { Providers } from './archive-apis/search-utilities'
+import { cleanUp42BlobPreviews } from './archive-apis/search-up42'
 
 function usePrevious<T>(value: T): T | undefined {
   const ref = React.useRef<T>()
@@ -91,7 +93,7 @@ function App(props): React.ReactElement {
     pitch: 0,
   });
 
-  React.useEffect( () => {
+  React.useEffect(() => {
     const hash = window.location.hash;
     let hashed_viewstate = hash
       .substring(1)
@@ -106,6 +108,8 @@ function App(props): React.ReactElement {
       longitude: hashed_viewstate[2],
       pitch: 0,
     })
+    // Ensure UI stays consistent on reload by clearing stale previews, so users see "Click to load preview" instead of broken images.
+    setSearchResults((prev) => cleanUp42BlobPreviews(prev));
   }, [])
 
 
@@ -118,14 +122,12 @@ function App(props): React.ReactElement {
       const currentBounds = mapRef.current?.getBounds()
       const boundsCenter = currentBounds?.getCenter()
       if (boundsCenter) {
-        // console.log('SPLIT MOVED, width', window.innerWidth, prevSplitPanelSizesPercent, splitPanelSizesPercent, 'ratio', moveRatio, 'currentBounds', currentBounds)
         mapRef?.current?.fitBounds(currentBounds, {
           padding: { top: 0, bottom: 0, left: 0, right: moveRatio },
           center: [boundsCenter.lng, boundsCenter.lat],
         })
       }
     } else {
-      // console.log('Split did not move')
     }
   }, [splitPanelSizesPercent])
 
@@ -200,9 +202,9 @@ function App(props): React.ReactElement {
         dragRotate={false}
         projection={'mercator'} // globe mercator naturalEarth equalEarth  // TODO: eventually make projection controllable
 
-        // bounds= {[-180, -80, 180, 80]} // overrides longitude, latitude, zoom
-        // fitBoundsOptions={{padding: 150}}
-        // onStyleLoad={this.onMapLoad}
+      // bounds= {[-180, -80, 180, 80]} // overrides longitude, latitude, zoom
+      // fitBoundsOptions={{padding: 150}}
+      // onStyleLoad={this.onMapLoad}
       >
         <MapControls theme={props.theme} mapboxAccessToken={MAPBOX_TOKEN} setDrawFeatures={setDrawFeatures} setBasemapStyle={setBasemapStyle} mapRef={mapRef} rasterOpacity={rasterOpacity} setRasterOpacity={setRasterOpacity} themePaletteMode={props.themePaletteMode} setThemePaletteMode={props.setThemePaletteMode} />
         <FeaturesSourceAndLayer theme={props.theme} features={footprintFeatures} lineLayer={true} fillLayer={true} id={'footprintFeatures'} />

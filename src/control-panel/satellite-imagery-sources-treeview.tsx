@@ -155,6 +155,7 @@ function RecursiveTreeView(props): React.ReactElement {
     return { childNodesToToggle: getAllChild(nodeToToggle, array), path }
   }
 
+  // To make sure not to select disabled nodes(parents or children)
   const isNodeSelectable = (nodeId) => {
     const findNode = (node) => {
       if (node.id === nodeId) return node

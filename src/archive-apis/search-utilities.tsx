@@ -112,6 +112,35 @@ enum Constellation {
   Skyfi = 'Skyfi',
   OAM = 'OpenAerialMap',
   STAC = 'STAC',
+
+  // Apollo
+  MaxarDigitalGlobe = "Maxar-DigitalGlobe",
+  AirbusDS = "Airbus Defense and Space",
+  Hexagon = "Hexagon",
+  Planet = "Planet",
+  SpaceWill = "SpaceWill",
+  TwentyOneAT = "21AT",
+  SIImagingServices = "SI Imaging Services",
+  GEOSAT = "GEOSAT",
+  NTTData = "NTT Data",
+  PASCO = "PASCO",
+  STEngineeringGeoInsights = "ST Engineering Geo-Insights",
+  NARLabs = "NARLabs",
+  ImageSatInternational = "ImageSat International",
+  Orbita = "Orbita",
+  Vricon = "Vricon",
+  JilinSatellite = "Jilin Satellite",
+  KGSSpaceTechnologies = "KGS Space Technologies",
+  BlackSky = "BlackSky",
+  USGSNASA = "USGS/NASA",
+
+  // Skyfi
+  SATELLOGIC = "SATELLOGIC",
+  SIWEI = "SIWEI",
+  VANTOR = "VANTOR",
+  URBAN_SKY = "URBAN_SKY",
+  NSL = "NSL",
+  VEXCEL = "VEXCEL",
 }
 
 enum Providers {
@@ -148,13 +177,42 @@ const providersDict = {
     // TODO LatConnect 60
   ],
   [Providers.SKYWATCH]: [Constellation.PlanetSkysat, Constellation.TripleSat, Constellation.Pleiades, Constellation.PleiadesNeo, Constellation.Kompsat3, Constellation.Kompsat2],
-  [Providers.SKYFI]: [Constellation.DailyVision],
+  [Providers.SKYFI]: [
+    Constellation.GEOSAT,
+    Constellation.Planet,
+    Constellation.SATELLOGIC,
+    Constellation.SIWEI,
+    Constellation.VANTOR,
+    Constellation.URBAN_SKY,
+    Constellation.NSL,
+    Constellation.VEXCEL,
+  ],
   [Providers.OAM]: [Constellation.OAM],
   [Providers.STAC]: [Constellation.STAC],
   // [Providers.MAXAR_DIGITALGLOBE]: [Constellation.GeoEye, Constellation.WorldView_1_2, Constellation.WorldView_3_4, Constellation.QuickBird2, Constellation.Ikonos1],
   [Providers.APOLLO]: [
-    Constellation.Pleiades,
-    Constellation.PleiadesNeo,
+    // Constellation.Pleiades,
+    // Constellation.PleiadesNeo,
+    Constellation.MaxarDigitalGlobe,
+    Constellation.AirbusDS,
+    Constellation.Hexagon,
+    Constellation.Planet,
+    Constellation.SpaceWill,
+    Constellation.TwentyOneAT,
+    Constellation.SIImagingServices,
+    Constellation.GEOSAT,
+    Constellation.NTTData,
+    Constellation.PASCO,
+    Constellation.STEngineeringGeoInsights,
+    Constellation.NARLabs,
+    Constellation.ImageSatInternational,
+    Constellation.Orbita,
+    Constellation.Vricon,
+    Constellation.JilinSatellite,
+    Constellation.KGSSpaceTechnologies,
+    Constellation.BlackSky,
+    Constellation.USGSNASA,
+
     // TODO COMPLETE
   ],
   // 'SENTINELHUB': [Constellation.Pleiades,  Constellation.Worldview],
@@ -280,6 +338,36 @@ const constellationDict = {
     satellites: [],
     gsd: 0.01,
   },
+
+  // Apollo
+  [Constellation.MaxarDigitalGlobe]: { gsd: 0.3 },
+  [Constellation.AirbusDS]: { gsd: 0.3 },
+  [Constellation.Hexagon]: { gsd: 0.15 },
+  [Constellation.Planet]: { gsd: 0.5 },
+  [Constellation.SpaceWill]: { gsd: 0.3 },
+  [Constellation.TwentyOneAT]: { gsd: 0.3 },
+  [Constellation.SIImagingServices]: { gsd: 0.4 },
+  [Constellation.GEOSAT]: { gsd: 0.75 },
+  [Constellation.NTTData]: { gsd: 2.5 },
+  [Constellation.PASCO]: { gsd: 2.5 },
+  [Constellation.STEngineeringGeoInsights]: { gsd: 0.5 },
+  [Constellation.NARLabs]: { gsd: 2.0 },
+  [Constellation.ImageSatInternational]: { gsd: 0.7 },
+  [Constellation.Orbita]: { gsd: 0.9 },
+  [Constellation.Vricon]: { gsd: 0.5 },
+  [Constellation.JilinSatellite]: { gsd: 0.3 },
+  [Constellation.KGSSpaceTechnologies]: { gsd: 1 },
+  [Constellation.BlackSky]: { gsd: 1.3 },
+  [Constellation.USGSNASA]: { gsd: 15 },
+
+  // SkyFi
+  [Constellation.SATELLOGIC]: { gsd: 1 },
+  [Constellation.SIWEI]: { gsd: 0.3 },
+  [Constellation.VANTOR]: { gsd: 0.3 },
+  [Constellation.URBAN_SKY]: { gsd: 0.15 },
+  [Constellation.NSL]: { gsd: 0.15 },
+  [Constellation.VEXCEL]: { gsd: 0.15 },
+
 }
 
 const eosNames = {
@@ -503,6 +591,12 @@ async function computeSha256Hash(message) {
 
   return hashHex;
 }
+
+export const range = (start, stop, step) =>
+  Array.from(
+    { length: Math.ceil((stop - start) / step) },
+    (_, i) => start + i * step,
+  );
 
 
 export { processInChunks, type ChunkProcessorOptions };

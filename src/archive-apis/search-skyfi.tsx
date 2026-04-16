@@ -46,7 +46,7 @@ import { parse as wkt_parse, stringify as wkt_stringify } from 'wellknown'
 const PROXY_BASE_URL = process.env.PROXY_BASE_URL
 const SKYFI_BASE_URL = `${PROXY_BASE_URL}?url=https://app.skyfi.com`
 const skyfiApiKey = process.env.SKYFI_API_KEY
-const pageSize = 25
+const pageSize = 100
 const lookForNextPage = true
 
 const getEnabledProviderIds = async (): Promise<string[]> => {
@@ -146,13 +146,6 @@ const buildSkyfiPermalink = (feature) => {
   const id = feature.archiveId
 
   return `https://app.skyfi.com/explore/${type}/crop/${provider}:${id}`
-
-  //with this it gives me a cors error idk why yet 
-  //   const coordinates = feature.geometry.coordinates[0];
-  // const wktPolygon = `POLYGON((${coordinates.map(c => c.join(' ')).join(',')}))`;
-  // const aoiParam = encodeURIComponent(wktPolygon);
-
-  // return `https://app.skyfi.com/explore/${type}/crop/${provider}:${id}?aoi=${aoiParam}`
 }
 
 const formatSkyfiResults = (skyfiResultsRaw, searchPolygon): GeoJSON.FeatureCollection => {

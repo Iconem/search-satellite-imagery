@@ -9,12 +9,11 @@ import { log } from '../utilities'
 const OAM_LIMIT = 1000
 const OAM_BASE_URL = 'https://api.openaerialmap.org/meta'
 
-const buildOamPermalink = (feature) => {
-  const id = feature._id
+const buildStacmapPermalink = (stacItemUrl) => {
   // to visualize the OAM scene in stac-browser
   //stac-browser: https://radiantearth.github.io/stac-browser/#/external/api.imagery.hotosm.org/stac/collections/openaerialmap/items/${id}?.asset=asset-visual
   // to visualize the OAM scene in stac-map 
-  return `https://developmentseed.org/stac-map/?href=https://api.imagery.hotosm.org/stac/collections/openaerialmap/items/${id}`
+  return `https://developmentseed.org/stac-map/?href=${stacItemUrl}`
 
 }
 
@@ -45,6 +44,7 @@ const formatOamResults = (oamResultsRaw, searchPolygon = null): GeoJSON.FeatureC
   // meta':{'limit':1,'page':1,'found':15},
   return {
     features: oamResultsRaw.results.map((r) => {
+      const stacItemUrl = `https://api.imagery.hotosm.org/stac/collections/openaerialmap/items/${r._id}`
       const feat = {
         geometry: {
           coordinates: r.geojson.coordinates[0],
@@ -67,7 +67,7 @@ const formatOamResults = (oamResultsRaw, searchPolygon = null): GeoJSON.FeatureC
             },
           },
           raw_result_properties: { ...r },
-          permalink: buildOamPermalink(r),
+          permalink: buildStacmapPermalink(stacItemUrl),
         },
         type: 'Feature',
       }
