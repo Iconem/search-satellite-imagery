@@ -135,7 +135,7 @@ function ApiKeysModalComponent(props): React.ReactElement {
               </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 <PasswordTextField
-                  value={props.apiKeys[Providers.SKYFI]}
+                  defaultValue={props.apiKeys[Providers.SKYFI]}
                   onBlur={(event) =>
                     props.setApiKeys({
                       ...props.apiKeys,
