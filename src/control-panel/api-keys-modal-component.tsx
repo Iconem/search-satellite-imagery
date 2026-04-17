@@ -118,11 +118,6 @@ function ApiKeysModalComponent(props): React.ReactElement {
                   <Link href="https://map.openaerialmap.org/" target="_blank">Open Aerial Map</Link>
                 </Typography>
               </ListItem>
-              <ListItem sx={{ display: 'list-item' }}>
-                <Typography variant="h6">
-                  <Link href="https://app.skyfi.com/explore" target="_blank">SkyFi App</Link>
-                </Typography>
-              </ListItem>
             </List>
 
             <Divider variant="middle" />
@@ -130,6 +125,23 @@ function ApiKeysModalComponent(props): React.ReactElement {
             <List>
               <ListItem sx={{ display: 'list-item' }}>
                 <Typography>API keys needed for the following APIs:</Typography>
+              </ListItem>
+
+              {/* SkyFi */}
+              <ListItem sx={{ display: 'list-item' }}>
+                <Typography variant="h6">
+                  <Link href="https://app.skyfi.com/explore" target="_blank">SkyFi App</Link>
+                </Typography>
+              </ListItem>
+              <ListItem sx={{ display: 'list-item' }}>
+                <PasswordTextField
+                  value={props.apiKeys[Providers.SKYFI]}
+                  onChange={(event) =>
+                    props.setApiKeys({ ...props.apiKeys, [Providers.SKYFI]: event.target.value })
+                  }
+                  label="SkyFi API key"
+                  sx={{ width: '50%' }}
+                />
               </ListItem>
 
               {/* UP42 */}
@@ -253,6 +265,10 @@ function ApiKeysModalComponent(props): React.ReactElement {
             </List>
 
             <List>
+              <ListItem sx={{ display: 'list-item' }}>
+                SkyFi API key can be found in your{' '}
+                <Link href="https://app.skyfi.com/profile/api-keys-management" target="_blank">SkyFi platform account</Link>
+              </ListItem>
               <ListItem sx={{ display: 'list-item' }}>
                 UP42: Project ID and Project API Key can be found in the Developers section of the selected project, on the{' '}
                 <Link href="https://console.up42.com/" target="_blank">console</Link>
