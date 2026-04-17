@@ -45,15 +45,22 @@ import { parse as wkt_parse, stringify as wkt_stringify } from 'wellknown'
 // const SKYFI_SEARCH_URL = 'https://app.skyfi.com/api/archive-available'
 const PROXY_BASE_URL = process.env.PROXY_BASE_URL
 const SKYFI_BASE_URL = `${PROXY_BASE_URL}?url=https://app.skyfi.com`
-const skyfiApiKey = process.env.SKYFI_API_KEY
 const pageSize = 100
 const lookForNextPage = true
 
-const getEnabledProviderIds = async (): Promise<string[]> => {
+const getSkyfiApiKey = (skyfiApikey: string): string | undefined => {
+  if (skyfiApikey && skyfiApikey !== '') {
+    return skyfiApikey
+  }
+  return process.env.SKYFI_API_KEY
+}
+
+const getEnabledProviderIds = async (skyfiApikey: string): Promise<string[]> => {
   const data = await ky
     .get(SKYFI_BASE_URL + '/api/v4/catalog-specs/archive', {
       headers: {
         'X-Proxy-Key': process.env.PROXY_API_KEY,
+        'X-Api-Key': getSkyfiApiKey(skyfiApikey),
       }
     })
     .json();
@@ -73,21 +80,23 @@ const getEnabledProviderIds = async (): Promise<string[]> => {
 
 
 const searchSkyfi = async (searchSettings, skyfiApikey, searchPolygon = null, setters = null, nextPageUrl: string | null = null, pageIdx = 0): Promise<any> => {
+  const resolvedApiKey = getSkyfiApiKey(skyfiApikey)
+
   const resolutionArray: string[] = []
   if (searchSettings.gsd.min <= 0.15) resolutionArray.push('ULTRA HIGH')
   if ((searchSettings.gsd.min <= 0.15 && searchSettings.gsd.max >= 0.15) || (searchSettings.gsd.min <= 0.30 && searchSettings.gsd.max >= 0.30)) resolutionArray.push('SUPER HIGH')
   if ((searchSettings.gsd.min <= 0.3 && searchSettings.gsd.max >= 0.3) || (searchSettings.gsd.min <= 0.50 && searchSettings.gsd.max >= 0.50)) resolutionArray.push('VERY HIGH')
   if ((searchSettings.gsd.min <= 0.5 && searchSettings.gsd.max >= 0.5) || (searchSettings.gsd.min <= 1 && searchSettings.gsd.max >= 1)) resolutionArray.push('HIGH')
   if ((searchSettings.gsd.min <= 1 && searchSettings.gsd.max >= 1) || (searchSettings.gsd.min <= 5 && searchSettings.gsd.max >= 5)) resolutionArray.push('MEDIUM')
-  const providersArray = await getEnabledProviderIds();
+  const providersArray = await getEnabledProviderIds(skyfiApikey);
   // ['SATELLOGIC', 'GEOSAT', 'SIWEI', 'PLANET', 'VANTOR', 'URBAN_SKY', 'NSL', 'VEXCEL']
 
   const coordinatesWkt = wkt_stringify(searchPolygon)
 
   // Up42 hosts listing
   const skyfiPayload = {
-    fromDate: searchSettings.startDate.toISOString(), // "2018-12-31T23:00:00.000Z",
-    toDate: searchSettings.endDate.toISOString(), // "2023-01-24T10:21:44.465Z",
+    fromDate: searchSettings.startDate.toISOString(),
+    toDate: searchSettings.endDate.toISOString(),
     maxCloudCoveragePercent: searchSettings.cloudCoverage,
     resolutions: resolutionArray,
     openData: false,
@@ -101,7 +110,7 @@ const searchSkyfi = async (searchSettings, skyfiApikey, searchPolygon = null, se
     skyfiResultsRaw = await ky.post(SKYFI_BASE_URL + '/platform-api/archives', {
       headers: {
         'X-Proxy-Key': process.env.PROXY_API_KEY,
-        'X-Skyfi-Api-Key': skyfiApiKey,
+        'X-Api-Key': resolvedApiKey,
         'content-type': 'application/json',
       },
       json: skyfiPayload,
@@ -114,7 +123,7 @@ const searchSkyfi = async (searchSettings, skyfiApikey, searchPolygon = null, se
     skyfiResultsRaw = await ky.get(url, {
       headers: {
         'X-Proxy-Key': process.env.PROXY_API_KEY,
-        'X-Api-Key': skyfiApiKey,
+        'X-Api-Key': resolvedApiKey,
       },
     }).json()
   }

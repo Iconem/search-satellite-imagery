@@ -10,7 +10,7 @@ const PROXY_BASE_URL = process.env.PROXY_BASE_URL
 const APOLLO_API_URL = `${PROXY_BASE_URL}?url=https://imagehunter-api.apollomapping.com`
 const APOLLO_DOMAIN = 'https://imagehunter.apollomapping.com'
 const baseApolloHeaders = {
-  'X-Api-Key': process.env.PROXY_API_KEY,
+  'X-Proxy-Key': process.env.PROXY_API_KEY,
   'x-custom-origin': APOLLO_DOMAIN,
   'x-custom-referer': APOLLO_DOMAIN,
   'accept': '*/*',
@@ -281,7 +281,7 @@ const formatApolloResults = (apolloResultsRaw): GeoJSON.FeatureCollection => {
 //       await ky
 //         .post(`${APOLLO_API_URL}/ajax/get_preview_image`, {
 //           headers: {
-//             'X-Api-Key': process.env.PROXY_API_KEY,
+//             'X-Proxy-Key': process.env.PROXY_API_KEY,
 //             'x-custom-origin': APOLLO_DOMAIN,
 //             'x-custom-referer': APOLLO_DOMAIN,
 //             'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
