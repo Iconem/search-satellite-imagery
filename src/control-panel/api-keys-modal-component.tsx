@@ -136,8 +136,11 @@ function ApiKeysModalComponent(props): React.ReactElement {
               <ListItem sx={{ display: 'list-item' }}>
                 <PasswordTextField
                   value={props.apiKeys[Providers.SKYFI]}
-                  onChange={(event) =>
-                    props.setApiKeys({ ...props.apiKeys, [Providers.SKYFI]: event.target.value })
+                  onBlur={(event) =>
+                    props.setApiKeys({
+                      ...props.apiKeys,
+                      [Providers.SKYFI]: event.target.value
+                    })
                   }
                   label="SkyFi API key"
                   sx={{ width: '50%' }}
