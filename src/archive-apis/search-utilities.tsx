@@ -396,69 +396,6 @@ const maxarNames = {
   [Satellites.Ikonos1]: 'IK01',
 }
 
-// const headNames = {
-//   [Constellation.Superview1]: 'SV-1',
-//   [Constellation.Superview2]: 'SV-2',
-//   [Satellites.EarthScanner]: 'JL1KF01-PMS',
-//   [Satellites.JilinGXA]: 'JilinGXA',
-//   [Satellites.JilinGF02AB]: 'JL1GF02-PMS',
-//   [Satellites.DailyVision1mJLGF3]: 'JL1GF03-PMS',
-//   [Satellites.Gaofen2]: 'GF-2',
-//   [Satellites.Gaofen7]: 'GF-7',
-// }
-const headSearchNames = {
-  [Satellites.SuperView1]: 'SuperView',
-  [Satellites.SuperView2]: 'SuperView',
-  [Satellites.EarthScanner]: 'EarthScanner-KF1', //
-  [Satellites.JilinGXA]: 'Jilin-GXA',
-  [Satellites.JilinGF02AB]: 'Jilin-GF02A/B',
-  [Satellites.DailyVision1mJLGF3]: 'DailyVision1m-JLGF3',
-  [Satellites.Gaofen2]: 'GaoFen-2',
-  // [Satellites.Gaofen7]: 'GaoFen-7',
-}
-
-const headConstellationDict = {
-  'SV-1': {
-    constellation: Constellation.Superview1,
-    min_area: 25,
-    price_per_sq_km: 9,
-  },
-  'SV-2': {
-    constellation: Constellation.Superview2,
-    min_area: 25,
-    price_per_sq_km: 12,
-  },
-  'JL1KF01-PMS': {
-    constellation: Constellation.EarthScanner,
-    min_area: 25,
-    price_per_sq_km: 7,
-  },
-  'JL1GF02-PMS': {
-    constellation: Constellation.DailyVision,
-    min_area: 25,
-    price_per_sq_km: 5,
-  },
-  'GF-2': {
-    constellation: Constellation.Gaofen2,
-    min_area: 25,
-    price_per_sq_km: 5,
-  },
-  'GF-7': {
-    constellation: Constellation.Gaofen7,
-    min_area: 25,
-    price_per_sq_km: 6,
-  },
-  'JL1GF03-PMS': {
-    constellation: Constellation.JL1GF03,
-  },
-  JL101A: {
-    constellation: Constellation.JL101A,
-  },
-  'JL104-PMS': {
-    constellation: Constellation.JL104,
-  },
-}
-
 const up42ConstellationDict = {
   phr: {
     constellation: Constellation.Pleiades,
@@ -475,16 +412,6 @@ const up42ConstellationDict = {
     price_per_sq_km: 15, // TODO: check pricing and min_area
     min_area: 0,
   },
-  // 'HEAD SuperView': {
-  //   constellation: 'SuperView',
-  //   price_per_sq_km: 9, // (9EUR/km2) 25km² min
-  //   min_area: 25
-  // },
-  // 'HEAD EarthScanner': {
-  //   constellation: 'EarthScanner',
-  //   price_per_sq_km: 7, // (7EUR/km2) 25km² min
-  //   min_area: 25
-  // },
 }
 
 const up42ProducersNames = {
@@ -625,8 +552,6 @@ export {
   eosNames,
   getMaxarPrice,
   maxarConstellationDict,
-  headConstellationDict,
-  headSearchNames,
   up42ConstellationDict,
   up42ProducersNames,
 }
