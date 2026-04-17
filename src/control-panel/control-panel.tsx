@@ -21,7 +21,7 @@ import area from '@turf/area'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronDown, faChevronUp, faDrawPolygon, faSliders, faEarthEurope } from '@fortawesome/free-solid-svg-icons'
 import { faTwitter, faGithub } from '@fortawesome/free-brands-svg-icons'
-import { getUp42Bearer, getDataCollections, extractUp42HostsWithGsd } from '../archive-apis/search-up42'
+import { getUp42Bearer, getDataCollections, extractUp42HostsWithGsd, getUp42TokenSafe } from '../archive-apis/search-up42'
 import { Providers, providersDict as initialProvidersDict, constellationDict as initialConstellationDict } from '../archive-apis/search-utilities'
 import PropTypes from 'prop-types'
 import DateRangeComponent from './date-range-component'
@@ -171,11 +171,23 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
     []
   )
   const [isUp42Loading, setIsUp42Loading] = React.useState(false);
+  //to check if the credentials are correct
+  const [up42Status, setUp42Status] = React.useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [up42Bearer, setUp42Bearer] = React.useState<string | null>(null);
 
   // Load UP42 data on component mount
   React.useEffect(() => {
     (async () => {
       const { up42Email, up42Password } = apiKeys[Providers.UP42];
+      // create a key that represents credentials
+      const credentialsKey = `${up42Email}-${up42Password}`;
+      const lastCredentialsKey = localStorage.getItem('up42CredentialsKey');
+
+      if (lastCredentialsKey !== credentialsKey) {
+        // credentials changed → reset cache
+        localStorage.removeItem('dataCollectionLastEdited');
+        localStorage.setItem('up42CredentialsKey', credentialsKey);
+      }
       if (!up42Email || !up42Password) {
         setters?.setSnackbarOptions({
           open: true,
@@ -183,6 +195,23 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
         });
         return;
       }
+      // we generate here the token so we can pass it to fetchPreview even if the datacollection is stored in the cash 
+      // let token = up42Bearer;
+      // if (!token) {
+      //   token = await getUp42Bearer(up42Email, up42Password);
+      //   setUp42Bearer(token);
+      // }
+      const token = await getUp42TokenSafe(up42Email, up42Password, setters);
+      if (!token) {
+        setUp42Status('error')
+        setDataCollection([])
+        setters?.setSnackbarOptions({
+          open: true,
+          message: 'Incorrect credentials',
+        });
+        return;
+      }
+
       const lastFetched = localStorage.getItem('dataCollectionLastEdited');
       const today = new Date().toDateString();
 
@@ -191,18 +220,11 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
         return;
       }
       setIsUp42Loading(true);
+      setUp42Status('loading')
       try {
-        const newToken = await getUp42Bearer(up42Email, up42Password);
-        if (!newToken || newToken === "") {
-          setDataCollection([])
-          setters?.setSnackbarOptions({
-            open: true,
-            message: 'Incorrect credentials',
-          });
-          return;
-        }
+        setUp42Status('success') //valid UP42 login
 
-        const data = await getDataCollections(newToken, up42Email, up42Password, setters);
+        const data = await getDataCollections(token, up42Email, up42Password, setters);
 
         // Only update if data actually changed
         setDataCollection((prev) => {
@@ -214,12 +236,22 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
 
         localStorage.setItem('dataCollectionLastEdited', today);
       } catch (error) {
+        setUp42Status('error')
         console.error('UP42 data collection error:', error);
       } finally {
         setIsUp42Loading(false);
       }
     })();
   }, [apiKeys[Providers.UP42].up42Email, apiKeys[Providers.UP42].up42Password]);
+
+  //if the credentials are incorrect dont add UP42 to the selection
+  React.useEffect(() => {
+    if (up42Status === 'error' || up42Status === 'loading') {
+      setProvidersTreeviewDataSelection(prev =>
+        prev.filter(id => !id.includes('UP42'))
+      )
+    }
+  }, [up42Status])
 
   // Merge hardcoded providers with dynamic UP42 data
   const { providersDict, constellationDict } = React.useMemo(() => {
@@ -246,8 +278,8 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
 
   // Build tree structure with loading state
   const treeviewData = React.useMemo(
-    () => buildTreeviewData(providersDict, constellationDict, isUp42Loading, apiKeys),
-    [providersDict, constellationDict, isUp42Loading, apiKeys[Providers.UP42].up42Email, apiKeys[Providers.UP42].up42Password]
+    () => buildTreeviewData(providersDict, constellationDict, isUp42Loading, up42Status, apiKeys),
+    [providersDict, constellationDict, isUp42Loading, up42Status, apiKeys[Providers.UP42].up42Email, apiKeys[Providers.UP42].up42Password]
   );
 
   // Initial selection (hardcoded providers only)
@@ -260,6 +292,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
 
   // Add UP42 to selection once loaded
   React.useEffect(() => {
+    if (up42Status !== 'success') return;
     if (!isUp42Loading && dataCollection.length > 0 && treeviewData) {
       const up42Provider = treeviewData.children?.find(
         provider => provider.id === `treeview-provider-${Providers.UP42}`
@@ -276,7 +309,6 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
           ];
 
           setProvidersTreeviewDataSelection(prev => {
-
             const withoutOldUp42 = prev.filter(id => !id.includes('treeview-constellation-UP42-'));
             const newSelection = [...withoutOldUp42, ...up42SelectionIds];
             return [...new Set(newSelection)];
@@ -285,7 +317,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
 
       }
     }
-  }, [isUp42Loading])
+  }, [isUp42Loading, up42Status])
 
   const setters = {
     setSearchResults: props.setSearchResults,
@@ -404,7 +436,18 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
             </Alert>
           </Snackbar>
 
-          {props.searchResults?.output?.features?.length > 0 && <SearchResultsComponent searchResults={props.searchResults.output} setFootprintFeatures={props.setFootprintFeatures} footprintFeatures={props.footprintFeatures} mapRef={props.mapRef} />}
+          {props.searchResults?.output?.features?.length > 0 &&
+            <SearchResultsComponent
+              searchResults={props.searchResults.output}
+              setFootprintFeatures={props.setFootprintFeatures}
+              footprintFeatures={props.footprintFeatures}
+              mapRef={props.mapRef}
+              setSearchResults={props.setSearchResults}
+              searchSettings={searchSettings}
+              apiKeys={apiKeys}
+              setters={setters}
+            />
+          }
         </div>
       </div>
     </>

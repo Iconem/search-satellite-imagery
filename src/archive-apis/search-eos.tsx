@@ -99,6 +99,15 @@ const searchEosHighres = async (searchSettings, eosApikey, searchPolygon = null,
   }
 }
 
+const buildEOSLink = (feature) => {
+  const hash = window.location.hash;
+  const [z, lat, lng] = hash.replace('#', '').split('/');
+
+  const sceneId = feature.hash;
+
+  return `https://eos.com/landviewer/?lat=${lat}&lng=${lng}&z=${z}&preset=highResolutionSensors&selectedTab=0&purchase-scene=${sceneId}`;
+};
+
 const formatEosResults = (eosResultsRaw): GeoJSON.FeatureCollection => {
   // meta':{'limit':1,'page':1,'found':15},
   return {
@@ -130,6 +139,7 @@ const formatEosResults = (eosResultsRaw): GeoJSON.FeatureCollection => {
           // 'dataUri': 'gs://tcifg-idp-prod-datastore-data-pilot-nearline/PDWPHR_20190325084500_4_SO19009267-4-01_DS_PHR1B_201903231024035_FR1_PX_E013N52_0915_02862.zip',
         },
         raw_result_properties: r,
+        permalink: buildEOSLink(r),
       },
       type: 'Feature',
     })),

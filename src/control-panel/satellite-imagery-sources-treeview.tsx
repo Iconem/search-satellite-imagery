@@ -4,7 +4,7 @@
 
 import * as React from 'react'
 import { TreeView, TreeItem } from '@mui/lab'
-import { Typography, Collapse, Checkbox, FormControlLabel, CircularProgress, Box } from '@mui/material'
+import { Typography, Collapse, Checkbox, FormControlLabel, CircularProgress, Box, Alert, Link } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronDown, faChevronUp, faChevronRight, faSatellite } from '@fortawesome/free-solid-svg-icons'
 import { useLocalStorage } from '../utilities'
@@ -18,10 +18,10 @@ interface RenderTree {
   disabled?: boolean
   loading?: boolean
 }
-
 const treeviewRootId = 'treeview-provider-root'
 
-function buildTreeviewData(providersDict, constellationDict, isUp42Loading = false, apiKeys): RenderTree {
+//create the treeview depends on the up42 loading/login
+function buildTreeviewData(providersDict, constellationDict, isUp42Loading = false, up42Status, apiKeys): RenderTree {
   return {
     id: treeviewRootId,
     name: 'Satellite Sources',
@@ -39,7 +39,18 @@ function buildTreeviewData(providersDict, constellationDict, isUp42Loading = fal
             }]
           };
         }
-
+        if (up42Status === 'error') {
+          return {
+            id: `treeview-provider-${providerKey}`,
+            name: `${providerKey} (Authentication failed)`,
+            disabled: true,
+            children: [{
+              id: `${providerKey}-error`,
+              name: 'Invalid credentials',
+              disabled: true
+            }]
+          }
+        }
         if (isUp42Loading) {
           return {
             id: `treeview-provider-${providerKey}`,
@@ -47,6 +58,7 @@ function buildTreeviewData(providersDict, constellationDict, isUp42Loading = fal
             children: [{
               id: `treeview-constellation-${providerKey}-loading`,
               name: 'Loading...',
+              disabled: true,
               loading: true,
               children: []
             }]
@@ -65,11 +77,13 @@ function buildTreeviewData(providersDict, constellationDict, isUp42Loading = fal
     }),
   };
 }
-
+//select all the providers, but in fact in up42 is not loggedin it shoul dnot be selected and integrated in the search ...
 const sourcesTreeviewInitialSelection = (treeviewData: RenderTree): string[] => {
   const result = (treeviewData.children ?? [])
+    .filter(provider => !provider.disabled)
     .map((provider) => {
-      const selIdx = (provider.children ?? []).map((source) => source.id)
+      const selIdx = (provider.children ?? [])
+        .map((source) => source.id)
       selIdx.push(provider.id)
       return selIdx
     })
@@ -141,11 +155,28 @@ function RecursiveTreeView(props): React.ReactElement {
     return { childNodesToToggle: getAllChild(nodeToToggle, array), path }
   }
 
+  // To make sure not to select disabled nodes(parents or children)
+  const isNodeSelectable = (nodeId) => {
+    const findNode = (node) => {
+      if (node.id === nodeId) return node
+      if (!node.children) return null
+
+      for (const child of node.children) {
+        const result = findNode(child)
+        if (result) return result
+      }
+      return null
+    }
+
+    const node = findNode(props.treeviewData)
+    return node && !node.disabled
+  }
+
   function getOnChange(checked: boolean, nodes: RenderTree): any {
     const { childNodesToToggle, path } = getChildById(props.treeviewData, nodes.id)
 
     let array = checked
-      ? [...props.providersTreeviewDataSelection, ...childNodesToToggle]
+      ? [...props.providersTreeviewDataSelection, ...childNodesToToggle.filter(isNodeSelectable)]
       : props.providersTreeviewDataSelection
         .filter((value) => !childNodesToToggle.includes(value))
         .filter((value) => !path.includes(value))
@@ -221,6 +252,7 @@ function SatelliteImagerySourcesTreeview(props): React.ReactElement {
         &nbsp; Satellite Sources Selection &nbsp;
         {advancedSettingsCollapsed ? <FontAwesomeIcon icon={faChevronDown} /> : <FontAwesomeIcon icon={faChevronUp} />}
       </Typography>
+
       {/* <Collapse in={!advancedSettingsCollapsed} timeout="auto" unmountOnExit>
 
         <RecursiveTreeView
@@ -231,6 +263,18 @@ function SatelliteImagerySourcesTreeview(props): React.ReactElement {
 
       </Collapse> */}
       <Collapse in={!advancedSettingsCollapsed} timeout="auto" unmountOnExit>
+        {/*  ADD warning indication to use an allow-cors plugin */}
+        <Alert severity="warning" >
+          Some providers require a CORS extension enabled to work properly like <Link href="https://chrome.google.com/webstore/detail/allow-cors-access-control/lhobafahddgcelffkeicbaginigeejlf" target="_blank" rel="noreferrer">
+            Chrome
+          </Link>
+          &nbsp; &nbsp;
+          <Link href="https://addons.mozilla.org/en-US/firefox/addon/access-control-allow-origin/" target="_blank" rel="noreferrer">
+            Firefox
+          </Link>
+          &nbsp;
+        </Alert>
+
         <RecursiveTreeView
           setProvidersTreeviewDataSelection={props.setProvidersTreeviewDataSelection}
           providersTreeviewDataSelection={props.providersTreeviewDataSelection}

@@ -1,14 +1,19 @@
 // Component for presenting search results on a mui-x datagrid
 
 import * as React from 'react'
-import { Tooltip, Typography, GlobalStyles, Box } from '@mui/material'
+import { Tooltip, Typography, GlobalStyles, Box, IconButton } from '@mui/material'
 import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarColumnsButton, GridToolbarDensitySelector, type GridRowHeightParams, type GridColDef, GridFooterContainer, GridPagination, gridPageCountSelector, useGridApiContext, useGridSelector, getGridStringOperators, GridFilterInputValue, type GridFilterItem, GridPreferencePanelsValue } from '@mui/x-data-grid'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCloudSun, faSquarePollHorizontal, faSatellite, faBolt, faVectorSquare } from '@fortawesome/free-solid-svg-icons'
+import { faCloudSun, faSquarePollHorizontal, faSatellite, faBolt, faVectorSquare, faCartShopping } from '@fortawesome/free-solid-svg-icons'
 import bbox from '@turf/bbox'
 
 import MuiPagination from '@mui/material/Pagination'
 import { type TablePaginationProps } from '@mui/material/TablePagination'
+
+import { generateXAuthToken as generateApolloToken, fetchApolloPreview, createApolloSearchPermalink } from '../archive-apis/search-apollo'
+import { Providers } from '../archive-apis/search-utilities'
+import { fetchUp42Preview, getUp42TokenSafe } from '../archive-apis/search-up42'
+import { string } from 'prop-types'
 
 /* SEARCH RESULTS COMPONENT */
 function CustomGridToolbar(): React.ReactElement {
@@ -16,7 +21,6 @@ function CustomGridToolbar(): React.ReactElement {
     <GridToolbarContainer
       sx={{
         '& .MuiButton-root': {
-          // color: 'black',
           fontSize: 'small',
           fontWeight: 300,
           textTransform: 'none',
@@ -33,8 +37,6 @@ function CustomGridToolbar(): React.ReactElement {
 function CustomFooter(): React.ReactElement {
   return (
     <GridFooterContainer>
-      {/* <GridPagination /> */}
-      {/* <GridAutoSizer /> */}
       <CustomPagination />
     </GridFooterContainer>
   )
@@ -88,7 +90,7 @@ const customStringFilterOperators = [
   },
 ]
 
-const datagridColumns: GridColDef[] = [
+const getDatagridColumns = (searchSettings) => [
   {
     field: 'acquisitionDate',
     // valueGetter: (params) => params.row.acquisitionDate.substring(0, 16).replace('T', ' '),
@@ -131,6 +133,109 @@ const datagridColumns: GridColDef[] = [
       return <p>{value === null ? '-' : `${checkUnknown(value, ' $')}`}</p>;// USD EURO
     },
     renderHeader: () => <strong>Price</strong>,
+  },
+  {
+    field: 'purchaseLink',
+    headerName: 'Purchase',
+    minWidth: 60,
+    flex: 0.6,
+    valueGetter: (params) => params.row?.permalink,
+
+    renderCell: (params) => {
+
+      const isApollo = params.row.providerPlatform === "APOLLO MAPPING";
+
+      // CASE 1 — APOLLO (no permalink → generate on click)
+      if (isApollo) {
+        const coords = params.row.raw_result_properties.geometry_coordinates;
+
+        const handleClick = async (e) => {
+          e.preventDefault();
+
+          try {
+            const sceneId = params.row.raw_result_properties.objectid;
+            const satellite = params.row.raw_result_properties.collection_vehicle_short;
+            const url = await createApolloSearchPermalink({
+              searchSettings,
+              sceneId,
+              satellite,
+              coords
+            });
+            if (url) {
+              window.open(url, "_blank");
+            }
+
+          } catch (err) {
+            console.error(err);
+          }
+        };
+
+        return (
+          <a href="#" onClick={handleClick}>
+            <span style={{
+              background: '#1976d2',
+              borderRadius: '6px',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              width: '40px',
+              height: '32px',
+              cursor: 'pointer'
+            }}>
+              <FontAwesomeIcon icon={faCartShopping} color="white" />
+            </span>
+          </a>
+        );
+      }
+
+      // CASE 2 — OTHER PROVIDERS WITH NO LINK
+      if (!params.value) {
+        return (
+          <Tooltip title='No permalink/deeplink support for this provider' disableInteractive>
+            <span
+              style={{
+                background: '#2a2a2a',
+                padding: '9px',
+                borderRadius: '6px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: '40px',
+                height: '32px',
+              }}>
+              <FontAwesomeIcon icon={faCartShopping} color="white" />
+            </span>
+          </Tooltip>
+        );
+      }
+
+      // CASE 3 — NORMAL PROVIDERS WITH PERMALINK
+      return (
+        <a
+          href={params.value}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span style={{
+            background: '#1976d2',
+            borderRadius: '6px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '40px',
+            height: '32px',
+          }}>
+            <FontAwesomeIcon icon={faCartShopping} color="white" />
+          </span>
+        </a>
+      );
+    },
+
+    renderHeader: () => (
+      <Tooltip title="Open this scene on the provider platform to purchase">
+        <strong>Buy</strong>
+      </Tooltip>
+    ),
   },
   // {
   //   field: 'constellation',
@@ -257,7 +362,6 @@ const datagridColumns: GridColDef[] = [
         }}
         alt=""
         src={params.value}
-      // onerror={"this.src='alternative.jpg';"}
       />
     ),
     valueGetter: (params) => params.row?.thumbnail_uri, // thumbnail_uri or preview_uri
@@ -265,37 +369,43 @@ const datagridColumns: GridColDef[] = [
   {
     field: 'preview',
     type: 'string',
-    renderCell: (params) => (
-      <img
-        src={params.value}
-        style={{
-          objectFit: 'cover',
-          width: '100%',
-          height: '100%',
-          pointerEvents: 'none',
-        }}
-        // onError={e => {
-        //    // or e.target.className = fallback_className
-        //   (e.target as any).src = NO_IMAGE_FALLBACK_URL;
-        // }}
-        title={'No Preview available'}
-      />
-    ),
+    renderCell: (params) => {
+      const value = params.value;
+      const isBlob = typeof value === 'string' && value.startsWith('blob:');
+      // 1. NO preview at all
+      if (value === undefined) {
+        return (
+          <span style={{ fontSize: 12, color: '#999' }}>
+            No preview available
+          </span>
+        );
+      }
+      // 2. Needs fetch (null OR dead blob)
+      if (value === null) {
+        return (
+          <span style={{ color: '#1976d2', fontSize: 12 }}>
+            Click to load preview
+          </span>
+        );
+      }
+      // 3. Valid image
+      return (
+        <img
+          src={value}
+          style={{
+            objectFit: 'cover',
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+          }}
+        />
+      );
+    },
     valueGetter: (params) => params.row?.preview_uri, // thumbnail_uri or preview_uri
     // resizable: true, // only works for datagrids with mui-x pro
     // width is not dynamic yet https://github.com/mui/mui-x/issues/1241
     minWidth: 200,
     flex: 1,
-    // width:({ id, densityFactor }: GridRowHeightParams) => {
-    //   switch (densityFactor) {
-    //     case 0.7:
-    //       return null;
-    //     case 1:
-    //       return 100;
-    //     case 1.3:
-    //       return 200;
-    //   }
-    // }
   },
   {
     field: 'identifier',
@@ -322,46 +432,100 @@ const getRowIdFromProps = (properties): string => `${properties.provider as stri
 const handleRowHover = (e, searchResults, setFootprintFeatures): void => {
   const rowId = e.target.parentElement.dataset.id // provider/id
   const row = searchResults.features.find((el) => getRowIdFromProps(el.properties) === rowId)
-  // setFootprintFeatures(row?.geometry)
   setFootprintFeatures(row)
 }
 
-const handleRowClick = (
-  params, // GridRowParams
-  event, // MuiEvent<React.MouseEvent<HTMLElement>>
-  details, // GridCallbackDetails
+const handleRowClick = async (
+  params,
+  event,
+  details,
   mapRef,
-  searchResults
-): void => {
-  const featureGeom = searchResults.features.find((el) => getRowIdFromProps(el.properties) === params.id)
-  console.log('rowClick params', params, featureGeom)
-  const bounds = bbox(featureGeom)
-  const [minLng, minLat, maxLng, maxLat] = bounds
+  searchResults,
+  setSearchResults,
+  apiKeys,
+  setters,
+): Promise<void> => {
+
+  // --- map zoom logic ---
+  const featureGeom = searchResults.features.find(
+    (el) => getRowIdFromProps(el.properties) === params.id
+  );
+  const bounds = bbox(featureGeom);
+  const [minLng, minLat, maxLng, maxLat] = bounds;
   mapRef?.current?.fitBounds(
-    [
-      [minLng, minLat],
-      [maxLng, maxLat],
-    ],
+    [[minLng, minLat], [maxLng, maxLat]],
     {
       padding: { top: 100, bottom: 100, left: 100, right: 100 },
       bearing: 0,
       center: [0.5 * (minLng + maxLng), 0.5 * (minLat + maxLat)],
     }
-  )
-}
+  );
+
+  // --- Apollo/UP42 on-demand preview ---
+  const provider = featureGeom?.properties?.providerPlatform;
+  const alreadyHasPreview = !!featureGeom?.properties?.preview_uri;
+  const { up42Email, up42Password } = apiKeys[Providers.UP42];
+  try {
+    let previewUrl: string | null = null;
+    let thumbnailUrl: string | null = null;
+
+    if (provider === Providers.APOLLO) {
+      if (alreadyHasPreview) return;
+      const token = await generateApolloToken();
+      previewUrl = await fetchApolloPreview(featureGeom, token);
+      thumbnailUrl = previewUrl;
+    }
+
+    if (provider === Providers.UP42) {
+      const token = await getUp42TokenSafe(up42Email, up42Password, setters);
+      const result = await fetchUp42Preview(featureGeom, token);
+      if (result) {
+        previewUrl = result.preview;
+        thumbnailUrl = result.thumbnail;
+      }
+    }
+
+    if (previewUrl) {
+      setSearchResults((prev) => {
+        if (!prev?.output?.features) return prev;
+
+        return {
+          ...prev,
+          output: {
+            ...prev.output,
+            features: prev.output.features.map((f) =>
+              getRowIdFromProps(f.properties) === params.id
+                ? {
+                  ...f,
+                  properties: {
+                    ...f.properties,
+                    preview_uri: thumbnailUrl,
+                    thumbnail_uri: thumbnailUrl,
+                  },
+                }
+                : f
+            ),
+          },
+        };
+      });
+    }
+
+  } catch (err) {
+    console.warn("Preview fetch failed", err);
+  }
+};
 
 function SearchResultsComponent(props): React.ReactElement {
   const searchResults = props.searchResults
+  const setSearchResults = props.setSearchResults
+  const searchSettings = props.searchSettings
+  const apiKeys = props.apiKeys
+  const setters = props.setters
   const [autoPageSizeBool, setAutoPageSizeBool] = React.useState(false)
 
   const selectionModel = props.footprintFeatures?.properties && [getRowIdFromProps(props.footprintFeatures?.properties)]
-  // console.log('selectionModel', selectionModel)
-
-  // const filterModel = {
-  //   items: [{ field: 'provider', operator: 'noContain', value: 'APOLLO' }],
-  // }
-
   const rows = searchResults.features.map((feature) => feature.properties)
+
   return (
     <>
       <Typography variant="subtitle1">
@@ -369,10 +533,9 @@ function SearchResultsComponent(props): React.ReactElement {
         &nbsp; Search Results
       </Typography>
 
-      {/* height: 600, */}
       <div style={{ width: '100%', flex: '1 1 auto', minHeight: '320px', overflow: 'auto' }}>
         <div style={{ display: 'flex', height: '100%' }}>
-          <div style={{ /* flexGrow: 1 */ width: '100%' }}>
+          <div style={{ width: '100%' }}>
             <GlobalStyles
               styles={{
                 '& .MuiDataGrid-panelWrapper': {
@@ -381,6 +544,11 @@ function SearchResultsComponent(props): React.ReactElement {
               }}
             />
             <DataGrid
+              sx={{
+                '& .MuiDataGrid-cell': {
+                  cursor: 'default',
+                },
+              }}
               onPaginationModelChange={(newModel, reason) => {
                 if (newModel.pageSize === 0) {
                   setAutoPageSizeBool(true)
@@ -407,11 +575,9 @@ function SearchResultsComponent(props): React.ReactElement {
               getRowId={(row: any) => getRowIdFromProps(row)}
               density="compact"
               sortingOrder={['desc', 'asc']}
-              // autoHeight
               components={{
                 Toolbar: CustomGridToolbar,
                 Footer: CustomFooter,
-                // ColumnMenu: CustomColumnMenuComponent,
               }}
               initialState={{
                 sorting: {
@@ -446,29 +612,22 @@ function SearchResultsComponent(props): React.ReactElement {
                   case 1.3:
                     return 200
                 }
-                // return 100 * densityFactor; // 70/100/130
-                // return null;
               }}
               disableColumnMenu={true}
               hideFooterSelectedRowCount={true}
               rowsPerPageOptions={[]}
-              columns={datagridColumns}
+              columns={getDatagridColumns(searchSettings)}
               rows={rows}
               onRowClick={(p, e, d) => {
-                handleRowClick(p, e, d, props.mapRef, searchResults)
+                handleRowClick(p, e, d, props.mapRef, searchResults, setSearchResults, apiKeys, setters)
               }}
               componentsProps={{
                 row: {
                   onMouseEnter: (e) => {
                     handleRowHover(e, searchResults, props.setFootprintFeatures)
                   },
-                  // onMouseLeave: e => props.setFootprintFeatures({
-                  //   coordinates: [],
-                  //   type: 'Polygon'
-                  // })
                 },
                 columnMenu: {
-                  // background: 'red',
                   counter: rows.length,
                 },
                 toolbar: {
@@ -483,7 +642,6 @@ function SearchResultsComponent(props): React.ReactElement {
               localeText={{
                 filterOperatorNoContain: 'does not contain',
               }}
-            // filterModel={filterModel}
             />
           </div>
         </div>

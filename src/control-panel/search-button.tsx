@@ -70,7 +70,7 @@ const providersSearch = {
   [Providers.SKYFI]: searchSkyfi,
   [Providers.OAM]: searchOpenaerialmap,
   [Providers.STAC]: searchStac,
-  // [Providers.APOLLO]: searchApollo,
+  [Providers.APOLLO]: searchApollo,
   [Providers.MAXAR_DIGITALGLOBE]: searchMaxar,
 }
 
@@ -194,7 +194,6 @@ const searchImagery = async (polygons, searchSettings, apiKeys, setters, provide
     )
   )
 
-
   // PROMISES FOR EACH SEARCH API
   const searchPromises = Object.fromEntries(
     // build a dict from a dict via an array of key-value pairs
@@ -224,7 +223,6 @@ const searchImagery = async (polygons, searchSettings, apiKeys, setters, provide
                   })
 
                 // Filter out results not matching resquest
-                // REFILTER ZINEB
                 searchResultsJson.features = searchResultsJson.features.filter((f) => filterFeaturesWithSearchParams(f, searchPolygon))
               })
               .catch((error) => {
