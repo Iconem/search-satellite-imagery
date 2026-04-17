@@ -53,7 +53,7 @@ const getEnabledProviderIds = async (): Promise<string[]> => {
   const data = await ky
     .get(SKYFI_BASE_URL + '/api/v4/catalog-specs/archive', {
       headers: {
-        'X-Api-Key': process.env.PROXY_API_KEY,
+        'X-Proxy-Key': process.env.PROXY_API_KEY,
       }
     })
     .json();
@@ -100,7 +100,7 @@ const searchSkyfi = async (searchSettings, skyfiApikey, searchPolygon = null, se
   if (!nextPageUrl) {
     skyfiResultsRaw = await ky.post(SKYFI_BASE_URL + '/platform-api/archives', {
       headers: {
-        'X-Api-Key': process.env.PROXY_API_KEY,
+        'X-Proxy-Key': process.env.PROXY_API_KEY,
         'X-Skyfi-Api-Key': skyfiApiKey,
         'content-type': 'application/json',
       },
@@ -113,8 +113,8 @@ const searchSkyfi = async (searchSettings, skyfiApikey, searchPolygon = null, se
 
     skyfiResultsRaw = await ky.get(url, {
       headers: {
-        'X-Api-Key': process.env.PROXY_API_KEY,
-        'X-Skyfi-Api-Key': skyfiApiKey,
+        'X-Proxy-Key': process.env.PROXY_API_KEY,
+        'X-Api-Key': skyfiApiKey,
       },
     }).json()
   }
