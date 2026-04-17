@@ -52,7 +52,7 @@ We're currently evaluating adding the following (complete list [here](https://gi
 
 ### Long Term
 
-- Helps order making/deep-links when available (no deep-links for any platform when checked unfortunately): make selection, export requests email with scene IDs, permalinks. Maxar sends post request to https://api.discover.digitalglobe.com/v1/store , head-aerospace is not very clean. EOS has clean permalinks.
+- Helps order making/deep-links when available (no deep-links for any platform when checked unfortunately): make selection, export requests email with scene IDs, permalinks. Maxar sends post request to https://api.discover.digitalglobe.com/v1/store . EOS has clean permalinks.
 - Not really useful: [intro-js](https://github.com/usablica/intro.js) or [reactour](https://reactour.vercel.app/) (or react-joyride) guided steps walkthrough/onboarding guides
 
 #### Serverless Proxy server - STAC conversion

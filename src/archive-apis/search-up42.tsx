@@ -45,8 +45,8 @@ const getUp42Bearer = async (
   password?: string,
   setters?: Record<string, (...args: any[]) => void>
 ): Promise<string> => {
-  const username = email && email.trim() !== "" ? email : process.env.REACT_APP_UP42_ACCOUNT_EMAIL;
-  const pwd = password && password.trim() !== "" ? password : process.env.REACT_APP_UP42_ACCOUNT_PASSWORD;
+  const username = email && email.trim() !== "" ? email : process.env.UP42_ACCOUNT_EMAIL;
+  const pwd = password && password.trim() !== "" ? password : process.env.UP42_ACCOUNT_PASSWORD;
   const formData = new URLSearchParams();
   if (!username || !pwd) {
     throw new Error("Missing credentials: email or password is undefined");
