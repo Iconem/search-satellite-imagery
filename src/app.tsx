@@ -278,7 +278,17 @@ App.propTypes = {
 }
 
 function ThemedApp(): React.ReactElement {
-  const [themePaletteMode, setThemePaletteMode] = useLocalStorage('UI_app_themePaletteMode', 'dark')
+  // Allow forcing the theme from the url (?theme=light|dark), e.g. when
+  // embedded in the meta app. The param wins over localStorage when present.
+  const urlTheme = new URLSearchParams(window.location.search).get('theme')
+  const [themePaletteMode, setThemePaletteMode] = useLocalStorage(
+    'UI_app_themePaletteMode',
+    urlTheme === 'light' || urlTheme === 'dark' ? urlTheme : 'dark',
+  )
+  if (urlTheme === 'light' || urlTheme === 'dark') {
+    localStorage.setItem('UI_app_themePaletteMode', JSON.stringify(urlTheme))
+    if (themePaletteMode !== urlTheme) setThemePaletteMode(urlTheme)
+  }
   const theme = createTheme(getDesignTokens(themePaletteMode))
   // const theme = React.useMemo(() => createTheme(a), [themePaletteMode]);
   return (
